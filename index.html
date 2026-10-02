@@ -69,10 +69,10 @@ function start(id){
   S.a={id:uid(),name:t.name,date:new Date().toISOString(),ex:t.ex.map(x=>{
     const g=target(x);
     return{name:x.name,m:x.m,rest:'',tg:`Cible : ${g.n}×${g.r}${x.m==='double'?'–'+x.max:''} à ${g.w} kg`,
-      sets:Array.from({length:g.n},()=>({w:g.w,r:g.r,rpe:'',done:false}))}})};
+      sets:Array.from({length:g.n},()=>({w:g.w,r:g.r,rpe:'',done:true}))}})};
   save();render();
 }
-function fmt(e){return e.sets.filter(s=>s.done).map(s=>`${s.w}×${s.r}`).join(', ')||'—'}
+function fmt(e){return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(', ')||'—'}
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
@@ -85,9 +85,9 @@ function home(){
 function session(){
   const a=S.a;
   return`<h1>${esc(a.name)}</h1>`+a.ex.map((e,i)=>`<div class=card><h2>${esc(e.name)}</h2><div class=sub>${e.tg} · ${METH[e.m]}</div>
-  <div class=row><span></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div><div style="width:30px"></div></div>`
-  +e.sets.map((s,j)=>`<div class=row><span>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select><input type=checkbox data-k="${i}.${j}.done"${s.done?' checked':''}></div>`).join('')
-  +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
+  <div class=row><span></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div></div>`
+  +e.sets.map((s,j)=>`<div class=row><span>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select></div>`).join('')
+  +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
   +`<div class=bar><button class=d data-a=cancel>Abandonner</button><button class=p data-a=finish>Terminer</button></div>`;
 }
 function editor(){
@@ -118,12 +118,13 @@ document.addEventListener('click',async ev=>{
   else if(a==='savet'){ed.ex=ed.ex.filter(x=>x.name.trim());if(!ed.name.trim()){alert('Donne un nom à la séance.');return}
     const k=S.t.findIndex(t=>t.id===ed.id);delete ed.new;k<0?S.t.push(ed):S.t[k]=ed;save();ed=null}
   else if(a==='start')start(b.dataset.id);
-  else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:false});save()}
+  else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:true});save()}
+  else if(a==='remset'){S.a.ex[i].sets.pop();save()}
   else if(a==='chrono'){
     if(tm&&tm.i===i){S.a.ex[i].rest=Math.round((Date.now()-tm.t)/1000);tm=null;save()}else tm={i,t:Date.now()}}
   else if(a==='cancel'){if(!confirm('Abandonner cette séance ?'))return;S.a=null;tm=null;save()}
   else if(a==='finish'){
-    const ex=S.a.ex.filter(e=>e.sets.some(s=>s.done));
+    const ex=S.a.ex.map(e=>({...e,sets:e.sets.filter(s=>+s.r>0).map(s=>({...s,done:true}))})).filter(e=>e.sets.length);
     if(!ex.length&&!confirm('Aucune série validée. Terminer quand même ?'))return;
     S.h.push({...S.a,ex});S.a=null;tm=null;save();view='hist'}
   else if(a==='export'){const j=JSON.stringify(S);
