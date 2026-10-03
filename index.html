@@ -77,6 +77,7 @@ function fmt(e){return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   $('#app').innerHTML=ed?editor():view==='hist'?history():S.a?session():home();
+  if(S.a&&!ed)keep();
 }
 function home(){
   return`<h1>Séances</h1>`+(S.t.length?S.t.map(t=>`<div class=card><h2>${esc(t.name)}</h2><div class=sub>${t.ex.map(x=>esc(x.name)).join(', ')||'Aucun exercice'}</div><div class=bar><button class=p data-a=start data-id=${t.id}>Démarrer</button><button data-a=edit data-id=${t.id}>Modifier</button></div></div>`).join(''):`<div class=empty>Aucune séance. Crée ta première séance avec ses exercices.</div>`)
@@ -84,11 +85,12 @@ function home(){
 }
 function session(){
   const a=S.a;
-  return`<h1>${esc(a.name)}</h1>`+a.ex.map((e,i)=>`<div class=card><h2>${esc(e.name)}</h2><div class=sub>${e.tg} · ${METH[e.m]}</div>
+  const E=a.editIdx!==undefined;
+  return`<h1>${E?'Modifier : ':''}${esc(a.name)}</h1>`+a.ex.map((e,i)=>`<div class=card><h2>${esc(e.name)}</h2><div class=sub>${e.tg} · ${METH[e.m]}</div>
   <div class=row><span></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div></div>`
   +e.sets.map((s,j)=>`<div class=row><span>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select></div>`).join('')
   +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
-  +`<div class=bar><button class=d data-a=cancel>Abandonner</button><button class=p data-a=finish>Terminer</button></div>`;
+  +`<div class=bar>${E?'<button class=d data-a=dellog>Supprimer</button>':''}<button class=d data-a=cancel>${E?'Annuler':'Abandonner'}</button><button class=p data-a=finish>${E?'Enregistrer':'Terminer'}</button></div>`;
 }
 function editor(){
   return`<h1>${ed.new?'Nouvelle séance':'Modifier la séance'}</h1><div class=card><label>Nom de la séance</label><input style="text-align:left" data-e=name value="${esc(ed.name)}"></div>`
@@ -98,11 +100,19 @@ function editor(){
   <button class=d data-a=delex data-i=${i}>Retirer l'exercice</button></div>`).join('')
   +`<button style="width:100%;margin-bottom:12px" data-a=addex>Ajouter un exercice</button><div class=bar><button class=d data-a=delt>Supprimer</button><button data-a=back>Annuler</button><button class=p data-a=savet>Enregistrer</button></div>`;
 }
+function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
+  return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#4da3ff" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 function history(){
-  const best={};S.h.forEach(h=>h.ex.forEach(e=>e.sets.filter(s=>s.done).forEach(s=>{if(!best[e.name]||+s.w>best[e.name])best[e.name]=+s.w})));
+  const best={},ser={},pr={},e1={};
+  S.h.forEach((h,hi)=>h.ex.forEach((e,ei)=>{const ok=e.sets.filter(s=>s.done&&+s.w>0);if(!ok.length)return;
+    const m=Math.max(...ok.map(s=>+s.w));(ser[e.name]=ser[e.name]||[]).push(m);
+    if(e.name in best&&m>best[e.name])pr[hi+'.'+ei]=1;
+    if(!(e.name in best)||m>best[e.name])best[e.name]=m;
+    e1[e.name]=Math.max(e1[e.name]||0,...ok.map(s=>s.w*(1+s.r/30)))}));
   const recs=Object.entries(best);
-  return`<h1>Historique</h1>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><span style="width:auto;color:var(--tx);font-weight:400">${esc(n)}</span><span class=pr style="width:auto">${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
-  +S.h.slice().reverse().map(h=>`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}</div>${h.ex.map(e=>`<div style="margin:4px 0"><b>${esc(e.name)}</b> <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span></div>`).join('')}</div>`).join('')
+  return`<h1>Historique</h1>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)}</div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=pr style="width:auto">${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
+  +S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0);
+    return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span></div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
   +`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
 }
 
@@ -119,14 +129,16 @@ document.addEventListener('click',async ev=>{
     const k=S.t.findIndex(t=>t.id===ed.id);delete ed.new;k<0?S.t.push(ed):S.t[k]=ed;save();ed=null}
   else if(a==='start')start(b.dataset.id);
   else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:true});save()}
+  else if(a==='editlog'){if(S.a&&!confirm('Une séance est en cours : elle sera remplacée. Continuer ?'))return;S.a=JSON.parse(JSON.stringify(S.h[i]));S.a.editIdx=i;view='home'}
+  else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
   else if(a==='remset'){S.a.ex[i].sets.pop();save()}
   else if(a==='chrono'){
     if(tm&&tm.i===i){S.a.ex[i].rest=Math.round((Date.now()-tm.t)/1000);tm=null;save()}else tm={i,t:Date.now()}}
-  else if(a==='cancel'){if(!confirm('Abandonner cette séance ?'))return;S.a=null;tm=null;save()}
+  else if(a==='cancel'){if(!confirm(S.a.editIdx!==undefined?'Annuler les modifications ?':'Abandonner cette séance ?'))return;S.a=null;tm=null;save()}
   else if(a==='finish'){
     const ex=S.a.ex.map(e=>({...e,sets:e.sets.filter(s=>+s.r>0).map(s=>({...s,done:true}))})).filter(e=>e.sets.length);
     if(!ex.length&&!confirm('Aucune série validée. Terminer quand même ?'))return;
-    S.h.push({...S.a,ex});S.a=null;tm=null;save();view='hist'}
+    const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist'}
   else if(a==='export'){const j=JSON.stringify(S);
     try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),alert('Sauvegarde copiée.'))}catch(e){}return}
   else if(a==='import'){const j=prompt('Colle ta sauvegarde');if(!j)return;try{S=JSON.parse(j);save()}catch(e){alert('Sauvegarde invalide.');return}}
@@ -140,6 +152,9 @@ document.addEventListener('change',ev=>{
     if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value}
   if(t.dataset.e&&t.tagName==='SELECT')render();
 });
+let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep()});
+setInterval(()=>{if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 render();
 </script></body></html>
