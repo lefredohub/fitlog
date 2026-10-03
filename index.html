@@ -17,8 +17,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background:ra
 main{position:relative;padding:calc(env(safe-area-inset-top) + 8px) 16px calc(112px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0 20px}
 h1{font:800 34px/1.05 -apple-system,"SF Pro Display",system-ui,sans-serif;letter-spacing:-1.2px;margin:0}
-.logo{width:48px;height:34px;fill:var(--y);filter:drop-shadow(0 0 10px rgba(255,214,10,.6));flex:none}
-.logo.lg{width:96px;height:67px;margin-bottom:14px}
+.logo{width:50px;height:33px;fill:var(--y);filter:drop-shadow(0 0 10px rgba(255,214,10,.6));flex:none}
+.logo.lg{width:100px;height:66px;margin-bottom:14px}
 h2{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:0 0 2px}
 .card{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--ln);border-radius:24px;padding:16px;margin-bottom:14px}
 .sub{color:var(--mut);font-size:13px;margin-bottom:8px}
@@ -50,9 +50,29 @@ const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let S;try{S=JSON.parse(localStorage.getItem('fitlog'))}catch(e){}
 S=S||{t:[],h:[],a:null};
-const save=()=>localStorage.setItem('fitlog',JSON.stringify(S));
+let pt=0,stT='';
+const save=()=>{localStorage.setItem('fitlog',JSON.stringify(S));if(CFG()){clearTimeout(pt);pt=setTimeout(()=>{pt=0;push()},6000)}};
+const CFG=()=>{try{const c=JSON.parse(localStorage.getItem('fitlog-sync'));return c&&c.repo&&c.token?c:null}catch(e){return null}};
+const setSt=t=>{stT=t;const e=$('#st');if(e)e.textContent=t};
+const b64=t=>btoa(unescape(encodeURIComponent(t)));
+const API=c=>`https://api.github.com/repos/${c.repo}/contents/fitlog.json`;
+const HD=(c,a='application/vnd.github+json')=>({Authorization:'Bearer '+c.token,Accept:a});
+async function push(){const c=CFG();if(!c)return;
+  try{let sha;const g=await fetch(API(c),{headers:HD(c)});
+    if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error(g.status);
+    const r=await fetch(API(c),{method:'PUT',headers:HD(c),body:JSON.stringify({message:'sauvegarde '+new Date().toISOString(),content:b64(JSON.stringify(S)),sha})});
+    if(!r.ok)throw new Error(r.status);
+    setSt('Dernière sauvegarde : '+new Date().toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))
+  }catch(e){setSt('Échec de la sauvegarde ('+e.message+')')}}
+async function pull(){const c=CFG();if(!c){setSt('Renseigne le dépôt et le jeton.');return}
+  try{const r=await fetch(API(c),{headers:HD(c,'application/vnd.github.raw+json')});if(!r.ok)throw new Error(r.status);
+    const d=JSON.parse(await r.text());if(!confirm('Remplacer les données de ce téléphone par la sauvegarde ?'))return;
+    S=d;localStorage.setItem('fitlog',JSON.stringify(S));setSt('Données restaurées.')
+  }catch(e){setSt('Échec de la restauration ('+e.message+')')}}
+function syncCard(){const c=CFG()||JSON.parse(localStorage.getItem('fitlog-sync')||'{}');
+  return`<div class=card><h2>Sauvegarde automatique</h2><div class=sub id=st>${esc(stT||(CFG()?'Active : sauvegarde après chaque modification.':'Non configurée.'))}</div><label>Dépôt GitHub privé</label><input style="text-align:left" data-s=repo placeholder="pseudo/fitlog-data" autocapitalize=none autocorrect=off value="${esc(c.repo||'')}"><label>Jeton d'accès</label><input type=password style="text-align:left" data-s=token placeholder="github_pat_…" autocapitalize=none value="${esc(c.token||'')}"><div class=bar><button data-a=pushnow>Sauvegarder</button><button data-a=pull>Restaurer</button></div></div>`}
 let view='home',ed=null,tm=null;
-const LOGO=(c='logo')=>`<svg class="${c}" viewBox="0 0 100 70"><polygon points="50,20 55,6 58,20 70,17 98,12 92,30 86,28 82,40 74,34 66,36 56,56 50,62 44,56 34,36 26,34 18,40 14,28 8,30 2,12 30,17 42,20 45,6"/></svg>`;
+const LOGO=(c='logo')=>`<svg class="${c}" viewBox="0 0 100 66"><polygon points="10,42 28,20 37,30 55,6 67,24 73,17 90,42"/><polyline points="46,16.5 51,19.5 55,15.5 59,19.5 63,16.5" fill="none" stroke="#000" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><polyline points="58,42 49,35 57,27" fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="0.1 5.6"/><rect x="4" y="52" width="92" height="5" rx="2.5"/><rect x="14" y="46" width="6" height="17" rx="2"/><rect x="22" y="49" width="4" height="11" rx="1.5"/><rect x="80" y="46" width="6" height="17" rx="2"/><rect x="74" y="49" width="4" height="11" rx="1.5"/></svg>`;
 const METH={double:'Double progression',linear:'Surcharge linéaire',volume:'Progression en volume'};
 
 function last(name){for(let i=S.h.length-1;i>=0;i--){const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return e}return null}
@@ -123,7 +143,7 @@ function history(){
   return`<div class=top><h1>Historique</h1>${LOGO()}</div>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)}</div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=big>${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
   +S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0);
     return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span></div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
-  +`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
+  +syncCard()+`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
 }
 
 document.addEventListener('click',async ev=>{
@@ -141,6 +161,8 @@ document.addEventListener('click',async ev=>{
   else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:true});save()}
   else if(a==='editlog'){if(S.a&&!confirm('Une séance est en cours : elle sera remplacée. Continuer ?'))return;S.a=JSON.parse(JSON.stringify(S.h[i]));S.a.editIdx=i;view='home'}
   else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
+  else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
+  else if(a==='pull')await pull();
   else if(a==='remset'){S.a.ex[i].sets.pop();save()}
   else if(a==='chrono'){
     if(tm&&tm.i===i){S.a.ex[i].rest=Math.round((Date.now()-tm.t)/1000);tm=null;save()}else tm={i,t:Date.now()}}
@@ -160,10 +182,11 @@ document.addEventListener('change',ev=>{
     if(p.length===2)x[p[1]]=t.value;else x.sets[p[1]][p[2]]=t.type==='checkbox'?t.checked:t.value;save()}
   else if(e){const p=e.split('.');
     if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value}
+  else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
   if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep()});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(document.hidden&&pt){clearTimeout(pt);pt=0;push()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 render();
