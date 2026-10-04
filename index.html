@@ -73,6 +73,7 @@ function syncCard(){const c=CFG()||JSON.parse(localStorage.getItem('fitlog-sync'
   return`<div class=card><h2>Sauvegarde automatique</h2><div class=sub id=st>${esc(stT||(CFG()?'Active : sauvegarde après chaque modification.':'Non configurée.'))}</div><label>Dépôt GitHub privé</label><input style="text-align:left" data-s=repo placeholder="pseudo/fitlog-data" autocapitalize=none autocorrect=off value="${esc(c.repo||'')}"><label>Jeton d'accès</label><input type=password style="text-align:left" data-s=token placeholder="github_pat_…" autocapitalize=none value="${esc(c.token||'')}"><div class=bar><button data-a=pushnow>Sauvegarder</button><button data-a=pull>Restaurer</button></div></div>`}
 let view='home',ed=null,tm=null;
 const LOGO=(c='logo')=>`<img class="${c}" src="icon-180.png" alt="">`;
+const mv=i=>`<button data-a=mv data-i=${i} data-d=-1 style="padding:8px 11px;font-size:14px">↑</button><button data-a=mv data-i=${i} data-d=1 style="padding:8px 11px;font-size:14px">↓</button>`;
 const METH={double:'Double progression',linear:'Surcharge linéaire',volume:'Progression en volume'};
 
 function last(name){for(let i=S.h.length-1;i>=0;i--){const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return e}return null}
@@ -97,12 +98,14 @@ function target(x){
 function start(id){
   const t=S.t.find(t=>t.id===id);
   S.a={id:uid(),name:t.name,date:new Date().toISOString(),ex:t.ex.map(x=>{
+    if(x.t==='cardio'){const l=last(x.name),p=l&&l.sets.find(s=>s.done),d=p?p.d:x.min,v=p?p.l:(x.lvl||'');
+      return{name:x.name,t:'cardio',m:x.m,rest:'',tg:`Cible : ${d} min${v?', niveau '+v:''}`,sets:[{d,l:v,done:true}]}}
     const g=target(x);
     return{name:x.name,m:x.m,rest:'',tg:`Cible : ${g.n}×${g.r}${x.m==='double'?'–'+x.max:''} à ${g.w} kg`,
       sets:Array.from({length:g.n},()=>({w:g.w,r:g.r,rpe:'',done:true}))}})};
   save();render();
 }
-function fmt(e){if(e.skip)return'Pas fait';return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(', ')||'—'}
+function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filter(s=>s.done).map(s=>`${s.d} min${s.l?' · niveau '+s.l:''}`).join(', ')||'—';return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(', ')||'—'}
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
@@ -116,7 +119,7 @@ function home(){
 function session(){
   const a=S.a;
   const E=a.editIdx!==undefined;
-  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></div><div class=sub>${e.tg} · ${METH[e.m]}</div>
+  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:e.t==='cardio'?`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px">${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg}</div><div class=row><div style="flex:1"><label>Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label>Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div></div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px">${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg} · ${METH[e.m]}</div>
   <div class=row><span class=n style="background:none"></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div></div>`
   +e.sets.map((s,j)=>`<div class=row><span class=n>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select></div>`).join('')
   +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
@@ -125,9 +128,8 @@ function session(){
 function editor(){
   return`<div class=top><h1>${ed.new?'Nouvelle séance':'Modifier la séance'}</h1></div><div class=card><label>Nom de la séance</label><input style="text-align:left" data-e=name value="${esc(ed.name)}"></div>`
   +ed.ex.map((x,i)=>`<div class=card><label>Exercice</label><input style="text-align:left" data-e="${i}.name" value="${esc(x.name)}">
-  <div class=g><div><label>Séries</label><input type=number inputmode=numeric data-e="${i}.sets" value="${x.sets}"></div><div><label>Reps min</label><input type=number inputmode=numeric data-e="${i}.min" value="${x.min}"></div><div><label>Reps max</label><input type=number inputmode=numeric data-e="${i}.max" value="${x.max}"></div><div><label>Charge (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.w" value="${x.w}"></div><div><label>Pas (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.inc" value="${x.inc}"></div></div>
-  <label>Méthode de progression</label><select data-e="${i}.m">${Object.entries(METH).map(([k,v])=>`<option value=${k}${x.m===k?' selected':''}>${v}`).join('')}</select>
-  <button class=d data-a=delex data-i=${i}>Retirer l'exercice</button></div>`).join('')
+  <label>Type</label><select data-e="${i}.t"><option value="">Muscu<option value=cardio${x.t==='cardio'?' selected':''}>Cardio (minutes)</select>${x.t==='cardio'?`<div class=g><div><label>Durée (min)</label><input type=number inputmode=decimal step=any data-e="${i}.min" value="${x.min}"></div><div><label>Niveau</label><input type=number inputmode=decimal step=any data-e="${i}.lvl" value="${x.lvl||''}"></div></div>`:`<div class=g><div><label>Séries</label><input type=number inputmode=numeric data-e="${i}.sets" value="${x.sets}"></div><div><label>Reps min</label><input type=number inputmode=numeric data-e="${i}.min" value="${x.min}"></div><div><label>Reps max</label><input type=number inputmode=numeric data-e="${i}.max" value="${x.max}"></div><div><label>Charge (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.w" value="${x.w}"></div><div><label>Pas (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.inc" value="${x.inc}"></div></div>
+  <label>Méthode de progression</label><select data-e="${i}.m">${Object.entries(METH).map(([k,v])=>`<option value=${k}${x.m===k?' selected':''}>${v}`).join('')}</select>`}<div class=bar>${mv(i)}<button class=d data-a=delex data-i=${i}>Retirer l'exercice</button></div></div>`).join('')
   +`<button style="width:100%;margin-bottom:12px" data-a=addex>Ajouter un exercice</button><div class=bar><button class=d data-a=delt>Supprimer</button><button data-a=back>Annuler</button><button class=p data-a=savet>Enregistrer</button></div>`;
 }
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
@@ -163,13 +165,14 @@ document.addEventListener('click',async ev=>{
   else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
   else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
   else if(a==='pull')await pull();
+  else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed)save()}}
   else if(a==='skip'){S.a.ex[i].skip=!S.a.ex[i].skip;save()}
   else if(a==='remset'){S.a.ex[i].sets.pop();save()}
   else if(a==='chrono'){
     if(tm&&tm.i===i){S.a.ex[i].rest=Math.round((Date.now()-tm.t)/1000);tm=null;save()}else tm={i,t:Date.now()}}
   else if(a==='cancel'){if(!confirm(S.a.editIdx!==undefined?'Annuler les modifications ?':'Abandonner cette séance ?'))return;S.a=null;tm=null;save()}
   else if(a==='finish'){
-    const ex=S.a.ex.map(e=>e.skip?{...e,sets:[]}:{...e,sets:e.sets.filter(s=>+s.r>0).map(s=>({...s,done:true}))}).filter(e=>e.skip||e.sets.length);
+    const ex=S.a.ex.map(e=>e.skip?{...e,sets:[]}:{...e,sets:e.sets.filter(s=>+(e.t==='cardio'?s.d:s.r)>0).map(s=>({...s,done:true}))}).filter(e=>e.skip||e.sets.length);
     if(!ex.length&&!confirm('Aucune série validée. Terminer quand même ?'))return;
     const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist'}
   else if(a==='export'){const j=JSON.stringify(S);
