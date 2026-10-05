@@ -44,7 +44,7 @@ nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;st
 .empty{color:var(--mut);text-align:center;padding:36px 10px 28px}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 </style></head><body><main id="app"></main>
-<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Séances</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button></nav>
+<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Séances</button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>Course</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button></nav>
 <script>
 const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -109,7 +109,7 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#app').innerHTML=ed?editor():view==='hist'?history():S.a?session():home();
+  $('#app').innerHTML=ed?editor():view==='run'?runs():view==='hist'?history():S.a?session():home();
   if(S.a&&!ed)keep();
 }
 function home(){
@@ -119,7 +119,7 @@ function home(){
 function session(){
   const a=S.a;
   const E=a.editIdx!==undefined;
-  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:e.t==='cardio'?`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px">${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg}</div><div class=row><div style="flex:1"><label>Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label>Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div></div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px">${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg} · ${METH[e.m]}</div>
+  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:e.t==='cardio'?`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg}</div><div class=row><div style="flex:1"><label>Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label>Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div></div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg} · ${METH[e.m]}</div>
   <div class=row><span class=n style="background:none"></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div></div>`
   +e.sets.map((s,j)=>`<div class=row><span class=n>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select></div>`).join('')
   +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
@@ -132,6 +132,35 @@ function editor(){
   <label>Méthode de progression</label><select data-e="${i}.m">${Object.entries(METH).map(([k,v])=>`<option value=${k}${x.m===k?' selected':''}>${v}`).join('')}</select>`}<div class=bar>${mv(i)}<button class=d data-a=delex data-i=${i}>Retirer l'exercice</button></div></div>`).join('')
   +`<button style="width:100%;margin-bottom:12px" data-a=addex>Ajouter un exercice</button><div class=bar><button class=d data-a=delt>Supprimer</button><button data-a=back>Annuler</button><button class=p data-a=savet>Enregistrer</button></div>`;
 }
+const SC=()=>{try{const c=JSON.parse(localStorage.getItem('fitlog-strava'));return c&&c.url&&c.key?c:null}catch(e){return null}};
+let stS='';const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
+async function syncRuns(auto){const c=SC();if(!c){if(!auto)setSv("Renseigne l'adresse du Worker et la clé.");return}
+  try{setSv('Synchronisation…');S.runs=S.runs||[];
+    const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0);
+    const after=last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400;
+    const r=await fetch(c.url.replace(/\/$/,'')+'/activities?after='+after,{headers:{Authorization:'Bearer '+c.key}});
+    if(r.status===409){setSv('Strava pas encore connecté : touche « Connecter Strava ».');return}
+    if(!r.ok)throw new Error(r.status);
+    const a=await r.json();a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});
+    S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render()
+  }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
+const autoSync=()=>{if(SC()&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
+const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
+const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
+const pace=r=>{const t=Math.round(r.s/r.km);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+function stravaCard(){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');
+  const m=stS||(SC()?(S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé.'):'Non configuré : voir le guide strava-setup.md.');
+  return`<div class=card><h2>Strava</h2><div class=sub id=sv>${esc(m)}</div><label>Adresse du Worker</label><input style="text-align:left" data-p=url placeholder="https://fitlog-strava.xxx.workers.dev" autocapitalize=none autocorrect=off value="${esc(c.url||'')}"><label>Clé d'accès</label><input type=password style="text-align:left" data-p=key autocapitalize=none value="${esc(c.key||'')}"><div class=bar><button data-a=connect>Connecter Strava</button><button class=p data-a=syncnow>Synchroniser</button></div></div>`}
+function runs(){
+  const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d)),now=wk(Date.now()),W=[];
+  for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
+  const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
+  const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" fill="${i===7?'#ffd60a':'#25272e'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" fill="#c9c9d1">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" fill="#8e8e99">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
+  return`<div class=top><h1>Course</h1>${LOGO()}</div>`+(SC()?'':stravaCard())
+  +(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
+    +R.slice(0,40).map(r=>`<div class=card><div class=row style="justify-content:space-between;margin:0"><h2>${esc(r.n)}</h2><span class=big>${r.km.toFixed(1)} km</span></div><div class=sub style="margin:2px 0 0">${new Date(r.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}</div><div style="margin-top:8px"><span class=pill>${hms(r.s)}</span><span class=pill>${pace(r)} /km</span>${r.up?`<span class=pill>D+ ${r.up} m</span>`:''}${r.hr?`<span class=pill>${r.hr} bpm</span>`:''}</div></div>`).join('')
+    :`<div class=empty>Aucune sortie pour l'instant.<br>Connecte Strava pour les importer.</div>`)+(SC()?stravaCard():'');
+}
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
   return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#64d2ff" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 function history(){
@@ -142,7 +171,7 @@ function history(){
     if(!(e.name in best)||m>best[e.name])best[e.name]=m;
     e1[e.name]=Math.max(e1[e.name]||0,...ok.map(s=>s.w*(1+s.r/30)))}));
   const recs=Object.entries(best);
-  return`<div class=top><h1>Historique</h1>${LOGO()}</div>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)}</div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=big>${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
+  return`<div class=top><h1>Historique</h1>${LOGO()}</div>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)} <button data-a=rn data-n="${esc(n)}" style="padding:2px 9px;font-size:13px;border-radius:10px">✎</button></div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=big>${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
   +S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0);
     return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span></div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
   +syncCard()+`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
@@ -165,6 +194,12 @@ document.addEventListener('click',async ev=>{
   else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
   else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
   else if(a==='pull')await pull();
+  else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exercice",o)||'').trim();if(!n||n===o)return;e.name=n;
+    if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
+  else if(a==='rn'){const o=b.dataset.n,n=(prompt('Nouveau nom pour « '+o+' » (partout : historique et séances types)',o)||'').trim();if(!n||n===o)return;
+    S.h.forEach(h=>h.ex.forEach(e=>{if(e.name===o)e.name=n}));S.t.forEach(t=>t.ex.forEach(e=>{if(e.name===o)e.name=n}));if(S.a)S.a.ex.forEach(e=>{if(e.name===o)e.name=n});save()}
+  else if(a==='connect'){const c=SC();if(!c)setSv("Renseigne d'abord l'adresse du Worker et la clé.");else window.open(c.url.replace(/\/$/,'')+'/connect?key='+encodeURIComponent(c.key),'_blank')}
+  else if(a==='syncnow')await syncRuns();
   else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed)save()}}
   else if(a==='skip'){S.a.ex[i].skip=!S.a.ex[i].skip;save()}
   else if(a==='remset'){S.a.ex[i].sets.pop();save()}
@@ -187,11 +222,13 @@ document.addEventListener('change',ev=>{
   else if(e){const p=e.split('.');
     if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value}
   else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
+  else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
   if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(document.hidden&&pt){clearTimeout(pt);pt=0;push()}});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden)autoSync();if(document.hidden&&pt){clearTimeout(pt);pt=0;push()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 render();
+autoSync();
 </script></body></html>
