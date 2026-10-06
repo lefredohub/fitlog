@@ -74,9 +74,13 @@ function syncCard(){const c=CFG()||JSON.parse(localStorage.getItem('fitlog-sync'
 let view='home',ed=null,tm=null;
 const LOGO=(c='logo')=>`<img class="${c}" src="icon-180.png" alt="">`;
 const mv=i=>`<button data-a=mv data-i=${i} data-d=-1 style="padding:8px 11px;font-size:14px">↑</button><button data-a=mv data-i=${i} data-d=1 style="padding:8px 11px;font-size:14px">↓</button>`;
+const pv=n=>{const l=last(n);return l?`Dernière fois (${new Date(l.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}) : ${fmt(l)}`:''};
+const hint=e=>(e.prev?`<div class=sub style="margin-top:-4px">${esc(e.prev)}</div>`:'')+(e.pn?`<div class=sub style="margin-top:-4px">Note précédente : ${esc(e.pn)}</div>`:'');
+const noteField=(i,e)=>`<input style="text-align:left;font-size:15px;margin-top:6px" placeholder="Note (réglage, sensation…)" data-k="${i}.note" value="${esc(e.note||'')}">`;
+const exNames=()=>[...new Set([...S.t.flatMap(t=>t.ex.map(e=>e.name)),...S.h.flatMap(h=>h.ex.map(e=>e.name))])].filter(Boolean);
 const METH={double:'Double progression',linear:'Surcharge linéaire',volume:'Progression en volume'};
 
-function last(name){for(let i=S.h.length-1;i>=0;i--){const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return e}return null}
+function last(name){for(let i=S.h.length-1;i>=0;i--){const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return{...e,date:S.h[i].date}}return null}
 
 // Calcule la cible de la prochaine séance pour un exo du modèle
 function target(x){
@@ -99,9 +103,9 @@ function start(id){
   const t=S.t.find(t=>t.id===id);
   S.a={id:uid(),name:t.name,date:new Date().toISOString(),ex:t.ex.map(x=>{
     if(x.t==='cardio'){const l=last(x.name),p=l&&l.sets.find(s=>s.done),d=p?p.d:x.min,v=p?p.l:(x.lvl||'');
-      return{name:x.name,t:'cardio',m:x.m,rest:'',tg:`Cible : ${d} min${v?', niveau '+v:''}`,sets:[{d,l:v,done:true}]}}
+      return{name:x.name,t:'cardio',m:x.m,rest:'',note:'',prev:pv(x.name),pn:(l&&l.note)||'',tg:`Cible : ${d} min${v?', niveau '+v:''}`,sets:[{d,l:v,done:true}]}}
     const g=target(x);
-    return{name:x.name,m:x.m,rest:'',tg:`Cible : ${g.n}×${g.r}${x.m==='double'?'–'+x.max:''} à ${g.w} kg`,
+    return{name:x.name,m:x.m,rest:'',note:'',prev:pv(x.name),pn:(last(x.name)||{}).note||'',tg:`Cible : ${g.n}×${g.r}${x.m==='double'?'–'+x.max:''} à ${g.w} kg`,
       sets:Array.from({length:g.n},()=>({w:g.w,r:g.r,rpe:'',done:true}))}})};
   save();render();
 }
@@ -109,25 +113,25 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#app').innerHTML=ed?editor():view==='run'?runs():view==='hist'?history():S.a?session():home();
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():view==='run'?runs():view==='hist'?history():S.a?session():home())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
   if(S.a&&!ed)keep();
 }
 function home(){
-  return`<div class=top><h1>Séances</h1>${LOGO()}</div>`+(S.t.length?S.t.map(t=>`<div class=card><h2>${esc(t.name)}</h2><div style="margin:8px 0 14px">${t.ex.map(x=>`<span class=pill>${esc(x.name)}</span>`).join('')||'<span class=sub>Aucun exercice</span>'}</div><div class=bar><button class=p data-a=start data-id=${t.id}>Démarrer</button><button data-a=edit data-id=${t.id}>Modifier</button></div></div>`).join(''):`<div class=empty>${LOGO('logo lg')}<br>Aucune séance.<br>Crée la première avec ses exercices.</div>`)
-  +`<button class=p style="width:100%" data-a=new>Créer une séance</button>`;
+  return`<div class=top><h1>Séances</h1>${LOGO()}</div>`+(S.t.length?S.t.map(t=>`<div class=card><h2>${esc(t.name)}</h2><div style="margin:8px 0 14px">${t.ex.map(x=>`<span class=pill>${esc(x.name)}</span>`).join('')||'<span class=sub>Aucun exercice</span>'}</div><div class=bar><button class=p data-a=start data-id=${t.id}>Démarrer</button><button data-a=edit data-id=${t.id}>Modifier</button></div><div class=bar style="margin-top:8px"><button data-a=dup data-id=${t.id}>Dupliquer</button><button data-a=share data-id=${t.id}>Partager</button></div></div>`).join(''):`<div class=empty>${LOGO('logo lg')}<br>Aucune séance.<br>Crée la première avec ses exercices.</div>`)
+  +`<button class=p style="width:100%" data-a=new>Créer une séance</button><button style="width:100%;margin-top:10px" data-a=impt>Importer une séance reçue</button>`;
 }
 function session(){
   const a=S.a;
   const E=a.editIdx!==undefined;
-  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:e.t==='cardio'?`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg}</div><div class=row><div style="flex:1"><label>Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label>Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div></div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg} · ${METH[e.m]}</div>
+  return`<div class=top><h1>${E?'Modifier : ':''}${esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>`+a.ex.map((e,i)=>e.skip?`<div class=card style="opacity:.55"><div class=row style="justify-content:space-between;margin:0"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Annuler</button></div></div>`:e.t==='cardio'?`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg}</div>${hint(e)}<div class=row><div style="flex:1"><label>Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label>Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div>${noteField(i,e)}</div>`:`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px"><h2>${esc(e.name)}</h2><span style="display:flex;gap:6px"><button data-a=rnx data-i=${i} style="padding:8px 11px;font-size:14px">✎</button>${mv(i)}<button data-a=skip data-i=${i} style="padding:8px 12px;font-size:14px">Pas fait</button></span></div><div class=sub>${e.tg} · ${METH[e.m]}</div>${hint(e)}
   <div class=row><span class=n style="background:none"></span><div class=sub style="flex:1;margin:0;text-align:center">kg</div><div class=sub style="flex:1;margin:0;text-align:center">reps</div><div class=sub style="flex:1;margin:0;text-align:center">RPE</div></div>`
   +e.sets.map((s,j)=>`<div class=row><span class=n>${j+1}</span><input type=number inputmode=decimal step=any data-k="${i}.${j}.w" value="${s.w}"><input type=number inputmode=numeric data-k="${i}.${j}.r" value="${s.r}"><select data-k="${i}.${j}.rpe"><option value="">–${[6,7,8,9,10].map(v=>`<option${s.rpe==v?' selected':''}>${v}`).join('')}</select></div>`).join('')
-  +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div></div>`).join('')
+  +`<div class=row><button data-a=addset data-i=${i}>+ Série</button><button data-a=remset data-i=${i}>− Série</button></div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div>${noteField(i,e)}</div>`).join('')
   +`<div class=bar>${E?'<button class=d data-a=dellog>Supprimer</button>':''}<button class=d data-a=cancel>${E?'Annuler':'Abandonner'}</button><button class=p data-a=finish>${E?'Enregistrer':'Terminer'}</button></div>`;
 }
 function editor(){
   return`<div class=top><h1>${ed.new?'Nouvelle séance':'Modifier la séance'}</h1></div><div class=card><label>Nom de la séance</label><input style="text-align:left" data-e=name value="${esc(ed.name)}"></div>`
-  +ed.ex.map((x,i)=>`<div class=card><label>Exercice</label><input style="text-align:left" data-e="${i}.name" value="${esc(x.name)}">
+  +ed.ex.map((x,i)=>`<div class=card><label>Exercice</label><input style="text-align:left" list=exn data-e="${i}.name" value="${esc(x.name)}">
   <label>Type</label><select data-e="${i}.t"><option value="">Muscu<option value=cardio${x.t==='cardio'?' selected':''}>Cardio (minutes)</select>${x.t==='cardio'?`<div class=g><div><label>Durée (min)</label><input type=number inputmode=decimal step=any data-e="${i}.min" value="${x.min}"></div><div><label>Niveau</label><input type=number inputmode=decimal step=any data-e="${i}.lvl" value="${x.lvl||''}"></div></div>`:`<div class=g><div><label>Séries</label><input type=number inputmode=numeric data-e="${i}.sets" value="${x.sets}"></div><div><label>Reps min</label><input type=number inputmode=numeric data-e="${i}.min" value="${x.min}"></div><div><label>Reps max</label><input type=number inputmode=numeric data-e="${i}.max" value="${x.max}"></div><div><label>Charge (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.w" value="${x.w}"></div><div><label>Pas (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.inc" value="${x.inc}"></div></div>
   <label>Méthode de progression</label><select data-e="${i}.m">${Object.entries(METH).map(([k,v])=>`<option value=${k}${x.m===k?' selected':''}>${v}`).join('')}</select>`}<div class=bar>${mv(i)}<button class=d data-a=delex data-i=${i}>Retirer l'exercice</button></div></div>`).join('')
   +`<button style="width:100%;margin-bottom:12px" data-a=addex>Ajouter un exercice</button><div class=bar><button class=d data-a=delt>Supprimer</button><button data-a=back>Annuler</button><button class=p data-a=savet>Enregistrer</button></div>`;
@@ -156,11 +160,76 @@ function runs(){
   for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
   const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
   const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" fill="${i===7?'#ffd60a':'#25272e'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" fill="#c9c9d1">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" fill="#8e8e99">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
-  return`<div class=top><h1>Course</h1>${LOGO()}</div>`+(SC()?'':stravaCard())
+  return`<div class=top><h1>Course</h1>${LOGO()}</div>`+(SC()?'':stravaCard())+planBlock()+weekCard(R)
   +(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
     +R.slice(0,40).map(r=>`<div class=card><div class=row style="justify-content:space-between;margin:0"><h2>${esc(r.n)}</h2><span class=big>${r.km.toFixed(1)} km</span></div><div class=sub style="margin:2px 0 0">${new Date(r.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}</div><div style="margin-top:8px"><span class=pill>${hms(r.s)}</span><span class=pill>${pace(r)} /km</span>${r.up?`<span class=pill>D+ ${r.up} m</span>`:''}${r.hr?`<span class=pill>${r.hr} bpm</span>`:''}</div></div>`).join('')
     :`<div class=empty>Aucune sortie pour l'instant.<br>Connecte Strava pour les importer.</div>`)+(SC()?stravaCard():'');
 }
+const DN=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],DF=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+let ge=null,planAll=false;
+const pf=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+const sd=(w,d)=>{const x=new Date(w);x.setDate(x.getDate()+d);return x};
+const tsec=t=>{const p=String(t).trim().split(':').map(Number);if(!p.length||p.some(isNaN))return 0;return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:0};
+const avgBase=()=>{const c=Date.now()-28*864e5;return Math.round((S.runs||[]).filter(r=>new Date(r.d)>c).reduce((a,r)=>a+r.km,0)/4)||15};
+const QT=['Tempo','Fractionné','Allure objectif'];
+function genPlan(g){
+  const D=864e5,t0=wk(Date.now()),race=new Date(g.date+'T12:00:00').getTime(),n=Math.round((wk(race)-t0)/(7*D))+1;
+  if(!(n>=1))return null;
+  const P=g.time/g.dist,pe=pf(P*1.23),pt=pf(P*.98),pn=pf(P*.94),po=pf(P);
+  const days=[...g.days].sort((a,b)=>a-b),r=days.length,L0=days.includes(+g.long)?+g.long:days[r-1];
+  const peak=g.dist<=5.5?32:g.dist<=10.5?40:g.dist<=22?48:62,cap=g.dist>=40?32:g.dist>=20?24:g.dist>=10?18:14;
+  const tw=g.dist>=40?3:g.dist>=20?2:1,b=Math.max(0,n-1-tw);
+  const sp=n>=8?Math.max(2,Math.round(b*.3)):0,dv=n>=6?Math.round(b*.35):0,bs=Math.max(0,b-sp-dv);
+  const dd=d=>{const x=Math.abs(d-L0);return Math.min(x,7-x)},today=(new Date().getDay()+6)%7,rd=(new Date(race).getDay()+6)%7;
+  let v=+g.base||15;const weeks=[];
+  for(let i=0;i<n;i++){
+    const Lw=n-1-i,w=sd(t0,7*i).getTime();let ph,vol,pj=0,s=[];
+    if(Lw===0){ph='Course';vol=.3*v+g.dist}
+    else if(Lw<=tw){ph='Affûtage';vol=v*({1:[.6],2:[.75,.55],3:[.8,.65,.5]}[tw][tw-Lw])}
+    else{ph=i<bs?'Base':i<bs+dv?'Développement':'Spécifique';pj=i-(ph==='Base'?0:ph==='Développement'?bs:bs+dv);
+      if((i+1)%4===0)vol=v*.78;else{v=Math.min(peak,v*1.08);vol=v}}
+    if(ph==='Course'){
+      const pre=days.filter(d=>d<rd).slice(-2),k=Math.max(3,Math.round((vol-g.dist)/Math.max(1,pre.length)));
+      s=pre.map(d=>({d,t:'Endurance',km:k,desc:`${k} km en EF + 4 lignes droites de 100 m`}));
+      s.push({d:rd,t:'Course',km:g.dist,desc:`${g.name||'Course'} : objectif ${hms(g.time)} (${po}/km)`});
+    }else{
+      const lg=Math.min(cap,Math.max(5,Math.round(vol*(r<3?.45:.36)))),oth=days.filter(d=>d!==L0).sort((a,b)=>dd(b)-dd(a)||a-b);
+      const q1=ph==='Développement'?'Fractionné':ph==='Spécifique'?'Allure objectif':'Tempo';
+      const q2=r>=5?(ph==='Développement'?'Tempo':ph==='Spécifique'?'Fractionné':null):null;
+      const sh=oth.length?Math.max(3,Math.round((vol-lg)/oth.length)):0,T=Math.min(30,15+5*pj),R=Math.min(10,5+pj),B=Math.min(40,15+5*pj);
+      const DS={'Tempo':`Échauffement 15' EF, ${ph==='Affûtage'?15:T}' à ${pt}/km, retour au calme 10'`,'Fractionné':`Échauffement 15' EF, ${R} × 3' à ${pn}/km (récup 1'30 trot), retour au calme 10'`,'Allure objectif':`Échauffement 15' EF, ${B}' à ${po}/km en 2 blocs (récup 3'), retour au calme 10'`};
+      s=oth.map((d,j)=>{const t=j===0?q1:(j===1&&q2)?q2:'Endurance';return{d,t,km:sh,desc:t==='Endurance'?`${sh} km en endurance fondamentale (≈ ${pe}/km)`:DS[t]}});
+      s.push({d:L0,t:'Sortie longue',km:lg,desc:`${lg} km en EF (≈ ${pe}/km)`+(ph==='Spécifique'&&g.dist>=10?`, dont ${Math.round(lg*.3)} derniers km à ${po}/km`:'')});
+    }
+    if(ph!=='Course')(g.races||[]).forEach(m=>{const md=new Date(m.d+'T12:00:00');if(wk(md)===w){const d=(md.getDay()+6)%7;s=s.filter(x=>x.d!==d);const qi=s.findIndex(x=>QT.includes(x.t));if(qi>=0)s.splice(qi,1);s.push({d,t:'Course',km:m.km,desc:m.n+' (course jalon)'})}});
+    if(i===0)s=s.filter(x=>x.d>=today);
+    s.sort((a,b)=>a.d-b.d);weeks.push({w,ph,s});
+  }
+  return weeks;
+}
+function planBlock(){
+  const g=S.goal,p=S.plan;
+  if(!g||!p)return`<div class=card><h2>Objectif de course</h2><div class=sub>Définis ta course cible : l'app construit ton plan semaine par semaine.</div><button class=p style="width:100%" data-a=goal>Définir un objectif</button></div>`;
+  const left=Math.ceil((new Date(g.date+'T12:00:00')-Date.now())/864e5),now=wk(Date.now()),R=S.runs||[],today=iso(new Date());
+  const done=(w,s)=>{const k=iso(sd(w,s.d)),km=R.filter(r=>r.d.slice(0,10)===k).reduce((a,r)=>a+r.km,0);return s.t==='Course'?km>0:km>=.6*s.km};
+  const card=W=>{const cur=W.w===now,tot=W.s.reduce((a,s)=>a+s.km,0);
+    return`<div class=card${cur?' style="border-color:rgba(255,214,10,.45)"':''}><h2>${cur?'Cette semaine':'Semaine du '+sd(W.w,0).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</h2><div class=sub>${W.ph} · ${Math.round(tot)} km</div>`
+    +(W.s.map(s=>{const dt=sd(W.w,s.d),ok=done(W.w,s),past=iso(dt)<today;
+      return`<div class=row style="align-items:flex-start"><span class=pill style="margin:0;min-width:60px;text-align:center">${DN[s.d]} ${dt.getDate()}</span><div style="flex:1"><div><b>${s.t}</b> · ${s.km} km</div><div class=sub style="margin:0">${esc(s.desc)}</div></div><span style="font-size:20px;color:${ok?'var(--ok)':past?'var(--rd)':'var(--mut)'}">${ok?'✓':past?'✗':'○'}</span></div>`}).join('')||'<div class=sub>Rien de prévu.</div>')+`</div>`};
+  const wks=p.weeks.filter(W=>W.w>=now),show=planAll?wks:wks.slice(0,3);
+  return`<div class=card><h2>${esc(g.name||'Objectif')}</h2><div class=sub>${left>0?left+' jours':'Course passée'} · ${g.dist} km en ${hms(g.time)} (${pf(g.time/g.dist)}/km)</div><div class=bar><button data-a=goal>Modifier</button><button data-a=regen>Recalculer</button></div></div>`
+    +show.map(card).join('')+(wks.length>3?`<button style="width:100%;margin-bottom:14px" data-a=planall>${planAll?'Réduire':'Voir tout le plan ('+wks.length+' semaines)'}</button>`:'');
+}
+function weekCard(R){const w=wk(Date.now()),e=w+7*864e5,rr=R.filter(r=>wk(r.d)===w),km=rr.reduce((a,r)=>a+r.km,0),
+  ms=S.h.filter(h=>{const t=new Date(h.date).getTime();return t>=w&&t<e}),mins=Math.round(rr.reduce((a,r)=>a+r.s,0)/60+ms.reduce((a,h)=>a+(h.dur||0),0));
+  const c=(v,l)=>`<div style="text-align:center"><div class=big>${v}</div><div class=sub style="margin:0">${l}</div></div>`;
+  return`<div class=card><h2>Charge de la semaine</h2><div class=g style="margin-top:10px">${c(km.toFixed(1),'km course')}${c(ms.length,'séances muscu')}${c(Math.floor(mins/60)+'h'+String(mins%60).padStart(2,'0'),'entraînement')}</div></div>`}
+function goalView(){const g=ge;
+  return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la course</label><input style="text-align:left" data-g=name placeholder="Ex. Semi d'Auray-Vannes" value="${esc(g.name)}"><label>Date</label><input type=date data-g=date value="${g.date}"><label>Distance (km)</label><input type=number inputmode=decimal step=any data-g=dist value="${g.dist}"><div class=bar>${[['5K',5],['10K',10],['Semi',21.1],['Marathon',42.2]].map(([l,v])=>`<button data-a=gdist data-v=${v}>${l}</button>`).join('')}</div><label>Temps visé (h:mm:ss ou mm:ss)</label><input style="text-align:left" data-g=timeS placeholder="1:59:00" value="${esc(g.timeS)}"></div>
+  <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
+  <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
+  <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
   return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#64d2ff" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 function history(){
@@ -173,7 +242,7 @@ function history(){
   const recs=Object.entries(best);
   return`<div class=top><h1>Historique</h1>${LOGO()}</div>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)} <button data-a=rn data-n="${esc(n)}" style="padding:2px 9px;font-size:13px;border-radius:10px">✎</button></div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=big>${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
   +S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0);
-    return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span></div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
+    return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
   +syncCard()+`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
 }
 
@@ -194,6 +263,21 @@ document.addEventListener('click',async ev=>{
   else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
   else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
   else if(a==='pull')await pull();
+  else if(a==='dup'){const t=JSON.parse(JSON.stringify(S.t.find(t=>t.id===b.dataset.id)));t.id=uid();t.name+=' (copie)';S.t.push(t);save()}
+  else if(a==='share'){const t=S.t.find(t=>t.id===b.dataset.id),j=JSON.stringify({name:t.name,ex:t.ex});try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),alert('Séance copiée : colle-la dans un message.'))}catch(e){}return}
+  else if(a==='impt'){const j=prompt('Colle la séance reçue');if(!j)return;try{const t=JSON.parse(j);if(!t.name||!Array.isArray(t.ex))throw 0;t.id=uid();S.t.push(t);save()}catch(e){alert('Séance invalide.');return}}
+  else if(a==='goal'){ge=S.goal?{...S.goal,timeS:hms(S.goal.time),days:[...S.goal.days],races:[...(S.goal.races||[])]}:{name:'',date:'',dist:21.1,timeS:'',days:[1,3,6],long:6,base:avgBase(),races:[]};view='goal'}
+  else if(a==='gdist')ge.dist=+b.dataset.v;
+  else if(a==='gday'){const k=ge.days.indexOf(i);k<0?ge.days.push(i):ge.days.splice(k,1)}
+  else if(a==='gadd'){const n=prompt('Nom de la course'),d=n&&prompt('Date (AAAA-MM-JJ)'),k=d&&+prompt('Distance en km');if(n&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&k>0)ge.races.push({n,d,km:k})}
+  else if(a==='gdel')ge.races.splice(i,1);
+  else if(a==='gcancel'){ge=null;view='run'}
+  else if(a==='gsave'){const g={...ge,time:tsec(ge.timeS),base:+ge.base||15,long:+ge.long};
+    if(!(g.dist>0&&g.time>0&&g.days.length>=2&&/^\d{4}-\d{2}-\d{2}$/.test(g.date))){alert('Renseigne la date, la distance, le temps visé et au moins 2 jours de course.');return}
+    const w=genPlan(g);if(!w){alert('La date de la course doit être dans le futur.');return}
+    S.goal=g;S.plan={weeks:w,gen:Date.now()};save();ge=null;view='run'}
+  else if(a==='regen'){if(!confirm('Recalculer le plan à partir de cette semaine, selon ton volume récent ?'))return;const g={...S.goal,base:avgBase()},w=genPlan(g);if(w){S.goal=g;S.plan={weeks:w,gen:Date.now()};save()}}
+  else if(a==='planall')planAll=!planAll;
   else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exercice",o)||'').trim();if(!n||n===o)return;e.name=n;
     if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
   else if(a==='rn'){const o=b.dataset.n,n=(prompt('Nouveau nom pour « '+o+' » (partout : historique et séances types)',o)||'').trim();if(!n||n===o)return;
@@ -220,9 +304,10 @@ document.addEventListener('change',ev=>{
   if(k){const p=k.split('.'),x=S.a.ex[p[0]];
     if(p.length===2)x[p[1]]=t.value;else x.sets[p[1]][p[2]]=t.type==='checkbox'?t.checked:t.value;save()}
   else if(e){const p=e.split('.');
-    if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value}
+    if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value.trim()}
   else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
   else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
+  else if(t.dataset.g){ge[t.dataset.g]=['long','dist','base'].includes(t.dataset.g)?+t.value:t.value}
   if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
