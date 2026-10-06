@@ -4,9 +4,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FitLog">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1080x2340.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/750x1334.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1242x2208.png">
 <title>FitLog</title>
 <style>
 :root{--bg:#000;--s1:#0f1013;--s2:#1a1b20;--s3:#25272e;--ln:rgba(255,255,255,.08);--tx:#f5f5f7;--mut:#8e8e99;--y:#ffd60a;--cy:#64d2ff;--vi:#bf5af2;--ok:#32d74b;--rd:#ff453a;box-sizing:border-box;color-scheme:dark}
@@ -42,9 +56,16 @@ nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;st
 .pr{background:rgba(191,90,242,.2);color:#d9a0ff;border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700}
 .big{font-size:20px;font-weight:800;color:var(--y);letter-spacing:-.5px}
 .empty{color:var(--mut);text-align:center;padding:36px 10px 28px}
-@media(prefers-reduced-motion:reduce){button{transition:none}}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+input,select{-webkit-user-select:text;user-select:text}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.fx>*{animation:in .3s ease both}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:88%;text-align:center;background:rgba(44,44,50,.86);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--ln);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;z-index:20;animation:in .2s ease both}
+.ov{position:fixed;inset:0;z-index:30;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:32px}
+@media(prefers-reduced-motion:reduce){button{transition:none}.fx>*,.toast{animation:none}}
 </style></head><body><main id="app"></main>
-<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Séances</button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>Course</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button></nav>
+<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Séances</button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>Course</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button><button data-a="nav" data-v="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>Réglages</button></nav>
 <script>
 const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -71,7 +92,7 @@ async function pull(){const c=CFG();if(!c){setSt('Renseigne le dépôt et le jet
   }catch(e){setSt('Échec de la restauration ('+e.message+')')}}
 function syncCard(){const c=CFG()||JSON.parse(localStorage.getItem('fitlog-sync')||'{}');
   return`<div class=card><h2>Sauvegarde automatique</h2><div class=sub id=st>${esc(stT||(CFG()?'Active : sauvegarde après chaque modification.':'Non configurée.'))}</div><label>Dépôt GitHub privé</label><input style="text-align:left" data-s=repo placeholder="pseudo/fitlog-data" autocapitalize=none autocorrect=off value="${esc(c.repo||'')}"><label>Jeton d'accès</label><input type=password style="text-align:left" data-s=token placeholder="github_pat_…" autocapitalize=none value="${esc(c.token||'')}"><div class=bar><button data-a=pushnow>Sauvegarder</button><button data-a=pull>Restaurer</button></div></div>`}
-let view='home',ed=null,tm=null;
+let lv='',view='home',ed=null,tm=null;
 const LOGO=(c='logo')=>`<img class="${c}" src="icon-180.png" alt="">`;
 const mv=i=>`<button data-a=mv data-i=${i} data-d=-1 style="padding:8px 11px;font-size:14px">↑</button><button data-a=mv data-i=${i} data-d=1 style="padding:8px 11px;font-size:14px">↓</button>`;
 const pv=n=>{const l=last(n);return l?`Dernière fois (${new Date(l.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}) : ${fmt(l)}`:''};
@@ -113,11 +134,12 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():view==='run'?runs():view==='hist'?history():S.a?session():home())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():view==='set'?settings():view==='run'?runs():view==='hist'?history():S.a?session():home())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  if(view!==lv){lv=view;const m=$('#app');m.classList.remove('fx');void m.offsetWidth;m.classList.add('fx');window.scrollTo(0,0)}
   if(S.a&&!ed)keep();
 }
 function home(){
-  return`<div class=top><h1>Séances</h1>${LOGO()}</div>`+(S.t.length?S.t.map(t=>`<div class=card><h2>${esc(t.name)}</h2><div style="margin:8px 0 14px">${t.ex.map(x=>`<span class=pill>${esc(x.name)}</span>`).join('')||'<span class=sub>Aucun exercice</span>'}</div><div class=bar><button class=p data-a=start data-id=${t.id}>Démarrer</button><button data-a=edit data-id=${t.id}>Modifier</button></div><div class=bar style="margin-top:8px"><button data-a=dup data-id=${t.id}>Dupliquer</button><button data-a=share data-id=${t.id}>Partager</button></div></div>`).join(''):`<div class=empty>${LOGO('logo lg')}<br>Aucune séance.<br>Crée la première avec ses exercices.</div>`)
+  return`<div class=top><h1>Séances</h1>${LOGO()}</div>`+installCard()+backupHint()+todayCard()+(S.t.length?S.t.map(t=>`<div class=card><h2>${esc(t.name)}</h2><div style="margin:8px 0 14px">${t.ex.map(x=>`<span class=pill>${esc(x.name)}</span>`).join('')||'<span class=sub>Aucun exercice</span>'}</div><div class=bar><button class=p data-a=start data-id=${t.id}>Démarrer</button><button data-a=edit data-id=${t.id}>Modifier</button></div><div class=bar style="margin-top:8px"><button data-a=dup data-id=${t.id}>Dupliquer</button><button data-a=share data-id=${t.id}>Partager</button></div></div>`).join(''):`<div class=empty>${LOGO('logo lg')}<br>Aucune séance.<br>Crée la première avec ses exercices.<br><br><button data-a=starter>Ajouter 2 séances types</button></div>`)
   +`<button class=p style="width:100%" data-a=new>Créer une séance</button><button style="width:100%;margin-top:10px" data-a=impt>Importer une séance reçue</button>`;
 }
 function session(){
@@ -160,10 +182,10 @@ function runs(){
   for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
   const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
   const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" fill="${i===7?'#ffd60a':'#25272e'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" fill="#c9c9d1">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" fill="#8e8e99">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
-  return`<div class=top><h1>Course</h1>${LOGO()}</div>`+(SC()?'':stravaCard())+planBlock()+weekCard(R)
+  return`<div class=top><h1>Course</h1>${LOGO()}</div>`+(SC()?'':STRAVA_CTA)+planBlock()+weekCard(R)
   +(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
     +R.slice(0,40).map(r=>`<div class=card><div class=row style="justify-content:space-between;margin:0"><h2>${esc(r.n)}</h2><span class=big>${r.km.toFixed(1)} km</span></div><div class=sub style="margin:2px 0 0">${new Date(r.d).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}</div><div style="margin-top:8px"><span class=pill>${hms(r.s)}</span><span class=pill>${pace(r)} /km</span>${r.up?`<span class=pill>D+ ${r.up} m</span>`:''}${r.hr?`<span class=pill>${r.hr} bpm</span>`:''}</div></div>`).join('')
-    :`<div class=empty>Aucune sortie pour l'instant.<br>Connecte Strava pour les importer.</div>`)+(SC()?stravaCard():'');
+    :`<div class=empty>Aucune sortie pour l'instant.<br>Connecte Strava pour les importer.</div>`);
 }
 const DN=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],DF=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 let ge=null,planAll=false;
@@ -230,6 +252,29 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
+const VER='2.0.0';
+const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
+let lastChk=0;
+async function checkUpdate(manual){lastChk=Date.now();
+  try{const r=await fetch('index.html',{cache:'no-store'}),m=(await r.text()).match(/const VER='([^']+)'/);
+    if(m&&m[1]!==VER){if(S.a||ed)toast('Mise à jour disponible : elle s\'installera à la prochaine ouverture');else location.reload()}
+    else if(manual)toast('Tu as la dernière version')
+  }catch(e){if(manual)toast('Impossible de vérifier')}}
+const installCard=()=>(/iphone|ipad/i.test(navigator.userAgent||'')&&!navigator.standalone&&!localStorage.getItem('fitlog-inst'))?`<div class=card><h2>Installe FitLog</h2><div class=sub>Touche Partager (le carré avec une flèche) puis « Sur l'écran d'accueil » pour l'utiliser comme une vraie app.</div><button data-a=hideinst style="width:100%">J'ai compris</button></div>`:'';
+const backupHint=()=>(S.h.length>=3&&!CFG()&&!localStorage.getItem('fitlog-bk'))?`<div class=card><h2>Protège ton historique</h2><div class=sub>Active la sauvegarde automatique : tes séances ne seront jamais perdues.</div><div class=bar><button data-a=hidebk>Plus tard</button><button class=p data-a=nav data-v=set>Configurer</button></div></div>`:'';
+function todayCard(){const o=[],today=iso(new Date());
+  const W=S.plan&&S.plan.weeks.find(W=>W.w===wk(Date.now())),p=W&&W.s.find(s=>iso(sd(W.w,s.d))===today);
+  if(p)o.push(`<div class=card style="border-color:rgba(255,214,10,.45)"><div class=sub>Aujourd'hui · course</div><h2>${p.t} · ${p.km} km</h2><div class=sub style="margin:0">${esc(p.desc)}</div></div>`);
+  if(S.t.length){const ld=t=>{for(let i=S.h.length-1;i>=0;i--)if(S.h[i].name===t.name)return new Date(S.h[i].date).getTime();return 0};
+    const c=S.t.map(t=>({t,d:ld(t)})).sort((a,b)=>a.d-b.d)[0],j=c.d?Math.floor((Date.now()-c.d)/864e5):null;
+    o.push(`<div class=card><div class=sub>Prochaine séance de muscu suggérée</div><h2>${esc(c.t.name)}</h2><div class=sub>${j===null?'Pas encore faite':'Dernière fois il y a '+j+' jour'+(j>1?'s':'')}</div><button class=p style="width:100%" data-a=start data-id=${c.t.id}>Démarrer</button></div>`)}
+  return o.join('')}
+function settings(){return`<div class=top><h1>Réglages</h1>${LOGO()}</div>${syncCard()}${stravaCard()}<div class=card><h2>Données</h2><div class=sub>${S.h.length} séances · ${(S.runs||[]).length} sorties de course</div><div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class=d style="width:100%;margin-top:10px" data-a=wipe>Tout effacer</button></div><div class=card><h2>À propos</h2><div class=sub>FitLog v${VER}</div><div class=bar><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div></div>`}
+function showOnb(){const P=[['Tes séances',"Crée tes séances de muscu et saisis ce que tu fais : l'app calcule ta prochaine charge selon la méthode choisie."],['Ta course','Connecte Strava et fixe un objectif : un plan semaine par semaine se construit tout seul.'],['Tes données','Sauvegarde automatique dans ton propre dépôt GitHub : rien n\'est perdu, rien n\'est partagé.']];
+  let i=0;const o=document.createElement('div');o.className='ov';document.body.appendChild(o);
+  const draw=()=>{o.innerHTML=`${LOGO('logo lg')}<h1 style="margin-bottom:10px">${P[i][0]}</h1><div class=sub style="font-size:17px;max-width:300px">${P[i][1]}</div><div style="margin:22px 0">${P.map((_,k)=>`<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px;background:${k===i?'var(--y)':'var(--s3)'}"></i>`).join('')}</div><button class=p style="width:240px" id=ob>${i<2?'Suivant':'Commencer'}</button>`;
+    o.querySelector('#ob').onclick=()=>{if(i<2){i++;draw()}else{localStorage.setItem('fitlog-onb','1');o.remove()}}};draw()}
+const STRAVA_CTA=`<div class=card><h2>Strava</h2><div class=sub>Importe tes sorties automatiquement.</div><button class=p style="width:100%" data-a=nav data-v=set>Configurer dans Réglages</button></div>`;
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
   return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#64d2ff" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 function history(){
@@ -243,7 +288,7 @@ function history(){
   return`<div class=top><h1>Historique</h1>${LOGO()}</div>`+(recs.length?`<div class=card><h2>Records de charge</h2>${recs.map(([n,w])=>`<div class=row style="justify-content:space-between"><div><div>${esc(n)} <button data-a=rn data-n="${esc(n)}" style="padding:2px 9px;font-size:13px;border-radius:10px">✎</button></div><div class=sub style="margin:0">1RM estimé ≈ ${Math.round(e1[n])} kg</div></div>${spark(ser[n])}<span class=big>${w} kg</span></div>`).join('')}</div>`:`<div class=empty>Termine une séance pour voir ta progression ici.</div>`)
   +S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0);
     return`<div class=card><h2>${esc(h.name)}</h2><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}${h.dur?' · '+h.dur+' min':''} · ${Math.round(vol)} kg soulevés</div>${h.ex.map((e,ei)=>`<div style="margin:4px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''} <span class=sub>${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</span>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}<button style="margin-top:8px" data-a=editlog data-i=${hi}>Modifier</button></div>`}).join('')
-  +syncCard()+`<div class=bar><button data-a=export>Exporter</button><button data-a=import>Importer</button></div>`;
+  ;
 }
 
 document.addEventListener('click',async ev=>{
@@ -263,8 +308,15 @@ document.addEventListener('click',async ev=>{
   else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
   else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
   else if(a==='pull')await pull();
+  else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
+  else if(a==='hidebk')localStorage.setItem('fitlog-bk','1');
+  else if(a==='starter'){const mk=(n,L)=>({id:uid(),name:n,ex:L.map(([name,min,max,inc])=>({name,sets:3,min,max,w:0,inc,m:'double'}))});
+    S.t.push(mk('Full body A',[['Squat',5,8,2.5],['Développé couché',6,10,2.5],['Rowing barre',8,12,2.5],['Développé militaire',8,12,2]]),mk('Full body B',[['Soulevé de terre roumain',6,10,2.5],['Tirage vertical',8,12,2.5],['Développé incliné haltères',8,12,2],['Presse à cuisses',10,15,5]]));save();toast('2 séances ajoutées')}
+  else if(a==='wipe'){if(!confirm('Effacer toutes les données de ce téléphone ?'))return;if(!confirm('Vraiment tout effacer ? Les versions déjà sauvegardées sur GitHub restent récupérables.'))return;S={t:[],h:[],a:null};localStorage.setItem('fitlog',JSON.stringify(S))}
+  else if(a==='tour')showOnb();
+  else if(a==='upd')await checkUpdate(true);
   else if(a==='dup'){const t=JSON.parse(JSON.stringify(S.t.find(t=>t.id===b.dataset.id)));t.id=uid();t.name+=' (copie)';S.t.push(t);save()}
-  else if(a==='share'){const t=S.t.find(t=>t.id===b.dataset.id),j=JSON.stringify({name:t.name,ex:t.ex});try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),alert('Séance copiée : colle-la dans un message.'))}catch(e){}return}
+  else if(a==='share'){const t=S.t.find(t=>t.id===b.dataset.id),j=JSON.stringify({name:t.name,ex:t.ex});try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),toast('Séance copiée'))}catch(e){}return}
   else if(a==='impt'){const j=prompt('Colle la séance reçue');if(!j)return;try{const t=JSON.parse(j);if(!t.name||!Array.isArray(t.ex))throw 0;t.id=uid();S.t.push(t);save()}catch(e){alert('Séance invalide.');return}}
   else if(a==='goal'){ge=S.goal?{...S.goal,timeS:hms(S.goal.time),days:[...S.goal.days],races:[...(S.goal.races||[])]}:{name:'',date:'',dist:21.1,timeS:'',days:[1,3,6],long:6,base:avgBase(),races:[]};view='goal'}
   else if(a==='gdist')ge.dist=+b.dataset.v;
@@ -275,7 +327,7 @@ document.addEventListener('click',async ev=>{
   else if(a==='gsave'){const g={...ge,time:tsec(ge.timeS),base:+ge.base||15,long:+ge.long};
     if(!(g.dist>0&&g.time>0&&g.days.length>=2&&/^\d{4}-\d{2}-\d{2}$/.test(g.date))){alert('Renseigne la date, la distance, le temps visé et au moins 2 jours de course.');return}
     const w=genPlan(g);if(!w){alert('La date de la course doit être dans le futur.');return}
-    S.goal=g;S.plan={weeks:w,gen:Date.now()};save();ge=null;view='run'}
+    S.goal=g;S.plan={weeks:w,gen:Date.now()};save();ge=null;view='run';toast('Plan généré')}
   else if(a==='regen'){if(!confirm('Recalculer le plan à partir de cette semaine, selon ton volume récent ?'))return;const g={...S.goal,base:avgBase()},w=genPlan(g);if(w){S.goal=g;S.plan={weeks:w,gen:Date.now()};save()}}
   else if(a==='planall')planAll=!planAll;
   else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exercice",o)||'').trim();if(!n||n===o)return;e.name=n;
@@ -293,7 +345,7 @@ document.addEventListener('click',async ev=>{
   else if(a==='finish'){
     const ex=S.a.ex.map(e=>e.skip?{...e,sets:[]}:{...e,sets:e.sets.filter(s=>+(e.t==='cardio'?s.d:s.r)>0).map(s=>({...s,done:true}))}).filter(e=>e.skip||e.sets.length);
     if(!ex.length&&!confirm('Aucune série validée. Terminer quand même ?'))return;
-    const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist'}
+    const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist';toast('Séance enregistrée')}
   else if(a==='export'){const j=JSON.stringify(S);
     try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),alert('Sauvegarde copiée.'))}catch(e){}return}
   else if(a==='import'){const j=prompt('Colle ta sauvegarde');if(!j)return;try{S=JSON.parse(j);save()}catch(e){alert('Sauvegarde invalide.');return}}
@@ -311,9 +363,14 @@ document.addEventListener('change',ev=>{
   if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden)autoSync();if(document.hidden&&pt){clearTimeout(pt);pt=0;push()}});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){autoSync();if(Date.now()-lastChk>18e5)checkUpdate()}if(document.hidden&&pt){clearTimeout(pt);pt=0;push()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+document.addEventListener('focusin',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.type==='number')setTimeout(()=>{try{t.select()}catch(x){}},0)});
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
 render();
 autoSync();
+if(!localStorage.getItem('fitlog-onb'))showOnb();
+setTimeout(checkUpdate,4000);
 </script></body></html>
