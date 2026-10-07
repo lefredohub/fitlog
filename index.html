@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FitLog">
@@ -88,8 +88,20 @@ button.item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;
 .toast{position:fixed;left:50%;bottom:calc(var(--nh,90px) + 14px);transform:translateX(-50%);max-width:88%;text-align:center;background:var(--s3);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;z-index:60;animation:in .2s ease both}
 .ov{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:32px}
 @media(prefers-reduced-motion:reduce){button{transition:none}.fx>*,.toast,.sh-box,.sh-bg{animation:none}}
+.hstats{display:flex;gap:30px;margin:14px 0 4px}.hstats .sub{margin:6px 0 0}
+.hv{font-size:36px;font-weight:700;letter-spacing:-1.2px;line-height:1}.hv small{font-size:16px;color:var(--mut);font-weight:500;letter-spacing:0}
+.prog{height:4px;border-radius:2px;background:var(--s3);margin:18px 0 8px;overflow:hidden}.prog i{display:block;height:100%;background:var(--y);border-radius:2px}
+.prow{display:flex;gap:10px;align-items:flex-start;margin:14px 0}.prow .pill{margin:2px 0 0;min-width:58px;text-align:center}
+button.pbody{flex:1;min-width:0;display:block;background:none;text-align:left;padding:0;border-radius:8px;font-weight:400;font-size:16px}
+.pbody b{display:block;font-weight:650;letter-spacing:-.2px}.pbody .sub{display:block;margin:2px 0 0}
+button.sb{background:none;padding:2px;color:var(--mut);flex:none;border-radius:50%}
+.sb svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.sb.ok{color:var(--ok)}.sb.ko{color:var(--rd)}
+html,body{height:100%;overflow:hidden;touch-action:manipulation}
+body{position:fixed;inset:0;width:100%;display:flex;flex-direction:column}
+main{flex:1;min-height:0;width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:28px}
+nav{position:relative;flex:none;left:auto;right:auto;bottom:auto;background:#000;padding:4px 12px calc(env(safe-area-inset-bottom)*.5 + 4px)}
 </style></head><body><main id="app"></main>
-<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Accueil</button><button data-a="nav" data-v="train"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Séances</button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>Course</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button></nav>
+<nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Accueil</button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>Course</button><button data-a="nav" data-v="train"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>Renfo</button><button data-a="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20H2"/></svg>Historique</button></nav>
 <script src="config.js"></script>
 <script>
 const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
@@ -158,9 +170,10 @@ function start(id){
 function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filter(s=>s.done).map(s=>`${s.d} min${s.l?' · niveau '+s.l:''}`).join(', ')||'—';return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(', ')||'—'}
 
 function render(){
+  if(S.plan)reconcilePlan();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
-  if(view!==lv){lv=view;const m=$('#app');m.classList.remove('fx');void m.offsetWidth;m.classList.add('fx');window.scrollTo(0,0)}
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  if(view!==lv){lv=view;const m=$('#app');m.classList.remove('fx');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
   if(S.a&&!ed)keep();
 }
 
@@ -248,7 +261,7 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.4.0';
+const VER='2.5.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -323,7 +336,7 @@ const CH='<svg class=chev viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 const ago=x=>{const a=new Date(x);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);const j=Math.round((b-a)/864e5);return j<=0?"Aujourd'hui":j===1?'Hier':'Il y a '+j+' j'};
 const item=(go,ic,t,sub,end)=>`<button class=item data-a=nav data-v=${go}><div class=ico>${IC[ic]}</div><div><b>${t}</b><div class=sub>${sub}</div></div>${end||CH}</button>`;
 
-let histTab='s',hOpen=-1,runTab='p',runAll=false,accOpen={};
+let sx=null,histTab='s',hOpen=-1,runTab='p',runAll=false,accOpen={};
 const GEAR='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>';
 function sheet(items){const o=document.createElement('div');o.className='sheet';
   o.innerHTML=`<div class=sh-bg></div><div class=sh-box><div class=grab></div>${items.map(([l,at,dg])=>`<button${dg?' class=d':''} ${Object.entries(at).map(([k,v])=>`data-${k}="${esc(v)}"`).join(' ')}>${esc(l)}</button>`).join('')}<button data-a=close style="color:var(--mut)">Annuler</button></div>`;
@@ -331,31 +344,10 @@ function sheet(items){const o=document.createElement('div');o.className='sheet';
 const MORE=(k,at='')=>`<button class=more data-a=menu data-k=${k} ${at} aria-label="Plus">···</button>`;
 const lastDone=t=>{for(let i=S.h.length-1;i>=0;i--)if(S.h[i].name===t.name)return new Date(S.h[i].date).getTime();return 0};
 
-function dash(){
-  const now=new Date(),R=S.runs||[],tk=iso(now),tm1=iso(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
-  let d=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});d=d[0].toUpperCase()+d.slice(1);
-  let hero;
-  if(S.a)hero=`<div class=hero><div class=k>En cours</div><h2>${esc(S.a.name)}</h2><button class=p data-a=nav data-v=train>Reprendre</button></div>`;
-  else if(S.t.length){const c=S.t.map(t=>({t,d:lastDone(t)})).sort((a,b)=>a.d-b.d)[0],n=c.t.ex.length;
-    hero=`<div class=hero><div class=k>Muscu</div><h2>${esc(c.t.name)}</h2><div class=sub>${n} exercice${n>1?'s':''} · ${c.d?ago(c.d).toLowerCase():'pas encore faite'}</div><button class=p data-a=start data-id=${c.t.id}>Démarrer</button></div>`}
-  else hero=`<div class=hero><div class=k>Bienvenue</div><h2>Crée ta première séance</h2><div class=sub>Tes exercices, ta progression, automatiquement.</div><button class=p data-a=nav data-v=train>Commencer</button></div>`;
-  let pr=null;
-  if(S.plan)for(const W of S.plan.weeks){for(const s of W.s){const k=iso(sd(W.w,s.d));if(k>=tk){pr={s,k,dt:sd(W.w,s.d)};break}}if(pr)break}
-  let run='';
-  if(pr){const ok=R.some(r=>r.d.slice(0,10)===pr.k&&r.km>=.6*pr.s.km),when=pr.k===tk?"Aujourd'hui":pr.k===tm1?'Demain':DF[pr.s.d]+' '+pr.dt.getDate();
-    run=item('run','r',`${pr.s.t} · ${pr.s.km} km`,`Course · ${when}`,ok?'<span style="color:var(--ok);font-size:20px">✓</span>':'')}
-  const w=wk(Date.now()),e=w+7*864e5,rr=R.filter(r=>wk(r.d)===w),km=rr.reduce((a,r)=>a+r.km,0),ms=S.h.filter(h=>{const t=new Date(h.date).getTime();return t>=w&&t<e}),
-    mins=Math.round(rr.reduce((a,r)=>a+r.s,0)/60+ms.reduce((a,h)=>a+(h.dur||0),0));
-  const wl=[km?km.toFixed(1).replace('.',',')+' km':'',ms.length?ms.length+' séance'+(ms.length>1?'s':'')+' de muscu':'',mins?Math.floor(mins/60)+'h'+String(mins%60).padStart(2,'0'):''].filter(Boolean).join(' · ');
-  const lh=S.h.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0],lr=R.slice().sort((a,b)=>b.d.localeCompare(a.d))[0];let last='';
-  if(lh){const vol=lh.ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=lh.ex.filter(x=>!x.skip).length;
-    last+=item('hist','m',esc(lh.name),`${ago(lh.date)} · ${n} exo${n>1?'s':''}${lh.dur?' · '+lh.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}`)}
-  if(lr)last+=item('run','r',esc(lr.n),`${ago(lr.d.slice(0,10)+'T12:00:00')} · ${lr.km.toFixed(1)} km · ${pace(lr)} /km`);
-  return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>Aujourd'hui</h1></div><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div>${installCard()}${backupHint()}${hero}${run}`
-    +(last?`<div class=sec>Dernières activités</div>${last}`:'')+(wl?`<div class=sub style="margin:20px 4px 0">Cette semaine : ${wl}</div>`:'')}
+
 
 function train(){
-  return`<div class=top><h1>Séances</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>`
+  return`<div class=top><h1>Renfo</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>`
   +(S.t.length?S.t.map(t=>{const d=lastDone(t),n=t.ex.length;
     return`<div class=card style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><h2>${esc(t.name)}</h2><div class=sub style="margin:0">${n} exercice${n>1?'s':''}${d?' · '+ago(d).toLowerCase():''}</div></div><button class="p sm" data-a=start data-id=${t.id}>Démarrer</button>${MORE('tpl','data-id='+t.id)}</div>`}).join('')
    :`<div class=empty>${LOGO('logo lg')}<br>Aucune séance<br><br><button class=p data-a=new>Créer ma première séance</button></div>`)}
@@ -399,17 +391,7 @@ function history(){
     return`<button class=item data-a=hopen data-i=${hi} style="${o?'margin-bottom:0;border-radius:20px 20px 0 0':''}"><div><b>${esc(h.name)}</b><div class=sub>${new Date(h.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} · ${n} exo${n>1?'s':''}${h.dur?' · '+h.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}</div></div><svg class=chev style="${o?'transform:rotate(90deg)':''}" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`
     +(o?`<div class=card style="border-radius:0 0 20px 20px;border-top:0">${h.ex.map((e,ei)=>`<div style="margin:6px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''}<div class=sub style="margin:0">${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</div>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}<button class=gh data-a=editlog data-i=${hi} style="padding-left:0">Modifier cette séance</button></div>`:'')}).join('')}
 
-function planBlock(){
-  const g=S.goal,p=S.plan;
-  if(!g||!p)return`<div class=card><h2>Objectif de course</h2><div class=sub>Définis ta course cible : l'app construit ton plan semaine par semaine.</div><button class=p style="width:100%" data-a=goal>Définir un objectif</button></div>`;
-  const left=Math.ceil((new Date(g.date+'T12:00:00')-Date.now())/864e5),now=wk(Date.now()),R=S.runs||[],today=iso(new Date());
-  const done=(w,s)=>{const k=iso(sd(w,s.d)),km=R.filter(r=>r.d.slice(0,10)===k).reduce((a,r)=>a+r.km,0);return s.t==='Course'?km>0:km>=.6*s.km};
-  const card=W=>{const cur=W.w===now,tot=W.s.reduce((a,s)=>a+s.km,0);
-    return`<div class=card><h2>${cur?'Cette semaine':'Semaine du '+sd(W.w,0).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</h2><div class=sub>${W.ph} · ${Math.round(tot)} km</div>`
-    +(W.s.map(s=>{const dt=sd(W.w,s.d),ok=done(W.w,s),past=iso(dt)<today;
-      return`<div class=row style="align-items:flex-start;margin:12px 0"><span class=pill style="margin:0;min-width:58px;text-align:center">${DN[s.d]} ${dt.getDate()}</span><div style="flex:1"><div><b>${s.t}</b> · ${s.km} km</div><div class=sub style="margin:2px 0 0">${esc(s.desc&&!s.z?s.desc:descOf(s,g))}</div></div><span style="font-size:18px;color:${ok?'var(--ok)':past?'var(--rd)':'var(--mut)'}">${ok?'✓':past?'✗':'○'}</span></div>`}).join('')||'<div class=sub>Rien de prévu.</div>')+`</div>`};
-  const wks=p.weeks.filter(W=>W.w>=now),show=planAll?wks:wks.slice(0,1);
-  return`<div class=row style="justify-content:space-between;margin:0 0 14px;align-items:flex-start"><div><h2 style="font-size:20px">${esc(g.name||'Objectif')}</h2><div class=sub style="margin:0">${left>0?'Dans '+left+' jours':'Course passée'} · ${g.dist} km en ${hms(g.time)}</div></div>${MORE('goal')}</div>`+show.map(card).join('')}
+
 
 function runs(){
   const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
@@ -431,6 +413,67 @@ function settings(){const a=AU();
   +acc('gh','Sauvegarde GitHub','Facultative',syncCard())
   +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
   +acc('ab','À propos','FitLog v'+VER,`<div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
+const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
+const TP={Endurance:{z:'ef'},'Sortie longue':{z:'ef',x:0},Tempo:{z:'tp',m:20},'Fractionné':{z:'iv',r:6},'Allure objectif':{z:'ob',m:20},Course:{},Libre:{}};
+const rdate=r=>new Date(r.d.slice(0,10)+'T12:00:00'),rday=r=>(rdate(r).getDay()+6)%7;
+function matchWeek(W){
+  const R=(S.runs||[]).filter(r=>wk(rdate(r))===W.w),used=new Set(),res=W.s.map(()=>null);
+  W.s.forEach((s,i)=>{const c=R.filter(r=>!used.has(r.id)&&rday(r)===s.d).sort((a,b)=>b.km-a.km)[0];if(c){res[i]=c;used.add(c.id)}});
+  W.s.forEach((s,i)=>{if(res[i]||s.st)return;const c=R.filter(r=>!used.has(r.id)&&rday(r)>s.d&&r.km>=.5*s.km).sort((a,b)=>rday(a)-rday(b))[0];if(c){res[i]=c;used.add(c.id)}});
+  return res}
+const sStatus=(W,s,run,today)=>s.st==='ok'?'ok':s.st==='ko'?'ko':run?'ok':iso(sd(W.w,s.d))<today?'ko':'todo';
+function reconcilePlan(){const p=S.plan,today=iso(new Date());if(!p||p.rec===today)return;p.rec=today;
+  const W=p.weeks.find(x=>x.w===wk(Date.now()));
+  if(W){const td=(new Date().getDay()+6)%7,res=matchWeek(W),ran=(S.runs||[]).some(r=>r.d.slice(0,10)===today);
+    const miss=W.s.map((s,i)=>({s,i})).filter(({s,i})=>s.d<td&&!s.st&&!res[i]&&!s.mv&&s.t!=='Course');
+    if(miss.length&&!ran&&!W.s.some(s=>s.d===td)){
+      const pr=t=>t==='Sortie longue'?3:QT.includes(t)?2:1;
+      miss.sort((a,b)=>pr(b.s.t)-pr(a.s.t)||b.s.d-a.s.d);
+      const c=miss.find(({s})=>!(QT.includes(s.t)&&W.s.some(x=>x.d===td+1&&x.t==='Sortie longue')));
+      if(c){c.s.d=td;c.s.mv=1;W.s.sort((a,b)=>a.d-b.d)}}}
+  save()}
+function nextRun(){if(!S.plan)return null;const tk=iso(new Date());
+  for(const W of S.plan.weeks){const res=matchWeek(W);for(let i=0;i<W.s.length;i++){const s=W.s[i],k=iso(sd(W.w,s.d));if(k<tk||sStatus(W,s,res[i],tk)==='ok')continue;return{W,s,i,k}}}return null}
+const zoneTxt=(s,g)=>{const Z=zones();return['ef','tp','iv'].includes(s.z)?[`${Z[s.z][0]}–${Z[s.z][1]} bpm`,'FC cible']:s.t==='Course'?[hms(g.time),'objectif']:s.z==='ob'?[pf(g.time/g.dist)+'/km','allure cible']:['','']};
+
+function dash(){
+  const now=new Date(),R=S.runs||[],tk=iso(now),tm1=iso(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)),g=S.goal;
+  let d=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});d=d[0].toUpperCase()+d.slice(1);
+  const nr=nextRun();let hero;
+  if(nr){const{W,s,k}=nr,when=k===tk?"Aujourd'hui":k===tm1?'Demain':DF[s.d]+' '+sd(W.w,s.d).getDate(),[zv,zl]=zoneTxt(s,g);
+    const W0=S.plan.weeks.find(x=>x.w===wk(Date.now())),r0=W0?matchWeek(W0):[],tot=W0?W0.s.reduce((a,x)=>a+x.km,0):0,dn=W0?W0.s.reduce((a,x,i)=>a+(r0[i]?r0[i].km:(x.st==='ok'?x.km:0)),0):0;
+    hero=`<div class=hero><div class=k>${when}</div><h2>${s.t}</h2><div class=hstats><div><div class=hv>${s.km}<small> km</small></div><div class=sub>distance</div></div>${zv?`<div><div class=hv style="font-size:26px;padding-top:6px">${zv}</div><div class=sub>${zl}</div></div>`:''}</div>${tot?`<div class=prog><i style="width:${Math.min(100,Math.round(dn/tot*100))}%"></i></div><div class=sub style="margin:0">${Math.round(dn)} / ${Math.round(tot)} km cette semaine</div>`:''}<button class=p data-a=nav data-v=run>Voir le plan</button></div>`}
+  else hero=`<div class=hero><div class=k>Course</div><h2>Fixe ton objectif</h2><div class=sub>Ton plan d'entraînement se construit automatiquement.</div><button class=p data-a=nav data-v=run>Définir mon objectif</button></div>`;
+  let ren='';
+  if(S.a)ren=`<div class=card style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><div class=sub style="margin:0">Renfo en cours</div><h2>${esc(S.a.name)}</h2></div><button class="p sm" data-a=nav data-v=train>Reprendre</button></div>`;
+  else if(S.t.length){const c=S.t.map(t=>({t,d:lastDone(t)})).sort((a,b)=>a.d-b.d)[0];
+    ren=`<div class=card style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><div class=sub style="margin:0">Renfo · ${c.d?ago(c.d).toLowerCase():'pas encore fait'}</div><h2>${esc(c.t.name)}</h2></div><button class="p sm" data-a=start data-id=${c.t.id}>Démarrer</button></div>`}
+  const w=wk(Date.now()),e=w+7*864e5,rr=R.filter(r=>wk(rdate(r))===w),km=rr.reduce((a,r)=>a+r.km,0),ms=S.h.filter(h=>{const t=new Date(h.date).getTime();return t>=w&&t<e}),
+    mins=Math.round(rr.reduce((a,r)=>a+r.s,0)/60+ms.reduce((a,h)=>a+(h.dur||0),0));
+  const wl=[km?km.toFixed(1).replace('.',',')+' km':'',ms.length?ms.length+' séance'+(ms.length>1?'s':'')+' de renfo':'',mins?Math.floor(mins/60)+'h'+String(mins%60).padStart(2,'0'):''].filter(Boolean).join(' · ');
+  const lh=S.h.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0],lr=R.slice().sort((a,b)=>b.d.localeCompare(a.d))[0];let last='';
+  if(lr)last+=item('run','r',esc(lr.n),`${ago(lr.d.slice(0,10)+'T12:00:00')} · ${lr.km.toFixed(1)} km · ${pace(lr)} /km`);
+  if(lh){const vol=lh.ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=lh.ex.filter(x=>!x.skip).length;
+    last+=item('hist','m',esc(lh.name),`${ago(lh.date)} · ${n} exo${n>1?'s':''}${lh.dur?' · '+lh.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}`)}
+  return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>Aujourd'hui</h1></div><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div>${installCard()}${backupHint()}${S.a?ren:''}${hero}${S.a?'':ren}`
+    +(last?`<div class=sec>Dernières activités</div>${last}`:'')+(wl?`<div class=sub style="margin:20px 4px 0">Cette semaine : ${wl}</div>`:'')}
+
+function planBlock(){
+  const g=S.goal,p=S.plan;
+  if(!g||!p)return`<div class=card><h2>Objectif de course</h2><div class=sub>Définis ta course cible : l'app construit ton plan semaine par semaine.</div><button class=p style="width:100%" data-a=goal>Définir un objectif</button></div>`;
+  const left=Math.ceil((new Date(g.date+'T12:00:00')-Date.now())/864e5),now=wk(Date.now()),today=iso(new Date());
+  const card=W=>{const cur=W.w===now,res=matchWeek(W),tot=W.s.reduce((a,s)=>a+s.km,0),dn=W.s.reduce((a,s,i)=>a+(res[i]?res[i].km:(s.st==='ok'?s.km:0)),0);
+    return`<div class=card><div class=row style="justify-content:space-between;margin:0 0 4px;align-items:flex-start"><div><h2>${cur?'Cette semaine':'Semaine du '+sd(W.w,0).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</h2><div class=sub style="margin:0">${W.ph} · ${cur?Math.round(dn)+' / ':''}${Math.round(tot)} km</div></div>${MORE('wk','data-w='+W.w)}</div>`
+    +(W.s.map((s,i)=>{const dt=sd(W.w,s.d),run=res[i],st=sStatus(W,s,run,today);let title=`${s.t} · ${s.km} km`,sub;
+      if(run&&s.st!=='ko'){title=`${s.t} · ${run.km.toFixed(1)} km`;const rn=rday(run);sub=`Fait${rn!==s.d?' '+DN[rn].toLowerCase()+'.':''} · ${pace(run)} /km${run.hr?' · '+run.hr+' bpm':''}`}
+      else sub=(s.mv?'Décalée · ':'')+esc(s.custom||(s.desc&&!s.z?s.desc:descOf(s,g)));
+      return`<div class=prow><span class=pill>${DN[s.d]} ${dt.getDate()}</span><button class=pbody data-a=sedit data-w=${W.w} data-i=${i}><b>${title}</b><span class=sub>${sub}</span></button><button class="sb ${st}" data-a=sst data-w=${W.w} data-i=${i} aria-label="Statut">${SI[st]}</button></div>`}).join('')||'<div class=sub>Rien de prévu.</div>')+`</div>`};
+  const wks=p.weeks.filter(W=>W.w>=now),show=planAll?wks:wks.slice(0,1);
+  return`<div class=row style="justify-content:space-between;margin:0 0 14px;align-items:flex-start"><div><h2 style="font-size:20px">${esc(g.name||'Objectif')}</h2><div class=sub style="margin:0">${left>0?'Dans '+left+' jours':'Course passée'} · ${g.dist} km en ${hms(g.time)}</div></div>${MORE('goal')}</div>`+show.map(card).join('')}
+
+function sedit(){const q=sx,T=['Endurance','Sortie longue','Tempo','Fractionné','Allure objectif','Course','Libre'];
+  return`<div class=top><h1>${q.i>=0?'Modifier la séance':'Nouvelle séance'}</h1></div><div class=card><label style="margin-top:0">Type</label><select data-q=t>${T.map(t=>`<option${q.t===t?' selected':''}>${t}`).join('')}</select><label>Date</label><input type=date data-q=date value="${q.date}"><label>Distance (km)</label><input type=number inputmode=decimal step=any data-q=km value="${q.km}"><label>Détails (facultatif)</label><input style="text-align:left" data-q=custom placeholder="Ex. 40' tranquille, terrain plat" value="${esc(q.custom)}"></div>`
+  +`<button class=p style="width:100%;padding:16px" data-a=ssave>Enregistrer</button><div class=bar style="margin-top:4px"><button class=gh data-a=scancel>Annuler</button>${q.i>=0?'<button class="gh d" data-a=sdel>Supprimer</button>':''}</div>`}
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
   return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#c9cacf" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 
@@ -456,6 +499,19 @@ document.addEventListener('click',async ev=>{
   else if(a==='login')showLogin();
   else if(a==='logout'){if(!confirm('Se déconnecter ? Tes données restent sur ce téléphone.'))return;localStorage.removeItem('fitlog-auth');localStorage.removeItem('fitlog-nolog');csT='';toast('Déconnecté')}
   else if(a==='cloudsync'){setCs('Synchronisation…');await cloudSync(false)}
+  else if(a==='sedit'){const W=S.plan.weeks.find(x=>x.w===+b.dataset.w),q=W.s[i];sx={w:W.w,i,t:q.t,date:iso(sd(W.w,q.d)),km:q.km,custom:q.custom||''};view='sedit'}
+  else if(a==='sadd'){const w=+b.dataset.w;sx={w,i:-1,t:'Endurance',date:iso(w===wk(Date.now())?new Date():sd(w,0)),km:6,custom:''};view='sedit'}
+  else if(a==='sst'){const W=S.plan.weeks.find(x=>x.w===+b.dataset.w),q=W.s[i],st=sStatus(W,q,matchWeek(W)[i],iso(new Date()));
+    if(st==='todo')q.st='ok';else if(st==='ok')q.st='ko';else if(q.st==='ko')delete q.st;else q.st='ok';save()}
+  else if(a==='scancel'){sx=null;view='run'}
+  else if(a==='sdel'){if(!confirm('Supprimer cette séance du plan ?'))return;S.plan.weeks.find(x=>x.w===sx.w).s.splice(sx.i,1);save();sx=null;view='run'}
+  else if(a==='ssave'){const d=new Date(sx.date+'T12:00:00');if(isNaN(d)||!(+sx.km>0)){alert('Renseigne une date et une distance.');return}
+    const W=S.plan.weeks.find(x=>x.w===wk(d));if(!W){alert('Cette date est hors de ton plan.');return}
+    const OW=S.plan.weeks.find(x=>x.w===sx.w),orig=sx.i>=0?OW.s[sx.i]:null;
+    const o=orig&&orig.t===sx.t?{...orig}:{...(TP[sx.t]||{}),...(orig&&orig.st?{st:orig.st}:{})};
+    if(sx.t==='Course'&&!o.txt)o.txt=(S.goal&&S.goal.name)||'Course';
+    o.d=(d.getDay()+6)%7;o.t=sx.t;o.km=+sx.km;const c=(sx.custom||'').trim();c?o.custom=c:delete o.custom;
+    if(orig)OW.s.splice(sx.i,1);W.s.push(o);W.s.sort((a,b)=>a.d-b.d);save();sx=null;view='run';toast('Plan mis à jour')}
   else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
   else if(a==='hidebk')localStorage.setItem('fitlog-bk','1');
   else if(a==='starter'){const mk=(n,L)=>({id:uid(),name:n,ex:L.map(([name,min,max,inc])=>({name,sets:3,min,max,w:0,inc,m:'double'}))});
@@ -467,7 +523,7 @@ document.addEventListener('click',async ev=>{
     const M={tpl:[['Modifier',{a:'edit',id}],['Dupliquer',{a:'dup',id}],['Partager',{a:'share',id}]],
       add:[['Nouvelle séance',{a:'new'}],['Importer une séance reçue',{a:'impt'}],['Ajouter 2 séances types',{a:'starter'}]],
       ex:[['Renommer',{a:'rnx',i:ix}],['Monter',{a:'mv',i:ix,d:-1}],['Descendre',{a:'mv',i:ix,d:1}],['Retirer une série',{a:'remset',i:ix}],['Marquer « pas fait »',{a:'skip',i:ix}]],
-      goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
+      wk:[['Ajouter une sortie',{a:'sadd',w:b.dataset.w}]],goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
     sheet(M[k]||[])}
   else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
   else if(a==='htab'){histTab=b.dataset.v;hOpen=-1}
@@ -489,7 +545,7 @@ document.addEventListener('click',async ev=>{
     if(!(g.dist>0&&g.time>0&&g.days.length>=2&&/^\d{4}-\d{2}-\d{2}$/.test(g.date))){alert('Renseigne la date, la distance, le temps visé et au moins 2 jours de course.');return}
     const w=genPlan(g);if(!w){alert('La date de la course doit être dans le futur.');return}
     S.goal=g;S.plan={weeks:w,gen:Date.now()};save();ge=null;view='run';toast('Plan généré')}
-  else if(a==='regen'){if(!confirm('Recalculer le plan à partir de cette semaine, selon ton volume récent ?'))return;const g={...S.goal,base:avgBase()},w=genPlan(g);if(w){S.goal=g;S.plan={weeks:w,gen:Date.now()};save()}}
+  else if(a==='regen'){if(!confirm('Recalculer le plan à partir de cette semaine, selon ton volume récent ? Tes modifications manuelles de ce plan seront remplacées.'))return;const g={...S.goal,base:avgBase()},w=genPlan(g);if(w){S.goal=g;S.plan={weeks:w,gen:Date.now()};save()}}
   else if(a==='planall')planAll=!planAll;
   else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exercice",o)||'').trim();if(!n||n===o)return;e.name=n;
     if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
@@ -520,6 +576,7 @@ document.addEventListener('change',ev=>{
     if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value.trim()}
   else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
   else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
+  else if(t.dataset.q){sx[t.dataset.q]=t.dataset.q==='km'?+t.value:t.value}
   else if(t.dataset.g){ge[t.dataset.g]=['long','dist','base'].includes(t.dataset.g)?+t.value:t.value}
   else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]=+t.value;S.zones={...(S.zones||{}),[k]:z};save()}
   if(t.dataset.e&&t.tagName==='SELECT')render();
@@ -528,6 +585,7 @@ let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock
 document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('focusin',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.type==='number')setTimeout(()=>{try{t.select()}catch(x){}},0)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
