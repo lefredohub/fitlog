@@ -263,7 +263,7 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.6.2';
+const VER='2.6.3';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -415,7 +415,7 @@ function settings(){const a=AU();
   +acc('sv','Strava et coach IA',SC()?'Connecté':'Non configuré',stravaCard())
   +acc('gh','Sauvegarde GitHub','Facultative',syncCard())
   +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
-  +acc('ab','À propos','FitLog v'+VER,`<div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
+  +acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
 const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
 const TP={Endurance:{z:'ef'},'Sortie longue':{z:'ef',x:0},Tempo:{z:'tp',m:20},'Fractionné':{z:'iv',r:6},'Allure objectif':{z:'ob',m:20},Course:{},Libre:{}};
 const rdate=r=>new Date(r.d.slice(0,10)+'T12:00:00'),rday=r=>(rdate(r).getDay()+6)%7;
@@ -650,6 +650,7 @@ document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep(
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='cq'){ev.preventDefault();coachSend(ev.target.value)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+document.addEventListener('focusout',()=>setTimeout(()=>{scrollTo(0,0);fitNav()},120));
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('focusin',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.type==='number')setTimeout(()=>{try{t.select()}catch(x){}},0)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
