@@ -171,9 +171,10 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 
 function render(){
   if(S.plan)reconcilePlan();
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===(view==='coach'?'run':view)));
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'?coachView():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
   if(view!==lv){lv=view;const m=$('#app');m.classList.remove('fx');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
+  if(view==='coach'){const m=$('#app');m.scrollTop=m.scrollHeight}
   if(S.a&&!ed)keep();
 }
 
@@ -261,7 +262,7 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.5.0';
+const VER='2.6.1';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -332,6 +333,7 @@ function showLogin(){const o=document.createElement('div');o.className='ov';docu
   if(pw&&pw.length>=8){const r=await sb('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:pw})},h.get('access_token'));toast(r.ok?'Mot de passe changé : connecte-toi':'Échec du changement')}
   history.replaceState(null,'',location.pathname)}})();
 const IC={m:'<svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>',r:'<svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>'};
+IC.c='<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>';
 const CH='<svg class=chev viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 const ago=x=>{const a=new Date(x);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);const j=Math.round((b-a)/864e5);return j<=0?"Aujourd'hui":j===1?'Hier':'Il y a '+j+' j'};
 const item=(go,ic,t,sub,end)=>`<button class=item data-a=nav data-v=${go}><div class=ico>${IC[ic]}</div><div><b>${t}</b><div class=sub>${sub}</div></div>${end||CH}</button>`;
@@ -396,7 +398,7 @@ function history(){
 function runs(){
   const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
   const seg=`<div class=seg><button class="${runTab==='p'?'on':''}" data-a=rtab data-v=p>Plan</button><button class="${runTab==='r'?'on':''}" data-a=rtab data-v=r>Sorties</button></div>`,head=`<div class=top><h1>Course</h1></div>${seg}`;
-  if(runTab==='p')return head+planBlock();
+  if(runTab==='p')return head+coachItem()+planBlock();
   const now=wk(Date.now()),W=[];for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
   const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
   const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" fill="${i===7?'#ffd60a':'#26282c'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" fill="#c4c5cb">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" fill="#8b8d93">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
@@ -409,7 +411,7 @@ function settings(){const a=AU();
   return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more data-a=nav data-v=home aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button><h1>Réglages</h1></div></div>`
   +acc('cp','Compte',a?esc(a.email):SBU?'Non connecté':'Cloud non configuré',accountCard())
   +acc('zn','Zones cardiaques','Pour ton plan de course',zonesCard())
-  +acc('sv','Strava',SC()?'Connecté':'Non configuré',stravaCard())
+  +acc('sv','Strava et coach IA',SC()?'Connecté':'Non configuré',stravaCard())
   +acc('gh','Sauvegarde GitHub','Facultative',syncCard())
   +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
   +acc('ab','À propos','FitLog v'+VER,`<div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
@@ -478,6 +480,61 @@ function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...
   return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#c9cacf" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 
 
+
+// ===== Coach IA =====
+const COACH_SYS=`Tu es le coach de course à pied de l'utilisateur dans l'app FitLog. Sa priorité : l'objectif de course (voir CONTEXTE). Données en JSON : plan à venir par date (j = jour, st = fait/manqué/à faire), sorties récentes, renfo récent, zones FC en bpm, mémoire.
+Réponds UNIQUEMENT par un objet JSON : {"reply":"...","changes":[...],"mem":"..."}
+- reply : français, tutoiement, 70 mots max, direct, appuyé sur les données.
+- changes (max 8, [] si simple question ou rien à changer) : {"op":"set","date":"AAAA-MM-JJ","t":"Endurance|Sortie longue|Tempo|Fractionné|Allure objectif|Libre","km":nombre,"txt":"détail court facultatif"} crée ou remplace la séance de ce jour ; {"op":"del","date":"AAAA-MM-JJ"} la supprime. Uniquement des dates d'aujourd'hui ou futures, jamais la séance « Course ». N'invente aucune donnée absente du contexte.
+- mem : mémoire à jour (blessure, disponibilités, préférences durables ; 200 caractères max), ou null si inchangée.
+Principes : environ 80 % du volume en endurance facile ; hausse hebdo ≤ 10 % ; semaine allégée toutes les 4 semaines ; pas de séance de qualité la veille d'une grosse séance de jambes ; affûtage avant la course. Douleur ou blessure : prudence, réduis, conseille un avis médical si elle persiste. Si la demande est floue, pose une seule question sans proposer de changement.`;
+const CT=['Endurance','Sortie longue','Tempo','Fractionné','Allure objectif','Libre'];
+let cv={busy:0,draft:''};
+const planAt=d=>{const dt=new Date(d+'T12:00:00');if(isNaN(dt)||!S.plan)return null;const W=S.plan.weeks.find(x=>x.w===wk(dt));if(!W)return null;const dn=(dt.getDay()+6)%7;return{W,dn,k:W.s.findIndex(s=>s.d===dn)}};
+const chOK=c=>{if(!c||!/^\d{4}-\d{2}-\d{2}$/.test(c.date)||c.date<iso(new Date()))return false;const p=planAt(c.date);if(!p)return false;const o=p.k>=0?p.W.s[p.k]:null;
+  if(o&&(o.t==='Course'||o.st))return false;return c.op==='del'?!!o:c.op==='set'&&CT.includes(c.t)&&+c.km>0&&+c.km<=60};
+const chTxt=c=>{const p=planAt(c.date),o=p&&p.k>=0?p.W.s[p.k]:null,dt=new Date(c.date+'T12:00:00'),d=DN[(dt.getDay()+6)%7]+' '+dt.getDate(),a=o?o.t+' '+o.km+' km':'';
+  return c.op==='del'?d+' : '+a+' supprimée':d+' : '+(a?a+' → ':'')+c.t+' '+(+c.km)+' km'};
+function coachCtx(){const g=S.goal,tk=iso(new Date()),now=wk(Date.now());
+  return JSON.stringify({auj:tk,jour:DF[(new Date().getDay()+6)%7],
+    obj:g?{nom:g.name,date:g.date,km:g.dist,temps:hms(g.time),jours:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,zones_bpm:zones(),
+    plan:S.plan?S.plan.weeks.filter(W=>W.w>=now).slice(0,4).map(W=>{const res=matchWeek(W);return{sem:iso(new Date(W.w)),phase:W.ph,s:W.s.map((s,i)=>({date:iso(sd(W.w,s.d)),j:DN[s.d],t:s.t,km:s.km,st:{ok:'fait',ko:'manqué',todo:'à faire'}[sStatus(W,s,res[i],tk)]}))}}):[],
+    sorties:(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,14).map(r=>({d:r.d.slice(0,10),km:r.km,min:Math.round(r.s/60),fc:r.hr,dplus:r.up})),
+    renfo:S.h.slice(-4).map(h=>({d:h.date.slice(0,10),n:h.name,ex:h.ex.filter(e=>!e.skip).map(e=>e.name+' '+fmt(e)).join('; ').slice(0,300)})),
+    mem:(S.coach||{}).mem||''})}
+async function coachSend(t){const c=SC(),q=(t||'').trim();if(!q||cv.busy)return;
+  if(!c){alert("Renseigne d'abord le Worker dans Réglages > Strava et coach IA.");return}
+  S.coach=S.coach||{msgs:[]};const M=S.coach.msgs;M.push({r:'u',t:q});cv.busy=1;cv.draft='';render();
+  try{
+    const ms=M.slice(-7).map((m,i,a)=>({role:m.r==='u'?'user':'assistant',content:i===a.length-1?'CONTEXTE: '+coachCtx()+'\n\nMESSAGE: '+m.t:m.t}));
+    while(ms.length&&ms[0].role!=='user')ms.shift();
+    const r=await fetch(c.url.replace(/\/$/,'')+'/coach',{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({system:COACH_SYS,messages:ms})});
+    if(r.status===501)throw new Error('clé IA absente du Worker');if(!r.ok)throw new Error(r.status);
+    const raw=(await r.json()).text||'';let o;try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0])}catch(e){o={reply:raw}}
+    const ch=(Array.isArray(o.changes)?o.changes:[]).filter(chOK).slice(0,8);
+    M.push({r:'a',t:String(o.reply||'Fait.').slice(0,600),ch:ch.map(x=>({...x,x:chTxt(x)}))});
+    if(typeof o.mem==='string')S.coach.mem=o.mem.slice(0,300);
+    S.coach.at=Date.now();S.coach.msgs=M.slice(-12)
+  }catch(e){M.pop();cv.draft=q;toast('Coach indisponible ('+e.message+')')}
+  cv.busy=0;save();render()}
+function applyCh(m){const L=(m.ch||[]).filter(chOK);if(!L.length){toast('Ces changements ne sont plus applicables');return}
+  S.coach.undo=JSON.stringify(S.plan);S.coach.msgs.forEach(x=>{x.u=0});
+  L.forEach(c=>{const{W,dn}=planAt(c.date),k=W.s.findIndex(s=>s.d===dn),orig=k>=0?W.s[k]:null;if(k>=0)W.s.splice(k,1);if(c.op==='del')return;
+    const o=orig&&orig.t===c.t?{...orig}:{...(TP[c.t]||{})};o.d=dn;o.t=c.t;o.km=+c.km;delete o.mv;const x=String(c.txt||'').trim().slice(0,160);x?o.custom=x:delete o.custom;
+    W.s.push(o);W.s.sort((a,b)=>a.d-b.d)});
+  m.ap=1;m.u=1;save();toast('Plan mis à jour')}
+const coachItem=()=>{if(!SC()||!S.plan)return'';const at=(S.coach||{}).at||0,n=at?(S.runs||[]).filter(r=>new Date(r.d)>at).length:0;
+  return item('coach','c','Coach',n?n+' nouvelle'+(n>1?'s':'')+' sortie'+(n>1?'s':'')+' à analyser':'Ajuste ton plan en discutant')};
+function coachView(){const c=S.coach||{msgs:[]},M=c.msgs,
+  chips=[['Faire le point','Fais le point sur mes dernières sorties et ajuste mon plan si nécessaire.'],['Allège cette semaine','Je suis fatigué : allège ma semaine.'],['Durcis mon plan',"Mon plan est trop facile : durcis-le si c'est raisonnable."]];
+  const body=M.length?M.map((m,i)=>m.r==='u'?`<div style="display:flex;justify-content:flex-end;margin:10px 0"><div style="background:var(--s3);padding:10px 14px;border-radius:18px 18px 4px 18px;max-width:85%">${esc(m.t)}</div></div>`
+    :`<div class=card style="margin:10px 0"><div>${esc(m.t)}</div>`+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
+      +(m.ap?`<div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0;color:var(--ok)">Appliqué</span>${m.u&&c.undo?'<button class="gh sm" data-a=cundo>Annuler</button>':''}</div>`:`<button class="p sm" style="width:100%;margin-top:8px" data-a=capply data-i=${i}>Appliquer au plan</button>`):'')+`</div>`).join('')
+    :`<div class=empty style="padding:20px 10px">Ton coach connaît ton plan, tes sorties et ton renfo.<br>Demande-lui un ajustement.</div><div class=bar style="flex-wrap:wrap">${chips.map(([l,q])=>`<button class=sm data-a=csend data-q="${esc(q)}" style="flex:none">${l}</button>`).join('')}</div>`;
+  return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more data-a=nav data-v=run aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button><h1>Coach</h1></div>${MORE('coach')}</div>`+body
+    +(cv.busy?'<div class=sub style="margin:12px 4px">Le coach réfléchit…</div>':'')
+    +`<div class=row style="margin-top:14px"><input id=cq style="text-align:left;font-size:16px" placeholder="Écris au coach…" autocomplete=off value="${esc(cv.draft)}"><button class=p data-a=csendi style="flex:none;padding:13px 20px" aria-label="Envoyer">↑</button></div>`}
+
 document.addEventListener('click',async ev=>{
   if(ev.target.classList&&ev.target.classList.contains('sh-bg')){ev.target.closest('.sheet').remove();return}
   const b=ev.target.closest('button');if(!b)return;const shx=b.closest('.sheet');if(shx)shx.remove();const a=b.dataset.a,i=+b.dataset.i;
@@ -512,6 +569,12 @@ document.addEventListener('click',async ev=>{
     if(sx.t==='Course'&&!o.txt)o.txt=(S.goal&&S.goal.name)||'Course';
     o.d=(d.getDay()+6)%7;o.t=sx.t;o.km=+sx.km;const c=(sx.custom||'').trim();c?o.custom=c:delete o.custom;
     if(orig)OW.s.splice(sx.i,1);W.s.push(o);W.s.sort((a,b)=>a.d-b.d);save();sx=null;view='run';toast('Plan mis à jour')}
+  else if(a==='csend'){await coachSend(b.dataset.q);return}
+  else if(a==='csendi'){await coachSend($('#cq').value);return}
+  else if(a==='capply')applyCh(S.coach.msgs[i]);
+  else if(a==='cundo'){const c=S.coach;if(!c||!c.undo){toast('Rien à annuler');return}S.plan=JSON.parse(c.undo);delete c.undo;c.msgs.forEach(x=>{if(x.u){x.ap=0;x.u=0}});save();toast('Modification annulée')}
+  else if(a==='cmem'){const v=prompt('Ce que le coach retient (blessure, disponibilités…)',(S.coach&&S.coach.mem)||'');if(v===null)return;S.coach=S.coach||{msgs:[]};S.coach.mem=v.trim().slice(0,300);save()}
+  else if(a==='cclear'){if(!confirm('Effacer la conversation ?'))return;S.coach=S.coach||{msgs:[]};S.coach.msgs=[];save()}
   else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
   else if(a==='hidebk')localStorage.setItem('fitlog-bk','1');
   else if(a==='starter'){const mk=(n,L)=>({id:uid(),name:n,ex:L.map(([name,min,max,inc])=>({name,sets:3,min,max,w:0,inc,m:'double'}))});
@@ -523,7 +586,7 @@ document.addEventListener('click',async ev=>{
     const M={tpl:[['Modifier',{a:'edit',id}],['Dupliquer',{a:'dup',id}],['Partager',{a:'share',id}]],
       add:[['Nouvelle séance',{a:'new'}],['Importer une séance reçue',{a:'impt'}],['Ajouter 2 séances types',{a:'starter'}]],
       ex:[['Renommer',{a:'rnx',i:ix}],['Monter',{a:'mv',i:ix,d:-1}],['Descendre',{a:'mv',i:ix,d:1}],['Retirer une série',{a:'remset',i:ix}],['Marquer « pas fait »',{a:'skip',i:ix}]],
-      wk:[['Ajouter une sortie',{a:'sadd',w:b.dataset.w}]],goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
+      wk:[['Ajouter une sortie',{a:'sadd',w:b.dataset.w}]],coach:[['Annuler la dernière modification',{a:'cundo'}],['Mémoire du coach',{a:'cmem'}],['Effacer la conversation',{a:'cclear'}]],goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
     sheet(M[k]||[])}
   else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
   else if(a==='htab'){histTab=b.dataset.v;hOpen=-1}
@@ -584,6 +647,7 @@ document.addEventListener('change',ev=>{
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='cq'){ev.preventDefault();coachSend(ev.target.value)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('focusin',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.type==='number')setTimeout(()=>{try{t.select()}catch(x){}},0)});
