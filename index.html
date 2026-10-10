@@ -48,6 +48,7 @@ button.p{background:var(--y);color:#000;font-weight:700}
 button.d{background:none;color:var(--rd)}
 button.gh{background:none;color:var(--mut);font-weight:500;padding:10px 8px}button.gh.d{color:var(--rd)}
 button.sm{padding:9px 16px;font-size:14px;border-radius:12px}
+.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}button.mc{padding:14px 4px;font-size:13px;border-radius:14px;background:#1d1e22;color:var(--tx,#fff);border:1.5px solid transparent;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:62px;justify-content:center}button.mc small{font-size:10px;opacity:.85;font-weight:500}button.mc.p{background:#ffd60a;color:#000}button.mc.s{background:transparent;border-color:#ffd60a;color:#ffd60a}
 button.more{background:none;color:var(--mut);padding:6px 8px;font-size:20px;line-height:1;letter-spacing:1px;border-radius:10px}
 button.more.plus{font-size:30px;font-weight:300;color:var(--tx);letter-spacing:0;padding:2px 10px}
 .more svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
@@ -185,8 +186,8 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 
 function render(){
   if(S.plan)reconcilePlan();
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',whatif:'run',score:'home'}[view]||view)));
-  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'?coachView():view==='score'?scoreView():view==='whatif'?whatView():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',whatif:'run',score:'home',mmedit:'hist'}[view]||view)));
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'?coachView():view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='whatif'?whatView():view==='set'?settings():view==='run'?runs():view==='hist'?history():view==='train'?(S.a?session():train()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
   $('#app').classList.toggle('hm',!ed&&view==='home');
   if(view!==lv){lv=view;const m=$('#app');m.classList.remove('fx');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
   if(view==='coach'){const m=$('#app');m.scrollTop=m.scrollHeight}
@@ -277,7 +278,7 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.7.1';
+const VER='2.7.2';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -604,10 +605,10 @@ function scoreView(){const w=wk(Date.now()),s=weekScore(w),L=s.left,more=L&&(L.r
   <div class=sub style="margin:0 4px">Le score se remplit au fil de la semaine, comme un anneau : Course 50 % (km du plan réalisés), Renfo 25 % (objectif ${S.rt||2} séances par semaine), Progression 25 % (charge stable ou en légère hausse sur la moyenne des 4 semaines précédentes).</div>`}
 
 // --- Heatmap musculaire ---
-const MG=[['pec','Pectoraux'],['epa','Épaules'],['bi','Biceps'],['tri','Triceps'],['avb','Avant-bras'],['abd','Abdos'],['dos','Dos'],['trap','Trapèzes'],['lom','Lombaires'],['fes','Fessiers'],['qua','Quadriceps'],['isc','Ischios'],['mol','Mollets']];
+const MG=[['pec','Pectoraux'],['epf','Épaule avant'],['epl','Épaule latérale'],['epr','Épaule arrière'],['bi','Biceps'],['tri','Triceps'],['avb','Avant-bras'],['abd','Abdos'],['dos','Dos'],['trap','Trapèzes'],['lom','Lombaires'],['fes','Fessiers'],['qua','Quadriceps'],['isc','Ischios'],['mol','Mollets']];
 const MR=[[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['fes']],
  [/mollet|calf|talon|soleaire/,['mol'],[]],
- [/tirage menton|upright/,['epa'],['trap','bi']],
+ [/tirage menton|upright/,['epl'],['trap','bi']],
  [/triceps|barre au front|skull|pushdown|poulie haute|french/,['tri'],[]],
  [/biceps|curl|marteau|hammer|pupitre|preacher/,['bi'],['avb']],
  [/avant.?bras|forearm|poignet|wrist|farmer/,['avb'],[]],
@@ -616,19 +617,22 @@ const MR=[[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['
  [/hip.?thrust|\bpont|fessier|glute|abducteur|kickback|donkey/,['fes'],['isc']],
  [/extension.*(jambe|quad)|leg ext|quadri/,['qua'],[]],
  [/squat|presse|leg press|hack|fente|lunge|bulgare|step.?up|sissy|goblet/,['qua'],['fes','isc']],
- [/\bdips/,['pec'],['tri','epa']],
- [/militaire|overhead|shoulder|arnold|epaule|lateral|oiseau|face.?pull|elevation|rear delt/,['epa'],['tri','trap']],
- [/develop|bench|pompe|push.?up|ecarte|\bpec|butterfly|cross.?over|vis.?a.?vis/,['pec'],['tri','epa']],
+ [/\bdips/,['pec'],['tri','epf']],
+ [/oiseau|face.?pull|rear delt|reverse (fly|pec)/,['epr'],['trap']],
+ [/lateral|side raise|elevation lat/,['epl'],['trap']],
+ [/front raise|elevation frontale/,['epf'],['epl']],
+ [/militaire|overhead|shoulder|arnold|epaule|elevation/,['epf','epl'],['tri','trap']],
+ [/develop|bench|chest|pompe|push.?up|ecarte|\bpec|butterfly|cross.?over|vis.?a.?vis/,['pec'],['tri','epf']],
  [/traction|pull.?up|\bchin\b|tirage vertical|tirage poitrine|\blat\b|pull.?down/,['dos'],['bi','avb','trap']],
- [/\brow|tirage|t.?bar|pendlay/,['dos'],['bi','trap','epa','avb']],
+ [/\brow|tirage|t.?bar|pendlay/,['dos'],['bi','trap','epr','avb']],
  [/shrug|haussement|trapeze/,['trap'],[]],
  [/gainage|planche|plank|crunch|abdo|relev|roue|ab.?wheel|russian|sit.?up|mountain|obliqu|woodchop|bucheron/,['abd'],[]],
  [/lombaire|hyperext|back ext|bird.?dog|superman/,['lom'],['fes']],
  [/pull.?over/,['dos'],['pec']],[/adducteur/,['qua'],[]],
- [/pectoraux|poitrine|\bdc\b|\bdi\b|\bdev\b/,['pec'],['tri','epa']],[/deltoide|\bdelto/,['epa'],[]],[/\bdos\b|dorsaux|grand dorsal/,['dos'],['bi']],[/\bbras\b/,['bi','tri'],[]],
+ [/pectoraux|poitrine|\bdc\b|\bdi\b|\bdev\b/,['pec'],['tri','epf']],[/deltoide|\bdelto/,['epf','epl','epr'],[]],[/\bdos\b|dorsaux|grand dorsal/,['dos'],['bi']],[/\bbras\b/,['bi','tri'],[]],
  [/cuisse|jambe|\bleg\b/,['qua'],['fes']],[/hamstring/,['isc'],[]],[/\bcore\b/,['abd'],[]],[/\bcalves\b/,['mol'],[]]];
 const nrm=t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
-function mmOf(name){const n=nrm(name),o=(S.mm||{})[n];if(o)return o==='-'?'-':[[o],[]];const r=MR.find(x=>x[0].test(n));return r?[r[1],r[2]]:null}
+function mmOf(name){const n=nrm(name),o=(S.mm||{})[n];if(o)return o==='-'?'-':typeof o==='string'?[[o==='epa'?'epf':o],[]]:[o.p||[],o.s||[]];const r=MR.find(x=>x[0].test(n));return r?[r[1],r[2]]:null}
 let mmN=14,mmS={};
 function muscleStats(N){const since=Date.now()-N*864e5,cnt={},un={},src={};MG.forEach(([k])=>{cnt[k]=0;src[k]=[]});
   S.h.forEach(h=>{if(new Date(h.date).getTime()<since)return;h.ex.forEach(e=>{if(e.skip||e.t==='cardio')return;const n=e.sets.filter(s=>s.done&&+s.r>0).length;if(!n)return;const m=mmOf(e.name);
@@ -637,10 +641,21 @@ function muscleStats(N){const since=Date.now()-N*864e5,cnt={},un={},src={};MG.fo
   Object.keys(cnt).forEach(k=>cnt[k]=cnt[k]*7/N);return{cnt,un,src}}
 const MLV=v=>v<=0?0:v<2?1:v<5?2:v<10?3:4,MFILL=['#1d1e22','rgba(255,214,10,.42)','rgba(255,214,10,.62)','rgba(255,214,10,.82)','#ffd60a'];
 const MSIL='M60 36 L72 40 Q92 42 100 50 Q107 58 107 70 L109 100 Q111 120 109 138 Q107 148 100 148 Q95 142 94 130 L92 106 Q91 94 88 86 Q86 98 85 112 Q85 126 87 136 Q90 152 85 176 Q83 196 81 214 Q83 234 79 254 L65 254 Q64 234 64 214 Q62 192 61 152 L60 150 Z';
-const MP={F:[['epa','M72 41Q90 42 99 52Q104 62 102 74Q96 76 92 70Q88 56 76 52Z'],['pec','M61 48Q72 44 84 52Q90 62 86 72Q74 78 61 74Z'],['bi','M96 78Q104 78 106 92Q104 104 98 106Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
+const MP={F:[['epf','M72 41Q84 42 91 49Q92 60 89 70Q84 62 76 52Z'],['epl','M91 49Q98 51 101 58Q104 66 102 74Q96 76 92 70Q92 60 91 49Z'],['pec','M61 48Q72 44 84 52Q90 62 86 72Q74 78 61 74Z'],['bi','M96 78Q104 78 106 92Q104 104 98 106Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
   ['abd','M61 78L73 77Q75 92 74 110Q70 118 61 120ZM76 80Q84 80 86 90Q86 106 82 118Q78 118 76 112Q78 96 76 80Z'],['qua','M62 126Q78 122 84 134Q86 160 80 186Q72 192 64 186Q60 160 62 126Z'],['mol','M66 196Q76 194 79 204Q80 230 75 248Q68 248 66 230Q64 210 66 196Z']],
- B:[['trap','M60 38L72 41Q82 46 86 56Q78 64 72 70L60 78Z'],['epa','M72 41Q90 42 99 52Q104 62 102 74Q96 76 92 70Q88 56 76 52Z'],['dos','M61 82L72 76Q86 72 88 86Q86 102 76 112L61 110Z'],['tri','M96 78Q104 78 106 92Q104 106 98 108Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
+ B:[['trap','M60 38L72 41Q82 46 86 56Q78 64 72 70L60 78Z'],['epl','M91 49Q98 51 101 58Q104 66 102 74Q96 76 92 70Q92 60 91 49Z'],['epr','M72 41Q84 42 91 49Q92 60 89 70Q84 62 76 52Z'],['dos','M61 82L72 76Q86 72 88 86Q86 102 76 112L61 110Z'],['tri','M96 78Q104 78 106 92Q104 106 98 108Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
   ['lom','M61 112L76 112Q76 124 70 128L61 128Z'],['fes','M61 130Q80 124 86 138Q86 154 74 158Q62 156 61 130Z'],['isc','M62 162Q78 160 83 168Q84 184 78 194Q68 196 63 188Q60 176 62 162Z'],['mol','M66 200Q76 198 79 208Q80 232 75 248Q68 248 66 232Q64 214 66 200Z']]};
+
+let mmE=null;
+const mgl=k=>(MG.find(x=>x[0]===k)||[])[1]||k;
+const mmTxt=n=>{const m=mmOf(n);if(m==='-')return'Ignoré';if(!m)return'Non reconnu';return m[0].map(mgl).join(' + ')+(m[1].length?' · '+m[1].map(mgl).join(', ')+' (2nd)':'')};
+const mmExs=()=>[...new Set([...S.t.flatMap(t=>t.ex.filter(e=>e.t!=='cardio').map(e=>e.name)),...S.h.flatMap(h=>h.ex.filter(e=>e.t!=='cardio').map(e=>e.name))])].filter(Boolean).sort((a,b)=>a.localeCompare(b));
+function mmEdit(){const m=mmE;
+  return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more data-a=mmcancel aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button><h1 style="font-size:24px">${esc(m.n)}</h1></div></div>
+  <div class=sub style="margin:0 4px 12px">Touche un muscle : 1× principal, 2× secondaire, 3× aucun. Principal = 1 série, secondaire = ½ série.</div>
+  <div class=mg>${MG.map(([k,l])=>`<button class="mc${m.p.includes(k)?' p':m.s.includes(k)?' s':''}" data-a=mmcyc data-k=${k}>${l}${m.p.includes(k)?'<small>Principal</small>':m.s.includes(k)?'<small>Secondaire</small>':''}</button>`).join('')}</div>
+  <button class=p data-a=mmsave style="width:100%;margin-top:14px"${m.p.length?'':' disabled style="width:100%;margin-top:14px;opacity:.4"'}>Enregistrer</button>
+  <div class=row style="gap:8px;margin-top:8px"><button class=sm data-a=mmauto style="flex:1">Automatique</button><button class=sm data-a=mmign style="flex:1">Ignorer</button></div>`}
 function bodySvg(side,cnt){const half=`<path d="${MSIL}" fill="#121316"/>`+MP[side].map(([k,d])=>`<path d="${d}" fill="${MFILL[MLV(cnt[k])]}" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>`).join('')+(side==='F'?'<path d="M62 90H73M62 101H73M62 111H72" stroke="#000" stroke-width="1.2" fill="none"/>':'');
   return`<svg viewBox="0 0 120 256" width=100%><circle cx=60 cy=17 r=11.5 fill="#121316"/><rect x=54 y=26 width=12 height=12 fill="#121316"/><g>${half}</g><g transform="translate(120 0) scale(-1 1)">${half}</g></svg>`}
 function muscleView(){const{cnt,un,src}=muscleStats(mmN);mmS=src;const rows=MG.map(([k,l])=>({k,l,v:cnt[k]})).sort((a,b)=>a.v-b.v),has=Object.values(cnt).some(v=>v>0)||Object.keys(un).length,low=rows.filter(r=>r.v<6).slice(0,3).map(r=>r.l);
@@ -649,7 +664,8 @@ function muscleView(){const{cnt,un,src}=muscleStats(mmN);mmS=src;const rows=MG.m
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:11px;color:var(--mut)">Aucun${MFILL.map(c=>`<i style="width:22px;height:8px;border-radius:4px;background:${c}"></i>`).join('')}10+ séries/sem.</div></div>`
   +(Object.keys(un).length?`<div class=card style="border-color:rgba(255,214,10,.4)"><h2>${Object.keys(un).length} exercice${Object.keys(un).length>1?'s':''} non reconnu${Object.keys(un).length>1?'s':''}</h2><div class=sub>Ils ne sont pas comptés : associe-les à un muscle.</div>${Object.keys(un).map(n=>`<div class=row style="justify-content:space-between"><span>${esc(n)}</span><button class="sm" data-a=mmask data-n="${esc(n)}">Associer</button></div>`).join('')}</div>`:'')
   +(has?`<div class=card><h2>${low.length?'Moins sollicités : '+low.join(', '):'Répartition équilibrée'}</h2><div class=sub>Séries par semaine${mmN>7?' (moyenne sur '+mmN+' jours)':''}. Un muscle secondaire compte pour une demi-série. Touche un muscle pour voir d'où viennent ses séries.</div>${rows.map(r=>`<button class=row data-a=mmsrc data-k=${r.k} style="width:100%;background:none;padding:6px 0;margin:4px 0 0;border-radius:0;font-weight:400;text-align:left"><span style="width:92px;flex:none;font-size:14px">${r.l}</span><div class=prog style="flex:1;margin:0"><i style="width:${Math.min(100,Math.round(r.v/10*100))}%"></i></div><span class=sub style="margin:0;width:34px;text-align:right">${r.v?r.v.toFixed(1).replace('.',','):'0'}</span></button>`).join('')}</div>`
-    :`<div class=empty>Termine une séance de renfo pour voir tes muscles s'allumer.</div>`)}
+    :`<div class=empty>Termine une séance de renfo pour voir tes muscles s'allumer.</div>`)
+  +acc('mmx','Exercices et muscles',mmExs().length+' exercices',mmExs().map(n=>`<button class=row data-a=mmask data-n="${esc(n)}" style="width:100%;background:none;padding:8px 0;margin:0;border-radius:0;font-weight:400;text-align:left;justify-content:space-between;gap:10px"><span style="font-size:14px">${esc(n)}</span><span class=sub style="margin:0;text-align:right;font-size:12px">${esc(mmTxt(n))}</span></button>`).join('')||'<div class=sub>Aucun exercice.</div>')}
 
 // --- What if ---
 let wi={vol:0,miss:0,pause:0,real:0};
@@ -735,8 +751,12 @@ document.addEventListener('click',async ev=>{
   else if(a==='mmper')mmN=+b.dataset.v;
   else if(a==='mmsrc'){const k=b.dataset.k,l=(MG.find(x=>x[0]===k)||[])[1],g={};(mmS[k]||[]).forEach(([n,c,w])=>{g[n]=g[n]||[0,w];g[n][0]+=c});
     sheet([[l+' · '+mmN+' jours'+(Object.keys(g).length?' : touche un exercice pour changer son muscle':''),{a:'noop'}]].concat(Object.entries(g).length?Object.entries(g).map(([n,[c,w]])=>[n+' : '+c+' série'+(c>1?'s':'')+(w<1?' (secondaire)':''),{a:'mmask',n}]):[['Aucun exercice sur cette période',{a:'noop'}]]));return}
-  else if(a==='mmask'){sheet(MG.map(([k,l])=>[l,{a:'mmpick',n:b.dataset.n,m:k}]).concat([['Ignorer cet exercice',{a:'mmpick',n:b.dataset.n,m:'-'}],['Reconnaissance automatique',{a:'mmpick',n:b.dataset.n,m:''}]]));return}
-  else if(a==='mmpick'){S.mm=S.mm||{};if(b.dataset.m)S.mm[nrm(b.dataset.n)]=b.dataset.m;else delete S.mm[nrm(b.dataset.n)];save()}
+  else if(a==='mmask'){const n=b.dataset.n,m=mmOf(n);mmE={n,p:m&&m!=='-'?[...m[0]]:[],s:m&&m!=='-'?[...m[1]]:[]};view='mmedit'}
+  else if(a==='mmcyc'){const k=b.dataset.k;if(mmE.p.includes(k)){mmE.p=mmE.p.filter(x=>x!==k);mmE.s.push(k)}else if(mmE.s.includes(k))mmE.s=mmE.s.filter(x=>x!==k);else mmE.p.push(k)}
+  else if(a==='mmsave'){if(!mmE.p.length)return;S.mm=S.mm||{};S.mm[nrm(mmE.n)]={p:mmE.p,s:mmE.s};mmE=null;view='hist';histTab='m';save()}
+  else if(a==='mmauto'){S.mm=S.mm||{};delete S.mm[nrm(mmE.n)];mmE=null;view='hist';histTab='m';save()}
+  else if(a==='mmign'){S.mm=S.mm||{};S.mm[nrm(mmE.n)]='-';mmE=null;view='hist';histTab='m';save()}
+  else if(a==='mmcancel'){mmE=null;view='hist';histTab='m'}
   else if(a==='wipre')wi={...WIP[+b.dataset.v][1]};
   else if(a==='rtset'){const v=+prompt('Séances de renfo visées par semaine',S.rt||2);if(v>=1&&v<=7){S.rt=v;save()}}
   else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
