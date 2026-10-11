@@ -187,12 +187,12 @@ function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filte
 function render(){
   if(S.plan)reconcilePlan();
   if(view==='hist'){view='train';if(histTab==='t')histTab='s'}
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',whatif:'run',score:'home',mmedit:'train'}[view]||view)));
-  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'?coachView():view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='whatif'?whatView():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?session():history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train'}[view]||view)));
+  $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'?coachView():view==='mcoach'?mcView():view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?session():history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
   $('#app').classList.toggle('hm',!ed&&view==='home');
   if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0}
   if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
-  if(view==='coach'){const m=$('#app');m.scrollTop=m.scrollHeight}
+  if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
   if(S.a&&!ed)keep();
 }
 
@@ -280,7 +280,7 @@ function goalView(){const g=ge;
   <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
   <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
   <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.7.3';
+const VER='2.7.5';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -367,7 +367,7 @@ const lastDone=t=>{for(let i=S.h.length-1;i>=0;i--)if(S.h[i].name===t.name)retur
 
 
 function trainList(){
-  return(S.t.length?S.t.map(t=>{const d=lastDone(t),n=t.ex.length;
+  return mcItem()+(S.t.length?S.t.map(t=>{const d=lastDone(t),n=t.ex.length;
     return`<div class=card style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><h2>${esc(t.name)}</h2><div class=sub style="margin:0">${n} exercice${n>1?'s':''}${d?' · '+ago(d).toLowerCase():''}</div></div><button class="p sm" data-a=start data-id=${t.id}>Démarrer</button>${MORE('tpl','data-id='+t.id)}</div>`}).join('')
    :`<div class=empty>${LOGO('logo lg')}<br>Aucune séance<br><br><button class=p data-a=new>Créer ma première séance</button></div>`)}
 
@@ -418,7 +418,7 @@ function runs(){
   const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
   const seg=`<div class=seg><button class="${runTab==='p'?'on':''}" data-a=rtab data-v=p>Plan</button><button class="${runTab==='r'?'on':''}" data-a=rtab data-v=r>Sorties</button><button class="${runTab==='rec'?'on':''}" data-a=rtab data-v=rec>Records</button></div>`,head=`<div class=top><h1>Course</h1></div>${seg}`;
   if(runTab==='rec')return head+recView();
-  if(runTab==='p')return head+coachItem()+whatItem()+planBlock();
+  if(runTab==='p')return head+coachItem()+planBlock();
   const now=wk(Date.now()),W=[];for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
   const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
   const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" fill="${i===7?'#ffd60a':'#26282c'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" fill="#c4c5cb">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" fill="#8b8d93">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
@@ -555,7 +555,57 @@ function coachView(){const c=S.coach||{msgs:[]},M=c.msgs,
     +(cv.busy?'<div class=sub style="margin:12px 4px">Le coach réfléchit…</div>':'')
     +`<div class=row style="margin-top:14px"><input id=cq style="text-align:left;font-size:16px" placeholder="Écris au coach…" autocomplete=off value="${esc(cv.draft)}"><button class=p data-a=csendi style="flex:none;padding:13px 20px" aria-label="Envoyer">↑</button></div>`}
 
-// ===== v2.7 : Records, Score, Muscles, What-if =====
+
+// ===== v2.7.5 : Coach renfo IA =====
+const MC_SYS=`Tu es le coach de musculation de l'utilisateur dans l'app FitLog. C'est un coureur (objectif de course dans le CONTEXTE) : le renfo sert la performance, la prévention des blessures et l'équilibre musculaire. Données JSON : seances (modèles : nom, ex = exercices n/s séries/min-max reps/kg), recents (dernières séances faites), muscles (séries par semaine, moyenne sur 14 jours ; principal = 1 série, secondaire = ½), non_reconnus (exercices sans muscle associé, donc non comptés), obj_renfo (séances/semaine visées), obj (course), mem.
+Réponds UNIQUEMENT par un objet JSON : {"reply":"...","changes":[...],"mem":"..."}
+- reply : français, tutoiement, 90 mots max, concret : cite les muscles et chiffres du contexte, dis ce qui est déséquilibré ou manquant et pourquoi.
+- changes (max 6, [] si simple question) : {"op":"add","seance":"nom EXACT d'une séance existante (ou nouveau nom pour en créer une)","name":"nom d'exercice courant en français","sets":3,"min":8,"max":12} ajoute un exercice ; {"op":"del","seance":"nom exact","name":"nom exact de l'exercice"} le retire. Ne propose jamais d'exercice déjà présent dans la séance. N'invente aucune charge ni donnée absente du contexte.
+- mem : mémoire à jour (blessure, matériel, préférences durables ; 200 caractères max), ou null si inchangée.
+Principes : 6 à 10 séries par semaine et par groupe suffisent pour un coureur, jusqu'à 12-15 si l'objectif est de prendre du muscle ; équilibre poussée/tirage proche de 1:1 et épaule arrière non négligée ; priorité aux jambes (unilatéral, fessiers, ischios, mollets) et au gainage ; 5 à 8 exercices par séance ; pas de grosse séance de jambes la veille d'une sortie longue ou de qualité ; limite les exercices redondants. Douleur ou blessure : prudence, adapte, conseille un avis médical si elle persiste. Si la demande est floue, pose une seule question sans proposer de changement.`;
+let mcv={busy:0,draft:''};
+const mcT=n=>S.t.find(t=>nrm(t.name)===nrm(n));
+const mcOK=c=>{if(!c||typeof c.seance!=='string'||typeof c.name!=='string'||!c.seance.trim()||!c.name.trim()||c.seance.length>60||c.name.length>60)return false;const t=mcT(c.seance),e=t&&t.ex.find(x=>nrm(x.name)===nrm(c.name));
+  if(c.op==='del')return!!e;if(c.op!=='add'||e)return false;return+c.sets>=1&&+c.sets<=8&&+c.min>=1&&+c.max>=+c.min&&+c.max<=40};
+const mcTxt=c=>c.op==='del'?c.seance+' : retirer '+c.name:c.seance+(mcT(c.seance)?'':' (nouvelle séance)')+' : + '+c.name+' '+(+c.sets)+'×'+(+c.min)+(+c.max>+c.min?'–'+(+c.max):'');
+function mcCtx(){const{cnt}=muscleStats(14),mu={};MG.forEach(([k,l])=>{mu[l]=Math.round(cnt[k]*10)/10});const un=Object.keys(muscleStats(14).un);
+  const g=S.goal;return JSON.stringify({auj:iso(new Date()),obj:g?{nom:g.name,date:g.date,km:g.dist,jours_course:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,obj_renfo:S.rt||2,
+    seances:S.t.map(t=>({nom:t.name,ex:t.ex.filter(e=>e.t!=='cardio').map(e=>({n:e.name,s:e.sets,r:e.min+(+e.max>+e.min?'-'+e.max:''),kg:+e.w||0}))})),
+    recents:S.h.slice(-5).map(h=>({d:h.date.slice(0,10),n:h.name,ex:h.ex.filter(e=>!e.skip&&e.t!=='cardio').map(e=>e.name).join(', ').slice(0,200)})),
+    muscles:mu,non_reconnus:un.slice(0,10),mem:(S.mc||{}).mem||''})}
+async function mcSend(t){const c=SC(),q=(t||'').trim();if(!q||mcv.busy)return;
+  if(!c){alert("Renseigne d'abord le Worker dans Réglages > Strava et coach IA.");return}
+  S.mc=S.mc||{msgs:[]};const M=S.mc.msgs;M.push({r:'u',t:q});mcv.busy=1;mcv.draft='';render();
+  try{
+    const ms=M.slice(-7).map((m,i,a)=>({role:m.r==='u'?'user':'assistant',content:i===a.length-1?'CONTEXTE: '+mcCtx()+'\n\nMESSAGE: '+m.t:m.t}));
+    while(ms.length&&ms[0].role!=='user')ms.shift();
+    const r=await fetch(c.url.replace(/\/$/,'')+'/coach',{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({system:MC_SYS,messages:ms})});
+    if(r.status===501)throw new Error('clé IA absente du Worker');if(!r.ok)throw new Error(r.status);
+    const raw=(await r.json()).text||'';let o;try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0])}catch(e){o={reply:raw}}
+    const ch=(Array.isArray(o.changes)?o.changes:[]).filter(mcOK).slice(0,6);
+    M.push({r:'a',t:String(o.reply||'Fait.').slice(0,700),ch:ch.map(x=>({op:x.op,seance:x.seance.trim(),name:x.name.trim(),sets:+x.sets,min:+x.min,max:+x.max,x:mcTxt(x)}))});
+    if(typeof o.mem==='string')S.mc.mem=o.mem.slice(0,300);
+    S.mc.msgs=M.slice(-12)
+  }catch(e){M.pop();mcv.draft=q;toast('Coach indisponible ('+e.message+')')}
+  mcv.busy=0;save();render()}
+function mcApply(m){const L=(m.ch||[]).filter(mcOK);if(!L.length){toast('Ces changements ne sont plus applicables');return}
+  S.mc.undo=JSON.stringify(S.t);S.mc.msgs.forEach(x=>{x.u=0});
+  L.forEach(c=>{let t=mcT(c.seance);if(c.op==='del'){t.ex=t.ex.filter(x=>nrm(x.name)!==nrm(c.name));return}
+    if(!t){t={id:uid(),name:c.seance,ex:[]};S.t.push(t)}
+    t.ex.push({name:c.name,sets:+c.sets,min:+c.min,max:+c.max,w:0,inc:2.5,m:'double'})});
+  m.ap=1;m.u=1;save();toast('Séances mises à jour')}
+const mcItem=()=>SC()?item('mcoach','c','Coach renfo','Équilibre du programme, idées d\'exercices'):'';
+function mcView(){const c=S.mc||{msgs:[]},M=c.msgs,
+  chips=[['Analyse mon équilibre','Analyse l\'homogénéité de mon programme de renfo : qu\'est-ce qui est sur- ou sous-travaillé ?'],['Propose des exos','Propose-moi des exercices pour combler ce qui manque dans mon programme.'],['Séance jambes coureur','Compose-moi une séance de jambes adaptée à un coureur.']];
+  const body=M.length?M.map((m,i)=>m.r==='u'?`<div style="display:flex;justify-content:flex-end;margin:10px 0"><div style="background:var(--s3);padding:10px 14px;border-radius:18px 18px 4px 18px;max-width:85%">${esc(m.t)}</div></div>`
+    :`<div class=card style="margin:10px 0"><div>${esc(m.t)}</div>`+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
+      +(m.ap?`<div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0;color:var(--ok)">Appliqué</span>${m.u&&c.undo?'<button class="gh sm" data-a=mcundo>Annuler</button>':''}</div>`:`<button class="p sm" style="width:100%;margin-top:8px" data-a=mcapply data-i=${i}>Appliquer à mes séances</button>`):'')+`</div>`).join('')
+    :`<div class=empty style="padding:20px 10px">Ton coach connaît tes séances, tes muscles travaillés et ton objectif de course.<br>Demande-lui un avis ou des exercices.</div><div class=bar style="flex-wrap:wrap">${chips.map(([l,q])=>`<button class=sm data-a=mcsend data-q="${esc(q)}" style="flex:none">${l}</button>`).join('')}</div>`;
+  return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more data-a=nav data-v=train aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button><h1>Coach renfo</h1></div>${MORE('mc')}</div>`+body
+    +(mcv.busy?'<div class=sub style="margin:12px 4px">Le coach réfléchit…</div>':'')
+    +`<div class=row style="margin-top:14px"><input id=mq style="text-align:left;font-size:16px" placeholder="Écris au coach…" autocomplete=off value="${esc(mcv.draft)}"><button class=p data-a=mcsendi style="flex:none;padding:13px 20px" aria-label="Envoyer">↑</button></div>`}
+
+// ===== v2.7 : Records, Score, Muscles =====
 const RD=[['5K',5],['10K',10],['Semi',21.0975],['Marathon',42.195]];
 const fdate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'2-digit'}):'';
 const rieg=(s,a,b)=>s*Math.pow(b/a,1.06);
@@ -669,45 +719,7 @@ function muscleView(){const{cnt,un,src}=muscleStats(mmN);mmS=src;const rows=MG.m
     :`<div class=empty>Termine une séance de renfo pour voir tes muscles s'allumer.</div>`)
   +acc('mmx','Exercices et muscles',mmExs().length+' exercices',mmExs().map(n=>`<button class=row data-a=mmask data-n="${esc(n)}" style="width:100%;background:none;padding:8px 0;margin:0;border-radius:0;font-weight:400;text-align:left;justify-content:space-between;gap:10px"><span style="font-size:14px">${esc(n)}</span><span class=sub style="margin:0;text-align:right;font-size:12px">${esc(mmTxt(n))}</span></button>`).join('')||'<div class=sub>Aucun exercice.</div>')}
 
-// --- What if ---
-let wi={vol:0,miss:0,pause:0,real:0};
-const WIP=[['Plan actuel',{vol:0,miss:0,pause:0,real:0}],['Je rate 1 séance/sem.',{vol:0,miss:1,pause:0,real:0}],['Pause de 2 semaines',{vol:0,miss:0,pause:2,real:0}],['+10 % de volume',{vol:10,miss:0,pause:0,real:0}],['Mon rythme réel',{vol:0,miss:0,pause:0,real:1}]];
-function wiBase(){const now=wk(Date.now()),tk=iso(new Date());let pl=0,dn=0;
-  (S.plan?S.plan.weeks:[]).filter(W=>W.w<now).forEach(W=>{const res=matchWeek(W);W.s.forEach((s,i)=>{if(s.t==='Course')return;pl+=s.km;if(sStatus(W,s,res[i],tk)==='ok')dn+=Math.min(res[i]?res[i].km:s.km,s.km)})});
-  return pl>=10?dn/pl:null}
-function wiCalc(){if(!S.plan||!S.goal)return null;const now=wk(Date.now()),tk=iso(new Date()),F=S.plan.weeks.filter(W=>W.w>=now),ad=wi.real&&wiBase()||1,PRI=s=>s.t==='Sortie longue'?9:QT.includes(s.t)?5:1;
-  const rows=F.map((W,j)=>{const res=matchWeek(W);let done=0,plan=0;const rem=[];
-    W.s.forEach((s,i)=>{if(s.t==='Course')return;plan+=s.km;const st=sStatus(W,s,res[i],tk);if(j===0&&st==='ok')done+=Math.min(res[i]?res[i].km:s.km,s.km);else if(j>0||st==='todo')rem.push(s)});
-    rem.sort((a,b)=>PRI(a)-PRI(b)||a.km-b.km);const kept=rem.slice(Math.min(wi.miss,Math.max(0,rem.length-1))),
-      pz=wi.pause>0&&j>=1?(j<=wi.pause?0:j===wi.pause+1?.5:j===wi.pause+2?.75:1):1,f=(1+wi.vol/100)*ad*pz,
-      sc=done+kept.reduce((a,s)=>a+s.km,0)*f,lg=Math.max(0,...kept.filter(s=>s.t==='Sortie longue').map(s=>s.km))*f,pl=Math.max(0,...W.s.filter(s=>s.t==='Sortie longue').map(s=>s.km));
-    return{plan,sc,lg,pl}});
-  const tp=rows.reduce((a,r)=>a+r.plan,0),ts=rows.reduce((a,r)=>a+r.sc,0),prep=tp?ts/tp:1,g=S.goal,pr=predAt(g.dist),
-    past=Array.from({length:8},(_,i)=>{const w=pwk(now,8-i);return(S.runs||[]).filter(r=>wk(rdate(r))===w).reduce((a,r)=>a+r.km,0)}),
-    acwr=v=>{const z=[...past,...v];let m=0;for(let j=8;j<z.length;j++){const c=(z[j-1]+z[j-2]+z[j-3]+z[j-4])/4;if(c>=3)m=Math.max(m,z[j]/c)}return m},
-    risk=acwr(rows.map(r=>r.sc)),riskPlan=acwr(rows.map(r=>r.plan)),eff=Math.max(0,Math.min(prep,1.15)-.5*Math.max(0,risk-riskPlan-.05)),
-    G=pr?(pr.t>g.time?(pr.t-g.time)/pr.t:.03):0,proj=pr?pr.t*(1-G*eff+.005*wi.pause):null,projPlan=pr?pr.t*(1-G):null;
-  return{rows,tp,ts,prep,pr,proj,projPlan,past,risk,riskPlan,lg:Math.max(0,...rows.map(r=>r.lg)),lp:Math.max(0,...rows.map(r=>r.pl))}}
-function wiChart(c){const n=c.rows.length,W=320,H=130,px=8,x0=px+.2*W,x=i=>i<8?px+i*(x0-px-6)/7:x0+(i-8)*(W-px-x0)/Math.max(1,n-1),mx=Math.max(1,...c.past,...c.rows.map(r=>Math.max(r.plan,r.sc)))*1.15,y=v=>H-22-v/mx*(H-40);
-  const pl=c.rows.map((r,i)=>`${x(8+i).toFixed(1)},${y(r.plan).toFixed(1)}`).join(' '),sc=c.rows.map((r,i)=>`${x(8+i).toFixed(1)},${y(r.sc).toFixed(1)}`).join(' '),pa=c.past.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const last=n-1;
-  return`<svg viewBox="0 0 ${W} ${H}" width=100%><line x1="${x0-3}" x2="${x0-3}" y1="8" y2="${H-22}" stroke="#3a3c42" stroke-dasharray="3 3"/><polygon points="${x(8)},${y(0)} ${sc} ${x(8+last)},${y(0)}" fill="rgba(255,214,10,.14)"/><polyline points="${pa}" fill="none" stroke="#8b8d93" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${pl}" fill="none" stroke="#8b8d93" stroke-width="1.5" stroke-dasharray="4 3"/><polyline points="${sc}" fill="none" stroke="#ffd60a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><text x="${x0}" y="14" font-size="10" fill="#8b8d93">Auj.</text><text x="${W-px}" y="${H-6}" text-anchor="end" font-size="10" fill="#8b8d93">Course</text><text x="${px}" y="${H-6}" font-size="10" fill="#8b8d93">Passé</text></svg>`}
-function whatView(){const c=wiCalc(),ad=wiBase();
-  if(!c)return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','run')}<h1>What if</h1></div></div><div class=empty>Définis un objectif de course pour simuler des scénarios.</div>`;
-  const dv=c.tp?Math.round((c.ts/c.tp-1)*100):0,pp=Math.round(c.prep*100),rk=c.risk,vd=rk>1.3&&rk>c.riskPlan+.05?['Montée de charge risquée','var(--rd)']:pp>=105?['Au-dessus du plan','var(--ok)']:pp>=95?['Objectif en bonne voie','var(--ok)']:pp>=85?['Préparation correcte','var(--y)']:pp>=70?['Objectif à risque','var(--y)']:['Préparation insuffisante','var(--rd)'];
-  const same=p=>Object.keys(p).every(k=>wi[k]===p[k]),sl=(k,l,mn,mx,st,u)=>`<div class=row style="justify-content:space-between;margin:12px 0 0"><span>${l}</span><b data-wl=${k}>${k==='vol'&&wi[k]>0?'+':''}${wi[k]}${u}</b></div><input type=range min=${mn} max=${mx} step=${st} value=${wi[k]} data-wi=${k}>`;
-  return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','run')}<h1>What if</h1></div></div>
-  <div class=card><div class=bar style="flex-wrap:wrap;margin:0">${WIP.map(([l,p],i)=>p.real&&ad==null?'':`<button class="sm${same(p)?' p':''}" data-a=wipre data-v=${i} style="flex:none">${l}</button>`).join('')}</div>
-  ${sl('vol','Volume',-30,30,5,' %')}${sl('miss','Séances manquées par semaine',0,2,1,'')}${sl('pause','Pause (semaines)',0,4,1,'')}</div>
-  <div class=card><h2>Charge hebdomadaire</h2><div class=sub>Trait jaune : ton scénario · pointillé : le plan</div>${wiChart(c)}</div>
-  <div class=card><div class=hstats style="margin:0 0 6px;justify-content:space-between;gap:10px"><div><div class=hv style="white-space:nowrap;font-size:23px">${Math.round(c.ts)}<small> km</small></div><div class=sub>d'ici la course${dv?` · ${dv>0?'+':''}${dv} %`:''}</div></div><div><div class=hv style="white-space:nowrap;font-size:23px">${Math.round(c.lg)}<small> km</small></div><div class=sub>sortie longue max</div></div><div><div class=hv style="white-space:nowrap;font-size:23px;color:${vd[1]}">${pp}<small> %</small></div><div class=sub>du plan</div></div></div>
-  <div class=prog style="margin:12px 0 8px"><i style="width:${Math.min(100,pp)}%;background:${vd[1]}"></i></div><div class=sub style="margin:0;color:${vd[1]}">${vd[0]}</div><div class=sub style="margin:6px 0 0">Pic de charge ×${rk.toFixed(2).replace('.',',')} vs ta moyenne des 4 semaines précédentes${rk>1.3?' : risque de blessure':rk>1.15?' : à surveiller':' : confortable'}</div></div>
-  ${c.pr?`<div class=card><h2>Chrono ${S.goal.name?esc(S.goal.name):''}</h2><div class=row style="justify-content:space-between;margin:8px 0 0"><span class=sub style="margin:0">Aujourd'hui (d'après ton ${c.pr.from})</span><b>≈ ${hms(Math.round(c.pr.t))}</b></div><div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0">Avec ce scénario</span><b style="color:var(--y)">≈ ${hms(Math.round(c.proj))} <span class=sub style="margin:0;color:${c.proj<=S.goal.time?'var(--ok)':'var(--rd)'}">(${c.proj<=S.goal.time?'−':'+'}${hms(Math.abs(Math.round(c.proj-S.goal.time)))})</span></b></div><div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0">Différence avec le plan actuel</span><b style="color:${Math.round(c.proj-c.projPlan)<=0?'var(--ok)':'var(--rd)'}">${Math.round(c.proj-c.projPlan)<=0?'−':'+'}${hms(Math.abs(Math.round(c.proj-c.projPlan)))}</b></div><div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0">Objectif</span><b>${hms(S.goal.time)}</b></div><div class=sub style="margin:10px 0 0">Estimation indicative : suivre 100 % du plan comble l'écart avec l'objectif (ou apporte ≈ 3 % si tu l'as déjà). Plus de charge accélère un peu, une montée trop rapide ou une pause pénalise.</div></div>`:`<div class=sub style="margin:0 4px">Ajoute un record (Course › Records) pour obtenir une projection de chrono.</div>`}
-  ${ad!=null?`<div class=sub style="margin:8px 4px 0">Tes semaines passées : ${Math.round(ad*100)} % du plan réalisé.</div>`:''}`}
-const whatItem=()=>S.plan&&S.goal?item('whatif','w','What if','Simule ton plan jusqu\'à la course'):'';
-IC.w='<svg viewBox="0 0 24 24"><path d="M4 18c4 0 4-12 8-12h8M16 3l4 3-4 3M4 6c4 0 4 12 8 12h8M16 15l4 3-4 3"/></svg>';
 
-document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset.wi){const l=document.querySelector('[data-wl='+t.dataset.wi+']');if(l)l.textContent=(t.dataset.wi==='vol'&&+t.value>0?'+':'')+t.value+(t.dataset.wi==='vol'?' %':'')}});
 (()=>{let x0=0,y0=0,ok=false;const A=document.getElementById('app');
   A.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;ok=e.touches.length===1&&!e.target.closest('input,select,textarea,.sheet,svg')},{passive:true});
   A.addEventListener('touchend',e=>{if(!ok||ed||S.a&&view==='train')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;
@@ -747,6 +759,12 @@ document.addEventListener('click',async ev=>{
     if(sx.t==='Course'&&!o.txt)o.txt=(S.goal&&S.goal.name)||'Course';
     o.d=(d.getDay()+6)%7;o.t=sx.t;o.km=+sx.km;const c=(sx.custom||'').trim();c?o.custom=c:delete o.custom;
     if(orig)OW.s.splice(sx.i,1);W.s.push(o);W.s.sort((a,b)=>a.d-b.d);save();sx=null;view='run';toast('Plan mis à jour')}
+  else if(a==='mcsend'){await mcSend(b.dataset.q);return}
+  else if(a==='mcsendi'){await mcSend($('#mq').value);return}
+  else if(a==='mcapply')mcApply(S.mc.msgs[i]);
+  else if(a==='mcundo'){const c=S.mc;if(!c||!c.undo){toast('Rien à annuler');return}S.t=JSON.parse(c.undo);delete c.undo;c.msgs.forEach(x=>{if(x.u){x.ap=0;x.u=0}});save();toast('Modification annulée')}
+  else if(a==='mcmem'){const v=prompt('Ce que le coach retient (blessure, matériel…)',(S.mc&&S.mc.mem)||'');if(v===null)return;S.mc=S.mc||{msgs:[]};S.mc.mem=v.trim().slice(0,300);save()}
+  else if(a==='mcclear'){if(!confirm('Effacer la conversation ?'))return;S.mc=S.mc||{msgs:[]};S.mc.msgs=[];save()}
   else if(a==='csend'){await coachSend(b.dataset.q);return}
   else if(a==='csendi'){await coachSend($('#cq').value);return}
   else if(a==='capply')applyCh(S.coach.msgs[i]);
@@ -764,7 +782,6 @@ document.addEventListener('click',async ev=>{
   else if(a==='mmauto'){S.mm=S.mm||{};delete S.mm[nrm(mmE.n)];mmE=null;view='hist';histTab='m';save()}
   else if(a==='mmign'){S.mm=S.mm||{};S.mm[nrm(mmE.n)]='-';mmE=null;view='hist';histTab='m';save()}
   else if(a==='mmcancel'){mmE=null;view='hist';histTab='m'}
-  else if(a==='wipre')wi={...WIP[+b.dataset.v][1]};
   else if(a==='rtset'){const v=+prompt('Séances de renfo visées par semaine',S.rt||2);if(v>=1&&v<=7){S.rt=v;save()}}
   else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
   else if(a==='hidebk')localStorage.setItem('fitlog-bk','1');
@@ -777,7 +794,7 @@ document.addEventListener('click',async ev=>{
     const M={tpl:[['Modifier',{a:'edit',id}],['Dupliquer',{a:'dup',id}],['Partager',{a:'share',id}]],
       add:[['Nouvelle séance',{a:'new'}],['Importer une séance reçue',{a:'impt'}],['Ajouter 2 séances types',{a:'starter'}]],
       ex:[['Renommer',{a:'rnx',i:ix}],['Monter',{a:'mv',i:ix,d:-1}],['Descendre',{a:'mv',i:ix,d:1}],['Retirer une série',{a:'remset',i:ix}],['Marquer « pas fait »',{a:'skip',i:ix}]],
-      wk:[['Ajouter une sortie',{a:'sadd',w:b.dataset.w}]],rec:[['Saisir mon record',{a:'recset',i:ix}],['Effacer le record saisi',{a:'recdel',i:ix}]],score:[['Objectif renfo par semaine',{a:'rtset'}]],coach:[['Annuler la dernière modification',{a:'cundo'}],['Mémoire du coach',{a:'cmem'}],['Effacer la conversation',{a:'cclear'}]],goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
+      wk:[['Ajouter une sortie',{a:'sadd',w:b.dataset.w}]],rec:[['Saisir mon record',{a:'recset',i:ix}],['Effacer le record saisi',{a:'recdel',i:ix}]],score:[['Objectif renfo par semaine',{a:'rtset'}]],mc:[['Annuler la dernière modification',{a:'mcundo'}],['Mémoire du coach',{a:'mcmem'}],['Effacer la conversation',{a:'mcclear'}]],coach:[['Annuler la dernière modification',{a:'cundo'}],['Mémoire du coach',{a:'cmem'}],['Effacer la conversation',{a:'cclear'}]],goal:[["Modifier l'objectif",{a:'goal'}],['Recalculer le plan',{a:'regen'}],[planAll?'Masquer les semaines suivantes':'Voir les semaines suivantes',{a:'planall'}]]};
     sheet(M[k]||[])}
   else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
   else if(a==='htab'){histTab=b.dataset.v;hOpen=-1;fxN=1}
@@ -830,7 +847,6 @@ document.addEventListener('change',ev=>{
     if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value.trim()}
   else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
   else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
-  else if(t.dataset.wi){wi[t.dataset.wi]=+t.value;render()}
   else if(t.dataset.q){sx[t.dataset.q]=t.dataset.q==='km'?+t.value:t.value}
   else if(t.dataset.g){ge[t.dataset.g]=['long','dist','base'].includes(t.dataset.g)?+t.value:t.value}
   else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]=+t.value;S.zones={...(S.zones||{}),[k]:z};save()}
@@ -839,7 +855,7 @@ document.addEventListener('change',ev=>{
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
-document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='cq'){ev.preventDefault();coachSend(ev.target.value)}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='cq'){ev.preventDefault();coachSend(ev.target.value)}if(ev.key==='Enter'&&ev.target.id==='mq'){ev.preventDefault();mcSend(ev.target.value)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 document.addEventListener('focusout',()=>setTimeout(()=>{scrollTo(0,0);fitNav()},120));
 document.addEventListener('gesturestart',e=>e.preventDefault());
