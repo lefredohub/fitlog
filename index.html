@@ -185,6 +185,7 @@ if(S.plan)reconcilePlan();
 if(view==='hist'){view='train';if(histTab==='t')histTab='s'}
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train'}[view]||view)));
 $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'||view==='mcoach'?chatView(view==='coach'?'coach':'mc'):view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?session():history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
 $('#app').classList.toggle('hm',!ed&&view==='home');
 if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0}
 if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
@@ -270,7 +271,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.7.7';
+const VER='2.8.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -599,8 +600,9 @@ return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@'
 <div class=card>${B.map(([k,l])=>{const v=s.P[k];return`<div style="margin:${k==='c'?0:14}px 0 0"><div class=row style="justify-content:space-between;margin:0 0 6px"><b>${l}</b><span class=sub style="margin:0">${v==null?'Non évalué':Math.round(v*100)+' %'}</span></div><div class=prog style="margin:0 0 6px"><i style="width:${v==null?0:Math.round(v*100)}%"></i></div><div class=sub style="margin:0">${esc(s.X[k]||'Pas de données cette semaine')}</div></div>`}).join('')}${s.X.m?`<div class=sub style="margin:14px 0 0;color:var(--rd)">${esc(s.X.m)}</div>`:''}</div>
 <div class=card><h2>8 dernières semaines</h2>${bars}</div>
 <div class=sub style="margin:0 4px">Le score mesure ce que tu as fait de ce qui était prévu, et se remplit au fil de la semaine comme un anneau. Course 65 % : km du plan réalisés (sans plan : ta moyenne des 4 dernières semaines). Renfo 35 % : séances faites sur ton objectif. Malus jusqu'à −15 points si tu dépasses le plan de plus de 15 % (risque de blessure).</div>`}
-const MG=[['pec','Pectoraux'],['epf','Épaule avant'],['epl','Épaule latérale'],['epr','Épaule arrière'],['bi','Biceps'],['tri','Triceps'],['avb','Avant-bras'],['abd','Abdos'],['dos','Dos'],['trap','Trapèzes'],['lom','Lombaires'],['fes','Fessiers'],['qua','Quadriceps'],['isc','Ischios'],['mol','Mollets']];
-const MR=[[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['fes']],
+const MG=[['pec','Pectoraux'],['epf','Épaule avant'],['epl','Épaule latérale'],['epr','Épaule arrière'],['bi','Biceps'],['tri','Triceps'],['avb','Avant-bras'],['abd','Abdos'],['obl','Obliques'],['dos','Dos'],['trap','Trapèzes'],['lom','Lombaires'],['fes','Fessiers'],['abu','Abducteurs'],['add','Adducteurs'],['qua','Quadriceps'],['isc','Ischios'],['mol','Mollets'],['tib','Tibiaux']],MG_KEYS=MG.map(x=>x[0]);
+const MR=[[/tibial|dorsiflex|tib raise/,['tib'],[]],[/abduct|clam|fire.?hydrant|pas chasse|monster|lateral band/,['abu'],['fes']],[/adduct|copenhagen/,['add'],[]],[/sumo/,['add','fes'],['qua']],
+[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['fes']],
 [/mollet|calf|talon|soleaire/,['mol'],[]],
 [/tirage menton|upright/,['epl'],['trap','bi']],
 [/triceps|barre au front|skull|pushdown|poulie haute|french/,['tri'],[]],
@@ -608,9 +610,9 @@ const MR=[[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['
 [/avant.?bras|forearm|poignet|wrist|farmer/,['avb'],[]],
 [/roumain|rdl|good.?morning|stiff|jambes tendues/,['isc'],['fes','lom']],
 [/souleve|deadlift/,['fes','isc','lom'],['dos','trap','qua','avb']],
-[/hip.?thrust|\bpont|fessier|glute|abducteur|kickback|donkey/,['fes'],['isc']],
+[/hip.?thrust|\bpont|fessier|glute|kickback|donkey/,['fes'],['isc']],
 [/extension.*(jambe|quad)|leg ext|quadri/,['qua'],[]],
-[/squat|presse|leg press|hack|fente|lunge|bulgare|step.?up|sissy|goblet/,['qua'],['fes','isc']],
+[/fente|lunge|bulgare|step.?up/,['qua','fes'],['abu','isc']],[/squat|presse|leg press|hack|sissy|goblet/,['qua'],['fes','add']],
 [/\bdips/,['pec'],['tri','epf']],
 [/oiseau|face.?pull|rear delt|reverse (fly|pec)/,['epr'],['trap']],
 [/lateral|side raise|elevation lat/,['epl'],['trap']],
@@ -620,25 +622,20 @@ const MR=[[/leg curl|curl (jambe|ischio|allonge|assis)|ischio|nordic/,['isc'],['
 [/traction|pull.?up|\bchin\b|tirage vertical|tirage poitrine|\blat\b|pull.?down/,['dos'],['bi','avb','trap']],
 [/\brow|tirage|t.?bar|pendlay/,['dos'],['bi','trap','epr','avb']],
 [/shrug|haussement|trapeze/,['trap'],[]],
-[/gainage|planche|plank|crunch|abdo|relev|roue|ab.?wheel|russian|sit.?up|mountain|obliqu|woodchop|bucheron/,['abd'],[]],
+[/obliqu|woodchop|bucheron|russian|side plank|planche lat|pallof|gainage lat/,['obl'],['abd']],[/gainage|planche|plank|crunch|abdo|relev|roue|ab.?wheel|sit.?up|mountain/,['abd'],[]],
 [/lombaire|hyperext|back ext|bird.?dog|superman/,['lom'],['fes']],
-[/pull.?over/,['dos'],['pec']],[/adducteur/,['qua'],[]],
+[/pull.?over/,['dos'],['pec']],
 [/pectoraux|poitrine|\bdc\b|\bdi\b|\bdev\b/,['pec'],['tri','epf']],[/deltoide|\bdelto/,['epf','epl','epr'],[]],[/\bdos\b|dorsaux|grand dorsal/,['dos'],['bi']],[/\bbras\b/,['bi','tri'],[]],
 [/cuisse|jambe|\bleg\b/,['qua'],['fes']],[/hamstring/,['isc'],[]],[/\bcore\b/,['abd'],[]],[/\bcalves\b/,['mol'],[]]];
 const nrm=t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 function mmOf(name){const n=nrm(name),o=(S.mm||{})[n];if(o)return o==='-'?'-':typeof o==='string'?[[o==='epa'?'epf':o],[]]:[o.p||[],o.s||[]];const r=MR.find(x=>x[0].test(n));return r?[r[1],r[2]]:null}
-let mmN=14,mmS={};
+let mmN=14,mSel=null;
 function muscleStats(N){const since=Date.now()-N*864e5,cnt={},un={},src={};MG.forEach(([k])=>{cnt[k]=0;src[k]=[]});
 S.h.forEach(h=>{if(new Date(h.date).getTime()<since)return;h.ex.forEach(e=>{if(e.skip||e.t==='cardio')return;const n=e.sets.filter(s=>s.done&&+s.r>0).length;if(!n)return;const m=mmOf(e.name);
 if(!m){un[e.name]=(un[e.name]||0)+n;return}if(m==='-')return;
 m[0].forEach(k=>{cnt[k]+=n;src[k].push([e.name,n,1])});m[1].forEach(k=>{cnt[k]+=n/2;src[k].push([e.name,n,.5])})})});
 Object.keys(cnt).forEach(k=>cnt[k]=cnt[k]*7/N);return{cnt,un,src}}
 const MCOL=v=>v<=0?'#1d1e22':`hsl(${Math.round(125*(1-Math.min(v,10)/10))} 78% 48%)`;
-const MSIL='M60 36 L72 40 Q92 42 100 50 Q107 58 107 70 L109 100 Q111 120 109 138 Q107 148 100 148 Q95 142 94 130 L92 106 Q91 94 88 86 Q86 98 85 112 Q85 126 87 136 Q90 152 85 176 Q83 196 81 214 Q83 234 79 254 L65 254 Q64 234 64 214 Q62 192 61 152 L60 150 Z';
-const MP={F:[['epf','M72 41Q84 42 91 49Q92 60 89 70Q84 62 76 52Z'],['epl','M91 49Q98 51 101 58Q104 66 102 74Q96 76 92 70Q92 60 91 49Z'],['pec','M61 48Q72 44 84 52Q90 62 86 72Q74 78 61 74Z'],['bi','M96 78Q104 78 106 92Q104 104 98 106Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
-['abd','M61 78L73 77Q75 92 74 110Q70 118 61 120ZM76 80Q84 80 86 90Q86 106 82 118Q78 118 76 112Q78 96 76 80Z'],['qua','M62 126Q78 122 84 134Q86 160 80 186Q72 192 64 186Q60 160 62 126Z'],['mol','M66 196Q76 194 79 204Q80 230 75 248Q68 248 66 230Q64 210 66 196Z']],
-B:[['trap','M60 38L72 41Q82 46 86 56Q78 64 72 70L60 78Z'],['epl','M91 49Q98 51 101 58Q104 66 102 74Q96 76 92 70Q92 60 91 49Z'],['epr','M72 41Q84 42 91 49Q92 60 89 70Q84 62 76 52Z'],['dos','M61 82L72 76Q86 72 88 86Q86 102 76 112L61 110Z'],['tri','M96 78Q104 78 106 92Q104 106 98 108Q93 96 93 84Z'],['avb','M97 110Q105 110 107 126Q106 140 100 142Q95 130 95 112Z'],
-['lom','M61 112L76 112Q76 124 70 128L61 128Z'],['fes','M61 130Q80 124 86 138Q86 154 74 158Q62 156 61 130Z'],['isc','M62 162Q78 160 83 168Q84 184 78 194Q68 196 63 188Q60 176 62 162Z'],['mol','M66 200Q76 198 79 208Q80 232 75 248Q68 248 66 232Q64 214 66 200Z']]};
 let mmE=null;
 const mgl=k=>(MG.find(x=>x[0]===k)||[])[1]||k;
 const mmTxt=n=>{const m=mmOf(n);if(m==='-')return'Ignoré';if(!m)return'Non reconnu';return m[0].map(mgl).join(' + ')+(m[1].length?' · '+m[1].map(mgl).join(', ')+' (2nd)':'')};
@@ -649,18 +646,108 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 <div class=mg>${MG.map(([k,l])=>`<button class="mc${m.p.includes(k)?' p':m.s.includes(k)?' s':''}" data-a=mmcyc data-k=${k}>${l}${m.p.includes(k)?'<small>Principal</small>':m.s.includes(k)?'<small>Secondaire</small>':''}</button>`).join('')}</div>
 <button class=p data-a=mmsave style="width:100%;margin-top:14px"${m.p.length?'':' disabled style="width:100%;margin-top:14px;opacity:.4"'}>Enregistrer</button>
 <div class=row style="gap:8px;margin-top:8px"><button class=sm data-a=mmauto style="flex:1">Automatique</button><button class=sm data-a=mmign style="flex:1">Ignorer</button></div>`}
-function bodySvg(side,cnt){const half=`<path d="${MSIL}" fill="#121316"/>`+MP[side].map(([k,d])=>`<path d="${d}" fill="${MCOL(cnt[k])}" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>`).join('')+(side==='F'?'<path d="M62 90H73M62 101H73M62 111H72" stroke="#000" stroke-width="1.2" fill="none"/>':'');
-return`<svg viewBox="0 0 120 256" width=100%><circle cx=60 cy=17 r=11.5 fill="#121316"/><rect x=54 y=26 width=12 height=12 fill="#121316"/><g>${half}</g><g transform="translate(120 0) scale(-1 1)">${half}</g></svg>`}
-function muscleView(){const{cnt,un,src}=muscleStats(mmN);mmS=src;const rows=MG.map(([k,l])=>({k,l,v:cnt[k]})).sort((a,b)=>a.v-b.v),has=Object.values(cnt).some(v=>v>0)||Object.keys(un).length,low=rows.filter(r=>r.v<6).slice(0,3).map(r=>r.l);
+const M3=[],_d=Math.PI/180,mk=(k,x,y,z,rx,ry,rz,az=0,t=0,m=1,ax=0,ay=0)=>M3.push({k,c:[x,y,z],r:[rx,ry,rz],a:[ax*_d,ay*_d,az*_d],t,m,s:m?1:0});
+[[0,171,1,8.4,10.8,9.4,0,0,0],[0,158,-.5,5,7.5,5.2,0,0,0],[0,128,0,17.5,21,10.8,0,0,0],[0,106,0,14,15,9,0,0,0],[0,92,-1,16,11,10,0,0,0],
+ [20,146,0,5.5,5.5,5.5],[25.2,131.5,0,4.3,15.5,4.2,13,.1],[34,105.4,0,3.4,13.5,3.3,23,.15],[41.4,88.5,.5,2.8,5.8,4,23],
+ [10.2,71,0,8.2,21.8,8.2,0,.12],[10.2,29.5,0,5,21,5.2,0,.15],[10.2,4,4.5,4.2,3.8,10.5]].forEach(a=>mk(null,...a));
+[['pec',8.8,134.5,5.6,9,7.6,6.2,-10],
+ ['epf',21,146.5,3.8,5,7,4.6],['epl',25,146.5,0,4.6,7.2,5.2,12],['epr',21,146.5,-4,5,6.8,4.6],
+ ['bi',26.2,131.4,3.4,3.7,11,3.6,13,.1],['tri',24.4,131.4,-3.4,4,11.5,3.8,13,.15],
+ ['avb',34.8,106,2.4,3.5,11.5,3,23,.2],['avb',33.2,106,-2.6,3.5,11.5,3,23,.2],
+ ['abd',3,123.5,8.2,3,3.6,2.8],['abd',3,117.2,7.7,3,3.6,2.8],['abd',3,111,7.4,3,3.6,2.8],['abd',3,105,7.2,3,3.6,2.8],
+ ['obl',13.6,113,1.2,4.6,11.5,7.2,-6],
+ ['dos',11.2,124,-7.2,7.8,13.5,4.2,-9,.3],['dos',17,138.5,-6.4,4,3.4,3],
+ ['trap',8.8,152.5,-2.8,9.4,5.6,4.6,-18],['trap',4.6,139,-8.8,5.4,10.5,3,0,.1],
+ ['lom',3.8,109,-6.8,3.4,12,3.2],
+ ['fes',7.4,88.5,-6.6,7.8,8.6,6.6,-8],
+ ['abu',14.6,99.5,-4.6,6.2,5.4,5],['abu',16,94.5,3.8,3,7.2,3.6,-8],
+ ['qua',10.4,72,5.6,4.5,17,4.6,0,.05],['qua',16,68,1.8,4.6,16,5.8,-3],['qua',6.4,60.5,3.4,4.3,10.5,5,3,-.3],
+ ['add',4.6,72,.2,3.6,13.5,6.4,-3],
+ ['isc',14.4,68,-4.8,4.6,17.5,5,-2],['isc',7.2,68,-5,4.6,17.5,5.2,2],
+ ['mol',8.2,37.5,-3.6,4.4,10.8,5,2,.25],['mol',12.4,37,-3.4,4.2,9.8,4.8,-2,.25],['mol',10.2,27,-3.2,4.6,9.5,4.6],
+ ['tib',12,31,3.6,2.8,13.5,3.2,-1,.2]].forEach(a=>mk(...a));
+M3.slice().forEach(o=>{if(o.m&&o.c[0]>.01)M3.push({...o,c:[-o.c[0],o.c[1],o.c[2]],a:[o.a[0],-o.a[1],-o.a[2]],s:-1})});
+M3.forEach(o=>{const[ax,ay,az]=o.a,cx=Math.cos(ax),sx=Math.sin(ax),cy=Math.cos(ay),sy=Math.sin(ay),cz=Math.cos(az),sz=Math.sin(az);
+  // R = Rz*Ry*Rx (lignes)
+  const R=[[cz*cy,cz*sy*sx-sz*cx,cz*sy*cx+sz*sx],[sz*cy,sz*sy*sx+cz*cx,sz*sy*cx-cz*sx],[-sy,cy*sx,cy*cx]];o.R=R;
+  o.M=new Float32Array([R[0][0]*o.r[0],R[1][0]*o.r[0],R[2][0]*o.r[0],0,R[0][1]*o.r[1],R[1][1]*o.r[1],R[2][1]*o.r[1],0,R[0][2]*o.r[2],R[1][2]*o.r[2],R[2][2]*o.r[2],0,o.c[0],o.c[1],o.c[2],1]);
+  o.N=new Float32Array([R[0][0]/o.r[0],R[1][0]/o.r[0],R[2][0]/o.r[0],R[0][1]/o.r[1],R[1][1]/o.r[1],R[2][1]/o.r[1],R[0][2]/o.r[2],R[1][2]/o.r[2],R[2][2]/o.r[2]])});
+const M3V={pec:[.4,.1],epf:[.7,.1],epl:[1.57,.05],epr:[2.5,.1],bi:[.9,.05],tri:[2.3,.05],avb:[.9,.1],abd:[0,.05],obl:[1.1,.05],dos:[3.14,.1],trap:[3.14,.3],lom:[3.14,.05],fes:[2.9,.05],abu:[2.2,.05],add:[-1.4,.05],qua:[.5,.05],isc:[3,.05],mol:[2.8,.05],tib:[.6,.05]},
+ M3B=new Set(['pec','abd','dos','trap','lom','fes','qua','isc','mol','tib']),M3CUT=new Set(['add']);
+const Mx={cv:null,gl:null,ok:null,cam:{y:.45,p:.08,d:350,t:[0,92,0]},tg:null,cnt:{},sel:null,raf:0,col:{}};
+const heatRGB=v=>{const h=125*(1-Math.min(v,10)/10),S=.78,L=.48,a=S*Math.min(L,1-L),f=n=>{const k=(n+h/30)%12;return L-a*Math.max(-1,Math.min(k-3,9-k,1))};return[f(0),f(8),f(4)]};
+function m3Init(){if(Mx.ok!==null)return Mx.ok;const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:clamp(340px,48vh,460px);display:block;touch-action:none;border-radius:16px';
+  const g=cv.getContext('webgl',{antialias:true,alpha:true});if(!g)return Mx.ok=false;
+  const sh=(t,s)=>{const o=g.createShader(t);g.shaderSource(o,s);g.compileShader(o);return o},pr=g.createProgram();
+  g.attachShader(pr,sh(g.VERTEX_SHADER,'attribute vec3 p;uniform mat4 uVP,uM;uniform mat3 uN;uniform float uT;varying vec3 vN,vW;void main(){vec3 q=p;q.xz*=1.+uT*q.y;vec4 w=uM*vec4(q,1.);vW=w.xyz;vN=uN*p;gl_Position=uVP*w;}'));
+  g.attachShader(pr,sh(g.FRAGMENT_SHADER,'#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\nvarying vec3 vN,vW;uniform vec3 uC,uL,uE;uniform float uEdge,uHi;void main(){vec3 n=normalize(vN),v=normalize(uE-vW);float d=max(dot(n,uL),0.),f=1.-max(dot(n,v),0.);vec3 c=uC*(.4+.75*d)+vec3(.55)*pow(max(dot(reflect(-uL,n),v),0.),22.)*.16;c=mix(c,c*.3,pow(f,3.)*.75*uEdge);c+=vec3(1.,.84,.04)*pow(f,2.2)*uHi*.8;gl_FragColor=vec4(c,1.);}'));
+  g.linkProgram(pr);if(!g.getProgramParameter(pr,g.LINK_STATUS))return Mx.ok=false;g.useProgram(pr);
+  const P=[],I=[],A=16,B=24;for(let i=0;i<=A;i++){const t=Math.PI*i/A;for(let j=0;j<=B;j++){const f=2*Math.PI*j/B;P.push(Math.sin(t)*Math.cos(f),Math.cos(t),Math.sin(t)*Math.sin(f))}}
+  for(let i=0;i<A;i++)for(let j=0;j<B;j++){const a=i*(B+1)+j,b=a+B+1;I.push(a,b,a+1,a+1,b,b+1)}
+  g.bindBuffer(g.ARRAY_BUFFER,g.createBuffer());g.bufferData(g.ARRAY_BUFFER,new Float32Array(P),g.STATIC_DRAW);const l=g.getAttribLocation(pr,'p');g.enableVertexAttribArray(l);g.vertexAttribPointer(l,3,g.FLOAT,false,0,0);
+  g.bindBuffer(g.ELEMENT_ARRAY_BUFFER,g.createBuffer());g.bufferData(g.ELEMENT_ARRAY_BUFFER,new Uint16Array(I),g.STATIC_DRAW);
+  g.enable(g.DEPTH_TEST);g.enable(g.CULL_FACE);g.frontFace(g.CW);Mx.n=I.length;Mx.u=Object.fromEntries(['uVP','uM','uN','uT','uC','uL','uE','uEdge','uHi'].map(k=>[k,g.getUniformLocation(pr,k)]));
+  Mx.cv=cv;Mx.gl=g;m3Bind(cv);return Mx.ok=true}
+function m3Mat(w,h){const c=Mx.cam,cp=Math.cos(c.p),e=[c.t[0]+c.d*Math.sin(c.y)*cp,c.t[1]+c.d*Math.sin(c.p),c.t[2]+c.d*Math.cos(c.y)*cp],
+  nz=a=>{const l=Math.hypot(...a);return a.map(x=>x/l)},cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  f=nz([c.t[0]-e[0],c.t[1]-e[1],c.t[2]-e[2]]),r=nz(cr(f,[0,1,0])),u=cr(r,f),
+  V=[r[0],u[0],-f[0],0,r[1],u[1],-f[1],0,r[2],u[2],-f[2],0,-dt(r,e),-dt(u,e),dt(f,e),1],q=1/Math.tan(14*_d),as=w/h,n=20,fa=900,
+  Pm=[q/as,0,0,0,0,q,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0],VP=new Float32Array(16);
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=Pm[k*4+j]*V[i*4+k];VP[i*4+j]=s}
+  return{VP,e,f,r,u,as}}
+function m3Vis(o){return!(Mx.sel&&M3CUT.has(Mx.sel)&&o.s<0&&o.c[0]<-3)}
+function m3Draw(){const g=Mx.gl,cv=Mx.cv;if(!g||!cv.width)return;g.viewport(0,0,cv.width,cv.height);g.clearColor(0,0,0,0);g.clear(g.COLOR_BUFFER_BIT|g.DEPTH_BUFFER_BIT);
+  const{VP,e,f,r,u}=m3Mat(cv.width,cv.height),U=Mx.u,L=[-f[0]*.7+u[0]*.6-r[0]*.4,-f[1]*.7+u[1]*.6-r[1]*.4,-f[2]*.7+u[2]*.6-r[2]*.4],ll=Math.hypot(...L);
+  g.uniformMatrix4fv(U.uVP,false,VP);g.uniform3f(U.uL,L[0]/ll,L[1]/ll,L[2]/ll);g.uniform3f(U.uE,...e);
+  for(const o of M3){if(!m3Vis(o))continue;const sel=Mx.sel,on=o.k&&o.k===sel;let c=o.k?Mx.col[o.k]:[.135,.142,.165];
+    if(o.k&&sel&&!on)c=c.map(x=>x*.3+.045);
+    g.uniformMatrix4fv(U.uM,false,o.M);g.uniformMatrix3fv(U.uN,false,o.N);g.uniform1f(U.uT,o.t);g.uniform3f(U.uC,...c);g.uniform1f(U.uEdge,o.k?1:.4);g.uniform1f(U.uHi,on?1:0);
+    g.drawElements(g.TRIANGLES,Mx.n,g.UNSIGNED_SHORT,0)}}
+function m3Focus(k){if(!k)return{y:Mx.cam.y,p:.08,d:350,t:[0,92,0]};const v=M3V[k]||[0,.1],all=M3B.has(k),L=M3.filter(o=>o.k===k&&(all||o.s>=0)&&m3Vis(o)),n=L.length,
+  t=[0,1,2].map(i=>L.reduce((a,o)=>a+o.c[i],0)/n),ext=i=>Math.max(...L.map(o=>Math.abs(o.c[i]-t[i])+Math.max(...o.r)));
+  const sy=Math.abs(Math.sin(v[0])),eh=sy>.7?ext(2):ext(0);return{y:v[0],p:v[1],d:Math.min(300,Math.max(125,ext(1)*6.2,eh*8.2)),t}}
+function m3Kick(){if(!Mx.raf)Mx.raf=requestAnimationFrame(m3Tick)}
+function m3Tick(){Mx.raf=0;const c=Mx.cam,T=Mx.tg;let busy=0;
+  if(T){const dy=((T.y-c.y+Math.PI*3)%(2*Math.PI))-Math.PI;c.y+=dy*.14;c.p+=(T.p-c.p)*.14;c.d+=(T.d-c.d)*.14;for(let i=0;i<3;i++)c.t[i]+=(T.t[i]-c.t[i])*.14;
+    if(Math.abs(dy)+Math.abs(T.p-c.p)+Math.abs(T.d-c.d)/50+Math.abs(T.t[1]-c.t[1])/50>.004)busy=1;else Mx.tg=null}
+  m3Draw();if(busy)m3Kick()}
+function m3Set(cnt,sel){Mx.cnt=cnt;const ch=Mx.sel!==sel;Mx.sel=sel;Mx.col={};MG_KEYS.forEach(k=>{Mx.col[k]=cnt[k]>0?heatRGB(cnt[k]):[.27,.285,.32]});
+  if(sel&&!cnt[sel])Mx.col[sel]=[.5,.53,.6];if(ch)Mx.tg=m3Focus(sel);m3Kick()}
+function m3Attach(host){if(!Mx.ok||!host)return;if(Mx.cv.parentNode!==host)host.appendChild(Mx.cv);const d=Math.min(devicePixelRatio||1,2),w=Math.round(host.clientWidth*d),h=Math.round(Mx.cv.clientHeight*d);
+  if(Mx.cv.width!==w||Mx.cv.height!==h){Mx.cv.width=w;Mx.cv.height=h}m3Kick()}
+function m3Pick(px,py){const cv=Mx.cv,b=cv.getBoundingClientRect(),{e,f,r,u,as}=m3Mat(cv.width,cv.height),nx=(px-b.left)/b.width*2-1,ny=1-(py-b.top)/b.height*2,tn=Math.tan(14*_d),
+  D=[0,1,2].map(i=>f[i]+r[i]*nx*tn*as+u[i]*ny*tn);let best=1e9,hit=null;
+  for(const o of M3){if(!m3Vis(o))continue;const R=o.R,q=[e[0]-o.c[0],e[1]-o.c[1],e[2]-o.c[2]],
+    lo=[0,1,2].map(i=>(R[0][i]*q[0]+R[1][i]*q[1]+R[2][i]*q[2])/o.r[i]),ld=[0,1,2].map(i=>(R[0][i]*D[0]+R[1][i]*D[1]+R[2][i]*D[2])/o.r[i]),
+    a=ld[0]*ld[0]+ld[1]*ld[1]+ld[2]*ld[2],bb=lo[0]*ld[0]+lo[1]*ld[1]+lo[2]*ld[2],cc=lo[0]*lo[0]+lo[1]*lo[1]+lo[2]*lo[2]-1,ds=bb*bb-a*cc;
+    if(ds<0)continue;const t=(-bb-Math.sqrt(ds))/a;if(t>0&&t<best){best=t;hit=o}}
+  return hit?hit.k:null}
+function m3Bind(cv){const P=new Map();let mv=0,pd=0;
+  cv.addEventListener('pointerdown',ev=>{cv.setPointerCapture(ev.pointerId);P.set(ev.pointerId,[ev.clientX,ev.clientY]);mv=0;if(P.size===2){const[a,b]=[...P.values()];pd=Math.hypot(a[0]-b[0],a[1]-b[1])}});
+  cv.addEventListener('pointermove',ev=>{const o=P.get(ev.pointerId);if(!o)return;const n=[ev.clientX,ev.clientY],c=Mx.cam;
+    if(P.size===1){const dx=n[0]-o[0],dy=n[1]-o[1];mv+=Math.abs(dx)+Math.abs(dy);if(mv>8){Mx.tg=null;c.y-=dx*.009;c.p=Math.max(-1.2,Math.min(1.2,c.p+dy*.006));m3Kick()}}
+    else if(P.size===2){P.set(ev.pointerId,n);const[a,b]=[...P.values()],nd=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pd){Mx.tg=null;c.d=Math.max(45,Math.min(450,c.d*pd/nd));m3Kick()}pd=nd;mv=99}
+    P.set(ev.pointerId,n)});
+  const up=ev=>{const was=P.size===1&&mv<=8&&ev.type==='pointerup';P.delete(ev.pointerId);if(was&&Mx.onTap)Mx.onTap(m3Pick(ev.clientX,ev.clientY))};
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+  cv.addEventListener('wheel',ev=>{ev.preventDefault();Mx.tg=null;Mx.cam.d=Math.max(45,Math.min(450,Mx.cam.d*(1+ev.deltaY*.001)));m3Kick()},{passive:false})}
+
+function muscleView(){m3Init();Mx.onTap=k=>{mSel=k;render()};const{cnt,un,src}=muscleStats(mmN);Mx.cnt=cnt;const rows=MG.map(([k,l])=>({k,l,v:cnt[k]})).sort((a,b)=>a.v-b.v),has=Object.values(cnt).some(v=>v>0)||Object.keys(un).length,low=rows.filter(r=>r.v<6).slice(0,3).map(r=>r.l),
+  L=mSel&&MG.find(x=>x[0]===mSel),g={};if(L)(src[mSel]||[]).forEach(([n,c,w])=>{g[n]=g[n]||[0,w];g[n][0]+=c});
+  const lv=v=>v<=0?'pas travaillé':v<2?'très peu travaillé':v<6?'sous-travaillé':v<12?'bien travaillé':'très sollicité',
+  vw=[['Face',0],['Côté',1.57],['Dos',3.14]].map(([l,y])=>`<button class=sm data-a=m3v data-y=${y}>${l}</button>`).join(''),
+  info=L?`<div class=row style="justify-content:space-between;margin:0 0 4px"><h2 style="margin:0">${L[1]}</h2><button class="gh sm" data-a=mmsel data-k="">Tout voir</button></div><div class=sub style="margin:0 0 10px">${cnt[mSel].toFixed(1).replace('.',',')} séries/sem. · ${lv(cnt[mSel])}</div>`
+    +(Object.keys(g).length?Object.entries(g).map(([n,[c,w]])=>`<button class=row data-a=mmask data-n="${esc(n)}" style="width:100%;background:none;padding:7px 0;margin:0;border-radius:0;font-weight:400;text-align:left;justify-content:space-between;gap:10px"><span style="font-size:14px">${esc(n)}</span><span class=sub style="margin:0;font-size:12px;white-space:nowrap">${c} série${c>1?'s':''}${w<1?' · 2nd':''}</span></button>`).join('')
+      :`<div class=sub style="margin:0">Aucun exercice sur cette période.</div>${SC()?'<button class="sm p" style="margin-top:10px" data-a=nav data-v=mcoach>Demander des exercices au coach</button>':''}`)
+    :`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--mut)">Aucun<i style="width:8px;height:8px;border-radius:4px;background:#45484f"></i><i style="width:110px;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(125 78% 48%),hsl(62 78% 48%),hsl(0 78% 48%))"></i>10+ séries/sem.</div><div class=sub style="text-align:center;margin:8px 0 0">Touche un muscle pour zoomer dessus</div>`;
 return`<div class=seg style="margin-bottom:12px">${[7,14,30].map(n=>`<button class="${mmN===n?'on':''}" data-a=mmper data-v=${n}>${n} jours</button>`).join('')}</div>
-<div class=card><div style="display:flex;gap:6px"><div style="flex:1;text-align:center">${bodySvg('F',cnt)}<div class=sub style="margin:0">Face</div></div><div style="flex:1;text-align:center">${bodySvg('B',cnt)}<div class=sub style="margin:0">Dos</div></div></div>
-<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:11px;color:var(--mut)">Aucun<i style="width:8px;height:8px;border-radius:4px;background:#1d1e22"></i><i style="width:110px;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(125 78% 48%),hsl(62 78% 48%),hsl(0 78% 48%))"></i>10+ séries/sem.</div></div>`
+<div class=card style="padding:10px">${Mx.ok?'<div id=m3d></div>':'<div class=empty>Modèle 3D indisponible sur cet appareil.</div>'}<div class=bar style="margin:8px 0 12px;justify-content:center">${vw}</div>${info}</div>`
 +(Object.keys(un).length?`<div class=card style="border-color:rgba(255,214,10,.4)"><h2>${Object.keys(un).length} exercice${Object.keys(un).length>1?'s':''} non reconnu${Object.keys(un).length>1?'s':''}</h2><div class=sub>Ils ne sont pas comptés : associe-les à un muscle.</div>${Object.keys(un).map(n=>`<div class=row style="justify-content:space-between"><span>${esc(n)}</span><button class="sm" data-a=mmask data-n="${esc(n)}">Associer</button></div>`).join('')}</div>`:'')
-+(has?`<div class=card><h2>${low.length?'Moins sollicités : '+low.join(', '):'Répartition équilibrée'}</h2><div class=sub>Séries par semaine${mmN>7?' (moyenne sur '+mmN+' jours)':''}. Un muscle secondaire compte pour une demi-série. Touche un muscle pour voir d'où viennent ses séries.</div>${rows.map(r=>`<button class=row data-a=mmsrc data-k=${r.k} style="width:100%;background:none;padding:6px 0;margin:4px 0 0;border-radius:0;font-weight:400;text-align:left"><span style="width:92px;flex:none;font-size:14px">${r.l}</span><div class=prog style="flex:1;margin:0"><i style="width:${Math.min(100,Math.round(r.v/10*100))}%;background:${MCOL(r.v)}"></i></div><span class=sub style="margin:0;width:34px;text-align:right">${r.v?r.v.toFixed(1).replace('.',','):'0'}</span></button>`).join('')}</div>`
++(has?`<div class=card><h2>${low.length?'Moins sollicités : '+low.join(', '):'Répartition équilibrée'}</h2><div class=sub>Séries par semaine${mmN>7?' (moyenne sur '+mmN+' jours)':''}. Un muscle secondaire compte pour une demi-série.</div>${rows.map(r=>`<button class=row data-a=mmsel data-k=${r.k} style="width:100%;background:none;padding:6px 0;margin:4px 0 0;border-radius:0;font-weight:400;text-align:left"><span style="width:92px;flex:none;font-size:14px">${r.l}</span><div class=prog style="flex:1;margin:0"><i style="width:${Math.min(100,Math.round(r.v/10*100))}%;background:${MCOL(r.v)}"></i></div><span class=sub style="margin:0;width:34px;text-align:right">${r.v?r.v.toFixed(1).replace('.',','):'0'}</span></button>`).join('')}</div>`
 :`<div class=empty>Termine une séance de renfo pour voir tes muscles s'allumer.</div>`)
 +acc('mmx','Exercices et muscles',mmExs().length+' exercices',mmExs().map(n=>`<button class=row data-a=mmask data-n="${esc(n)}" style="width:100%;background:none;padding:8px 0;margin:0;border-radius:0;font-weight:400;text-align:left;justify-content:space-between;gap:10px"><span style="font-size:14px">${esc(n)}</span><span class=sub style="margin:0;text-align:right;font-size:12px">${esc(mmTxt(n))}</span></button>`).join('')||'<div class=sub>Aucun exercice.</div>')}
 (()=>{let x0=0,y0=0,ok=false;const A=document.getElementById('app');
-A.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;ok=e.touches.length===1&&!e.target.closest('input,select,textarea,.sheet,svg')},{passive:true});
+A.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;ok=e.touches.length===1&&!e.target.closest('input,select,textarea,.sheet,svg,canvas')},{passive:true});
 A.addEventListener('touchend',e=>{if(!ok||ed||S.a&&view==='train')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;
 let O,cur,set;if(view==='train'){O=['t','s','r','m'];cur=histTab;set=v=>{histTab=v;hOpen=-1}}else if(view==='run'){O=['p','r','rec'];cur=runTab;set=v=>{runTab=v}}else return;
 const n=O.indexOf(cur)+(dx<0?1:-1);if(n<0||n>=O.length)return;set(O[n]);fxN=1;render()},{passive:true})})();
@@ -707,8 +794,8 @@ else if(a==='chclear'){const k=b.dataset.k;if(!confirm('Effacer la conversation 
 else if(a==='recset'){const n=RD[i][0],t=prompt('Ton record sur '+n+' (h:mm:ss ou mm:ss)'),v=t?tsec(t):0;if(!(v>0))return;const d=(prompt('Date de ce record (AAAA-MM-JJ), vide si inconnue','')||'').trim();S.rec=S.rec||{};S.rec[i]={s:v,date:/^\d{4}-\d{2}-\d{2}$/.test(d)?d:''};save()}
 else if(a==='recdel'){if(S.rec&&S.rec[i]){delete S.rec[i];save()}}
 else if(a==='mmper')mmN=+b.dataset.v;
-else if(a==='mmsrc'){const k=b.dataset.k,l=(MG.find(x=>x[0]===k)||[])[1],g={};(mmS[k]||[]).forEach(([n,c,w])=>{g[n]=g[n]||[0,w];g[n][0]+=c});
-sheet([[l+' · '+mmN+' jours'+(Object.keys(g).length?' : touche un exercice pour changer son muscle':''),{a:'noop'}]].concat(Object.entries(g).length?Object.entries(g).map(([n,[c,w]])=>[n+' : '+c+' série'+(c>1?'s':'')+(w<1?' (secondaire)':''),{a:'mmask',n}]):[['Aucun exercice sur cette période',{a:'noop'}]]));return}
+else if(a==='mmsel'){const k=b.dataset.k;mSel=k&&k!==mSel?k:null;if(k){const q=$('#app');q.scrollTop=0}}
+else if(a==='m3v'){if(Mx.ok){const t=Mx.tg||m3Focus(mSel);Mx.tg={...t,y:+b.dataset.y};m3Kick()}return}
 else if(a==='mmask'){const n=b.dataset.n,m=mmOf(n);mmE={n,p:m&&m!=='-'?[...m[0]]:[],s:m&&m!=='-'?[...m[1]]:[]};view='mmedit'}
 else if(a==='mmcyc'){const k=b.dataset.k;if(mmE.p.includes(k)){mmE.p=mmE.p.filter(x=>x!==k);mmE.s.push(k)}else if(mmE.s.includes(k))mmE.s=mmE.s.filter(x=>x!==k);else mmE.p.push(k)}
 else if(a==='mmsave'){if(!mmE.p.length)return;S.mm=S.mm||{};S.mm[nrm(mmE.n)]={p:mmE.p,s:mmE.s};mmE=null;view='hist';histTab='m';save()}
