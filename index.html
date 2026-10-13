@@ -220,11 +220,19 @@ const r=await fetch(c.url.replace(/\/$/,'')+'/activities?after='+after,{headers:
 if(r.status===409){setSv('Strava pas encore connecté : touche « Connecter Strava ».');return}
 if(!r.ok)throw new Error(r.status);
 const a=await r.json();a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});
-S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts(c)
+S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts()
 }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
-async function fetchEfforts(c){try{S.be=S.be||{};const todo=S.runs.filter(r=>r.km>=4.9&&r.id&&S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
+let effSt='';
+async function fetchEfforts(){const c=SC();if(!c)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
+try{S.be=S.be||{};const all=S.runs.filter(r=>r.km>=4.9&&r.id),todo=all.filter(r=>S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
+if(!todo.length){effSt=all.length?'Records à jour sur '+all.length+' sorties.':'';up();return}
+effSt='Analyse des meilleurs efforts…';up();
 for(let i=0;i<todo.length;i+=8){const ids=todo.slice(i,i+8).map(r=>r.id).join(','),r=await fetch(c.url.replace(/\/$/,'')+'/efforts?ids='+ids,{headers:{Authorization:'Bearer '+c.key}});
-if(r.status===404||!r.ok&&r.status!==429)return;const d=await r.json();Object.assign(S.be,d.done||d);save();if(r.status===429)return;if(view==='run'&&runTab==='rec'&&!ed)render()}}catch(e){}}
+if(r.status===404||r.status===501){effSt='Worker pas à jour : redéploie worker.js sur Cloudflare.';up();return}
+if(r.status===409){effSt='Strava pas connecté.';up();return}
+if(!r.ok&&r.status!==429){effSt='Erreur Strava ('+r.status+').';up();return}
+const d=await r.json();Object.assign(S.be,d.done||d);save();up();if(r.status===429){effSt='Limite Strava atteinte : réessaie dans 15 min.';up();return}}
+const left=all.filter(r=>S.be[r.id]===undefined).length;effSt=left?left+' sorties restantes : touche pour continuer.':'Records à jour sur '+all.length+' sorties.';up()}catch(e){effSt='Échec : '+e.message;up()}}
 const autoSync=()=>{if(SC()&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
@@ -292,7 +300,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.9.4';
+const VER='2.9.5';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -598,7 +606,7 @@ h=`<div class=rtop><div class="tro lk">🔒</div><div style="flex:1"><div class=
 if(gl&&b){const pc=Math.max(0,Math.min(100,Math.round(gl.time/b.s*100)));h+=`<div class=gl><div style="display:flex;justify-content:space-between"><span>Objectif ${hms(gl.time)}</span><span>${b.s>gl.time?'−'+hms(Math.round(b.s-gl.time))+' à gagner':'atteint ✓'}</span></div><div class=gbar><i style="width:${pc}%"></i></div></div>`}
 else if(gl)h+=`<div class=gl>Objectif ${hms(gl.time)}</div>`;
 return b?`<div class="rc on" style="--d:${i*.12}s">${h}</div>`:`<button class=rc style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
-return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>HALL OF FAME</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}</div></div><div class=rl1>${cards}</div><div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
+return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>HALL OF FAME</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}</div></div><div class=rl1>${cards}</div>${SC()&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
 const SCW={c:.65,r:.35};
 function weekScore(w){const td=new Date(),cur=w===wk(td.getTime()),f0=Math.min(Infinity,...(S.runs||[]).map(r=>+rdate(r)),...S.h.map(h=>+new Date(h.date)));if(w+7*864e5<=f0)return{t:null,P:{},X:{},km:0,cur,left:null};
 const tk=iso(td),R=(S.runs||[]).filter(r=>wk(rdate(r))===w),km=R.reduce((a,r)=>a+r.km,0),W=S.plan&&S.plan.weeks.find(x=>x.w===w),P={},X={},T=S.rt||2,nh=S.h.filter(h=>wk(new Date(h.date))===w).length,ren=!!(S.h.length||S.t.length);let nr=0;
@@ -868,7 +876,8 @@ sheet(M[k]||[])}
 else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
 else if(a==='htab'){histTab=b.dataset.v;hOpen=-1;fxN=1}
 else if(a==='hopen')hOpen=hOpen===i?-1:i;
-else if(a==='rtab'){runTab=b.dataset.v;fxN=1}
+else if(a==='rtab'){runTab=b.dataset.v;fxN=1;if(runTab==='rec')setTimeout(fetchEfforts,50)}
+else if(a==='effgo'){effSt='';fetchEfforts()}
 else if(a==='rall')runAll=!runAll;
 else if(a==='acc')accOpen[b.dataset.k]=!accOpen[b.dataset.k];
 else if(a==='exopen')ed.open=ed.open===i?-1:i;
