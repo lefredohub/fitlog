@@ -152,7 +152,8 @@ input[type=range]::-moz-range-track{height:4px;background:var(--s3);border-radiu
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 main{z-index:1}
 html{background:var(--bg)}
-nav{position:fixed;left:0;right:0;bottom:0;padding:4px 12px calc(env(safe-area-inset-bottom)*.3 + 2px);background:var(--bg)}
+nav{position:fixed;left:0;right:0;bottom:calc(-1*var(--gap,0px));padding:4px 12px calc(var(--sb,0px)*.3 + 2px);background:var(--bg)}
+nav::after{content:"";position:absolute;left:0;right:0;top:100%;height:120px;background:var(--bg)}
 nav button{padding:7px 0 4px}
 main{padding-bottom:calc(var(--nh,76px) + 16px)}
 #app.hm{padding-bottom:calc(var(--nh,76px) + 8px)}
@@ -369,7 +370,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='3.1.1';
+const VER='3.1.2';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -591,7 +592,7 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 +acc('sv','Strava et coach IA',SC()?'Connecté':'Non configuré',stravaCard())
 +acc('gh','Sauvegarde GitHub','Facultative',syncCard())
 +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
-+acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
++acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · marge ${getComputedStyle(document.documentElement).getPropertyValue('--gap')||0} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
 const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
 const TP={Endurance:{z:'ef'},'Sortie longue':{z:'ef',x:0},Tempo:{z:'tp',m:20},'Fractionné':{z:'iv',r:6},'Allure objectif':{z:'ob',m:20},Course:{},Libre:{}};
 const rdate=r=>new Date(r.d.slice(0,10)+'T12:00:00'),rday=r=>(rdate(r).getDay()+6)%7;
@@ -1095,7 +1096,11 @@ if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
 render();
 autoSync();
 if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true);
-const fitNav=()=>{try{document.documentElement.style.setProperty('--nh',document.querySelector('nav').offsetHeight+'px')}catch(e){}};
+const fitNav=()=>{try{const r=document.documentElement,st=r.style;let pb=document.getElementById('pb');if(!pb){pb=document.createElement('div');pb.id='pb';pb.style.cssText='position:fixed;left:0;bottom:0;width:1px;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';document.body.appendChild(pb)}
+const sa=parseFloat(getComputedStyle(pb).paddingBottom)||0;let gap=0;
+if(navigator.standalone===true){const sh=innerHeight>innerWidth?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);gap=Math.round(Math.min(60,Math.max(0,sh-pb.getBoundingClientRect().bottom)))}
+st.setProperty('--gap',gap+'px');st.setProperty('--sb',Math.max(sa,gap)+'px');
+st.setProperty('--nh',Math.max(0,document.querySelector('nav').offsetHeight-gap)+'px')}catch(e){}};
 fitNav();addEventListener('resize',fitNav);addEventListener('orientationchange',fitNav);
 setTimeout(checkUpdate,4000);
 </script></body></html>
