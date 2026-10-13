@@ -109,22 +109,22 @@ nav button{padding:7px 0 4px}
 .hofs{color:var(--y);letter-spacing:10px;font-size:13px;animation:twk 2.4s ease-in-out infinite}
 @keyframes shn{to{background-position:-250% 0}}@keyframes twk{50%{opacity:.35}}
 .rl1{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
-button.rc{min-height:0;position:relative;overflow:hidden;animation:rin .5s both;animation-delay:var(--d)}
+button.rc,div.rc{min-height:0;position:relative;overflow:hidden;animation:rin .5s both;animation-delay:var(--d)}
 @keyframes rin{from{opacity:0;transform:translateY(14px) scale(.97)}}
-button.rc.on{border:1px solid rgba(255,214,10,.55);background:linear-gradient(135deg,rgba(255,214,10,.2),rgba(255,214,10,.02) 55%),var(--s1);box-shadow:0 0 28px rgba(255,214,10,.12)}
-button.rc.on::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-20deg);animation:swp 5s ease-in-out infinite;animation-delay:var(--d)}
+div.rc.on{border:1px solid rgba(255,214,10,.55);background:linear-gradient(135deg,rgba(255,214,10,.2),rgba(255,214,10,.02) 55%),var(--s1);box-shadow:0 0 28px rgba(255,214,10,.12)}
+div.rc.on::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-20deg);animation:swp 5s ease-in-out infinite;animation-delay:var(--d)}
 @keyframes swp{0%,60%{left:-60%}100%{left:130%}}
 .rtop{display:flex;gap:14px;align-items:center}.tro{flex:none;filter:drop-shadow(0 0 10px rgba(255,214,10,.55));animation:flt 3s ease-in-out infinite}.tro.lk{font-size:34px;width:44px;text-align:center;filter:grayscale(1) opacity(.5);animation:none}
 @keyframes flt{50%{transform:translateY(-3px)}}
 .rn{font-style:normal;font-weight:600;font-size:10px;letter-spacing:.8px;color:var(--y);opacity:.8;margin-left:8px}
 .rc .rtm{font-size:38px}.rc.on .rtm{background:linear-gradient(180deg,#fff6b0,#ffd60a 60%,#c99700);-webkit-background-clip:text;background-clip:text;color:transparent}
 .pr.nw{animation:npl 1.6s ease-in-out infinite;background:rgba(255,214,10,.15)}@keyframes npl{50%{box-shadow:0 0 12px rgba(255,214,10,.7)}}
-.pod{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--ln)}.pod div{flex:1;font-size:12px;display:flex;flex-direction:column;gap:1px}.pod b{font-size:15px}.pod em{font-style:normal;color:var(--mut);font-size:11px}
+.rcm{all:unset;display:block;width:100%;cursor:pointer;box-sizing:border-box}div.rc{background:var(--s1);border:1px solid var(--ln);border-radius:20px;padding:14px 14px 12px}.rc.on .rtm{color:var(--y)}.pod{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--ln)}.pod button{flex:1;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--s2);border-radius:12px;padding:8px 10px;font-weight:400;text-align:left;margin:0;width:auto}.pod b{font-size:15px}.pod em{font-style:normal;color:var(--mut);font-size:11px}
 .gbar{height:5px;border-radius:3px;background:var(--s3);margin-top:7px;overflow:hidden}.gbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#c99700,#ffd60a)}
-@media (prefers-reduced-motion:reduce){.hof h2,.hofs,.tro,.pr.nw,button.rc,button.rc.on::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.hof h2,.hofs,.tro,.pr.nw,button.rc,div.rc.on::after{animation:none}}
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 button.rc{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;background:var(--s1);border:1px dashed rgba(255,255,255,.14);border-radius:20px;padding:14px 14px 12px;font-weight:400;min-height:132px}
-button.rc.on{border:1px solid rgba(255,214,10,.3);background:linear-gradient(160deg,rgba(255,214,10,.12),rgba(255,214,10,0) 60%),var(--s1)}
+div.rc.on{border:1px solid rgba(255,214,10,.3);background:linear-gradient(160deg,rgba(255,214,10,.12),rgba(255,214,10,0) 60%),var(--s1)}
 .rl{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--mut);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
 .rtm{font-size:30px;font-weight:700;letter-spacing:-1.2px;line-height:1;margin-bottom:6px}.rc.on .rtm{color:var(--y)}.rtm.mu{color:#6b6d73;font-size:24px;padding:3px 0}
 .rc .sub{margin:2px 0 0;font-size:12px}.rc .dl{color:var(--ok);font-size:12px;font-weight:600;margin-top:4px}.rc .gl{font-size:12px;color:#c4c5cb;margin-top:8px;padding-top:7px;border-top:1px solid var(--ln)}
@@ -215,13 +215,16 @@ let stS='';const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
 async function syncRuns(auto){const c=SC();if(!c){if(!auto)setSv("Renseigne l'adresse du Worker et la clé.");return}
 try{setSv('Synchronisation…');S.runs=S.runs||[];
 const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0);
-const after=last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400;
+const after=last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-3*365*86400;
 const r=await fetch(c.url.replace(/\/$/,'')+'/activities?after='+after,{headers:{Authorization:'Bearer '+c.key}});
 if(r.status===409){setSv('Strava pas encore connecté : touche « Connecter Strava ».');return}
 if(!r.ok)throw new Error(r.status);
 const a=await r.json();a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});
-S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render()
+S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts(c)
 }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
+async function fetchEfforts(c){try{S.be=S.be||{};const todo=S.runs.filter(r=>r.km>=4.9&&r.id&&S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
+for(let i=0;i<todo.length;i+=8){const ids=todo.slice(i,i+8).map(r=>r.id).join(','),r=await fetch(c.url.replace(/\/$/,'')+'/efforts?ids='+ids,{headers:{Authorization:'Bearer '+c.key}});
+if(r.status===404||!r.ok&&r.status!==429)return;const d=await r.json();Object.assign(S.be,d.done||d);save();if(r.status===429)return;if(view==='run'&&runTab==='rec'&&!ed)render()}}catch(e){}}
 const autoSync=()=>{if(SC()&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
@@ -289,7 +292,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.9.2';
+const VER='2.9.4';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -575,7 +578,7 @@ const rieg=(s,a,b)=>s*Math.pow(b/a,1.06);
 const pwk=(w,k)=>{const x=new Date(w);x.setDate(x.getDate()-7*k);return wk(x)};
 const BACK='<button class=more data-a=nav data-v=@ aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button>';
 function recCands(){const o=RD.map(()=>[]);
-(S.runs||[]).forEach(r=>RD.forEach(([n,D],i)=>{if(r.km>=D*.995&&r.km<=D*1.04)o[i].push({s:r.s*D/r.km,date:r.d.slice(0,10)})}));
+(S.runs||[]).forEach(r=>{const be=(S.be||{})[r.id];RD.forEach(([n,D],i)=>{if(be){if(be[i]>0)o[i].push({s:be[i],date:r.d.slice(0,10)})}else if(r.km>=D*.995&&r.km<=D*1.01)o[i].push({s:r.s*D/r.km,date:r.d.slice(0,10)})})});
 Object.entries(S.rec||{}).forEach(([i,v])=>{if(o[+i]&&v&&v.s>0)o[+i].push({s:v.s,date:v.date||'',man:1})});
 o.forEach(a=>a.sort((x,y)=>x.s-y.s));return o}
 function predAt(D,C){C=C||recCands();let b=null;
@@ -586,15 +589,15 @@ RN=['La vitesse','La puissance',"L'endurance",'La légende'],MD=['🥇','🥈','
 function recView(){const C=recCands(),g=S.goal,now=Date.now(),nb=C.filter(a=>a.length).length;
 const cards=RD.map(([n,D],i)=>{const b=C[i][0],gl=g&&Math.abs(g.dist/D-1)<.06?g:null;let h;
 if(b){const top=[];C[i].forEach(x=>{if(top.length<3&&!top.some(t=>t.date&&t.date===x.date))top.push(x)});
-const pv=C[i].filter(x=>x.date&&b.date&&x.date<b.date).sort((x,y)=>x.s-y.s)[0],nw=b.date&&now-new Date(b.date+'T12:00:00')<30*864e5;
-h=`<div class=rtop>${TRO}<div style="flex:1;min-width:0"><div class=rl><span>${n}<i class=rn>${RN[i]}</i></span>${nw?'<span class="pr nw">NOUVEAU</span>':''}</div><div class=rtm>${hms(Math.round(b.s))}</div><div class=sub>${pf(b.s/D)} /km${b.date?' · '+fdate(b.date):''}</div></div></div>`
-+(pv?`<div class=dl>▲ −${hms(Math.round(pv.s-b.s))} vs ton précédent record</div>`:'')
-+(top.length>1?`<div class=pod>${top.slice(1).map((x,k)=>`<div><span>${MD[k+1]}</span><b>${hms(Math.round(x.s))}</b><em>${fdate(x.date)}</em></div>`).join('')}</div>`:'')}
+const pv=C[i].filter(x=>x.date&&b.date&&x.date<b.date).sort((x,y)=>x.s-y.s)[0],nw=b.date&&now-new Date(b.date+'T12:00:00')<30*864e5,ov=(S.pod||{})[i]||{};
+h=`<button class=rcm data-a=menu data-k=rec data-i=${i}><div class=rtop>${TRO}<div style="flex:1;min-width:0"><div class=rl><span>${n}<i class=rn>${RN[i]}</i></span>${nw?'<span class="pr nw">NOUVEAU</span>':''}</div><div class=rtm>${hms(Math.round(b.s))}</div><div class=sub>${pf(b.s/D)} /km${b.date?' · '+fdate(b.date):''}</div></div></div>`
++(pv?`<div class=dl>▲ −${hms(Math.round(pv.s-b.s))} vs ton précédent record</div>`:'')+`</button>`
++`<div class=pod>${[1,2].map(k=>{const x=ov[k+1]||top[k];const v=x&&x.s>0?x:null;return`<button data-a=podset data-i=${i} data-r=${k+1}><span>${MD[k]}</span><b>${v?hms(Math.round(v.s)):'—'}</b><em>${v?fdate(v.date)||'modifier':'ajouter'}</em></button>`}).join('')}</div>`}
 else{const p=predAt(D,C);
 h=`<div class=rtop><div class="tro lk">🔒</div><div style="flex:1"><div class=rl><span>${n}<i class=rn>${RN[i]}</i></span><span class=pr>${i===3?'FUTUR':'À CONQUÉRIR'}</span></div>`+(p?`<div class="rtm mu">≈ ${hms(Math.round(p.t))}</div><div class=sub>Prévu d'après ton ${p.from}</div>`:`<div class="rtm mu">—</div><div class=sub>Touche pour saisir</div>`)+`</div></div>`}
 if(gl&&b){const pc=Math.max(0,Math.min(100,Math.round(gl.time/b.s*100)));h+=`<div class=gl><div style="display:flex;justify-content:space-between"><span>Objectif ${hms(gl.time)}</span><span>${b.s>gl.time?'−'+hms(Math.round(b.s-gl.time))+' à gagner':'atteint ✓'}</span></div><div class=gbar><i style="width:${pc}%"></i></div></div>`}
 else if(gl)h+=`<div class=gl>Objectif ${hms(gl.time)}</div>`;
-return`<button class="rc${b?' on':''}" style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
+return b?`<div class="rc on" style="--d:${i*.12}s">${h}</div>`:`<button class=rc style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
 return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>HALL OF FAME</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}</div></div><div class=rl1>${cards}</div><div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
 const SCW={c:.65,r:.35};
 function weekScore(w){const td=new Date(),cur=w===wk(td.getTime()),f0=Math.min(Infinity,...(S.runs||[]).map(r=>+rdate(r)),...S.h.map(h=>+new Date(h.date)));if(w+7*864e5<=f0)return{t:null,P:{},X:{},km:0,cur,left:null};
@@ -836,6 +839,8 @@ else if(a==='chundo'){const k=b.dataset.k,c=S[k];if(!c||!c.undo){toast('Rien à 
 else if(a==='chmem'){const k=b.dataset.k,v=prompt('Ce que le coach retient (blessure, disponibilités, matériel…)',(S[k]&&S[k].mem)||'');if(v===null)return;S[k]=S[k]||{msgs:[]};S[k].mem=v.trim().slice(0,300);save()}
 else if(a==='chclear'){const k=b.dataset.k;if(!confirm('Effacer la conversation ?'))return;S[k]=S[k]||{msgs:[]};S[k].msgs=[];save()}
 else if(a==='recset'){const n=RD[i][0],t=prompt('Ton record sur '+n+' (h:mm:ss ou mm:ss)'),v=t?tsec(t):0;if(!(v>0))return;const d=(prompt('Date de ce record (AAAA-MM-JJ), vide si inconnue','')||'').trim();S.rec=S.rec||{};S.rec[i]={s:v,date:/^\d{4}-\d{2}-\d{2}$/.test(d)?d:''};save()}
+else if(a==='podset'){const r=+b.dataset.r,n=RD[i][0],t=prompt(n+' · '+(r===2?'2e':'3e')+' meilleur temps (h:mm:ss ou mm:ss)\nVide = automatique · 0 = masquer');if(t===null)return;S.pod=S.pod||{};S.pod[i]=S.pod[i]||{};const tt=t.trim();
+if(!tt)delete S.pod[i][r];else if(tt==='0')S.pod[i][r]={s:0};else{const v=tsec(tt);if(!(v>0))return;const d=(prompt('Date (AAAA-MM-JJ), vide si inconnue','')||'').trim();S.pod[i][r]={s:v,date:/^\d{4}-\d{2}-\d{2}$/.test(d)?d:''}}save()}
 else if(a==='recdel'){if(S.rec&&S.rec[i]){delete S.rec[i];save()}}
 else if(a==='mmper')mmN=+b.dataset.v;
 else if(a==='mmsel'){const k=b.dataset.k;mSel=k&&k!==mSel?k:null;if(k){const q=$('#app');q.scrollTop=0}}
