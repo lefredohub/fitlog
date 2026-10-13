@@ -108,6 +108,7 @@ nav button{padding:7px 0 4px}
 .hof h2{margin:2px 0 6px;font-size:30px;font-weight:800;letter-spacing:5px;background:linear-gradient(100deg,#a87400 0%,#ffd60a 30%,#fff6b0 50%,#ffd60a 70%,#a87400 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shn 4s linear infinite}
 .hofs{color:var(--y);letter-spacing:10px;font-size:13px;animation:twk 2.4s ease-in-out infinite}
 @keyframes shn{to{background-position:-250% 0}}@keyframes twk{50%{opacity:.35}}
+button.sm.on{background:var(--y);color:#000}
 .rl1{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
 button.rc,div.rc{min-height:0;position:relative;overflow:hidden;animation:rin .5s both;animation-delay:var(--d)}
 @keyframes rin{from{opacity:0;transform:translateY(14px) scale(.97)}}
@@ -214,15 +215,15 @@ const SC=()=>{try{const c=JSON.parse(localStorage.getItem('fitlog-strava'));retu
 let stS='';const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
 async function syncRuns(auto){const c=SC();if(!c){if(!auto)setSv("Renseigne l'adresse du Worker et la clé.");return}
 try{setSv('Synchronisation…');S.runs=S.runs||[];
-const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0);
-const after=last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-3*365*86400;
-const r=await fetch(c.url.replace(/\/$/,'')+'/activities?after='+after,{headers:{Authorization:'Bearer '+c.key}});
+const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist;
+const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,H={Authorization:'Bearer '+c.key},base=c.url.replace(/\/$/,'')+'/activities?after='+after;
+let a=[];for(let p=1;p<=60;p+=5){const r=await fetch(base+'&p='+p,{headers:H});
 if(r.status===409){setSv('Strava pas encore connecté : touche « Connecter Strava ».');return}
-if(!r.ok)throw new Error(r.status);
-const a=await r.json();a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});
+if(!r.ok)throw new Error(r.status);const x=await r.json();a.push(...x);if(!full||x.length<500)break;setSv('Historique complet… '+a.length+' sorties')}
+a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});if(full)S.hist=1;
 S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts()
 }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
-let effSt='';
+let effSt='',recYr='';
 async function fetchEfforts(){const c=SC();if(!c)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
 try{S.be=S.be||{};const all=S.runs.filter(r=>r.km>=4.9&&r.id),todo=all.filter(r=>S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
 if(!todo.length){effSt=all.length?'Records à jour sur '+all.length+' sorties.':'';up();return}
@@ -300,7 +301,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.9.5';
+const VER='2.9.7';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -585,28 +586,28 @@ const fdate=d=>d?new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeri
 const rieg=(s,a,b)=>s*Math.pow(b/a,1.06);
 const pwk=(w,k)=>{const x=new Date(w);x.setDate(x.getDate()-7*k);return wk(x)};
 const BACK='<button class=more data-a=nav data-v=@ aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button>';
-function recCands(){const o=RD.map(()=>[]);
+function recCands(yr){const o=RD.map(()=>[]);
 (S.runs||[]).forEach(r=>{const be=(S.be||{})[r.id];RD.forEach(([n,D],i)=>{if(be){if(be[i]>0)o[i].push({s:be[i],date:r.d.slice(0,10)})}else if(r.km>=D*.995&&r.km<=D*1.01)o[i].push({s:r.s*D/r.km,date:r.d.slice(0,10)})})});
 Object.entries(S.rec||{}).forEach(([i,v])=>{if(o[+i]&&v&&v.s>0)o[+i].push({s:v.s,date:v.date||'',man:1})});
-o.forEach(a=>a.sort((x,y)=>x.s-y.s));return o}
+if(yr)o.forEach((a,i)=>{o[i]=a.filter(x=>(x.date||'').slice(0,4)===yr)});o.forEach(a=>a.sort((x,y)=>x.s-y.s));return o}
 function predAt(D,C){C=C||recCands();let b=null;
 C.forEach((a,i)=>{if(!a.length)return;const g=Math.abs(Math.log(D/RD[i][1]));if(!b||g<b.g)b={g,i,s:a[0].s}});
 return b?{t:rieg(b.s,RD[b.i][1],D),from:RD[b.i][0]}:null}
 const TRO='<svg viewBox="0 0 48 48" width=44 height=44 class=tro><defs><linearGradient id=gg x1=0 y1=0 x2=1 y2=1><stop offset=0 stop-color="#fff6b0"/><stop offset=.45 stop-color="#ffd60a"/><stop offset=1 stop-color="#a87400"/></linearGradient></defs><path d="M14 5h20v11a10 10 0 0 1-20 0z" fill="url(#gg)"/><path d="M14 8H7v3a7 7 0 0 0 7 7M34 8h7v3a7 7 0 0 1-7 7" fill="none" stroke="#ffd60a" stroke-width="2.4"/><rect x="21" y="26" width="6" height="9" fill="url(#gg)"/><rect x="14" y="35" width="20" height="6" rx="2.5" fill="url(#gg)"/><path d="M19.5 9v7" stroke="rgba(255,255,255,.6)" stroke-width="2.2" stroke-linecap="round"/></svg>',
 RN=['La vitesse','La puissance',"L'endurance",'La légende'],MD=['🥇','🥈','🥉'];
-function recView(){const C=recCands(),g=S.goal,now=Date.now(),nb=C.filter(a=>a.length).length;
+function recView(){const C=recCands(recYr),CA=recCands(),g=S.goal,now=Date.now(),yrs=[...new Set(CA.flat().map(x=>(x.date||'').slice(0,4)).filter(Boolean))].sort().reverse(),nb=C.filter(a=>a.length).length;
 const cards=RD.map(([n,D],i)=>{const b=C[i][0],gl=g&&Math.abs(g.dist/D-1)<.06?g:null;let h;
 if(b){const top=[];C[i].forEach(x=>{if(top.length<3&&!top.some(t=>t.date&&t.date===x.date))top.push(x)});
 const pv=C[i].filter(x=>x.date&&b.date&&x.date<b.date).sort((x,y)=>x.s-y.s)[0],nw=b.date&&now-new Date(b.date+'T12:00:00')<30*864e5,ov=(S.pod||{})[i]||{};
 h=`<button class=rcm data-a=menu data-k=rec data-i=${i}><div class=rtop>${TRO}<div style="flex:1;min-width:0"><div class=rl><span>${n}<i class=rn>${RN[i]}</i></span>${nw?'<span class="pr nw">NOUVEAU</span>':''}</div><div class=rtm>${hms(Math.round(b.s))}</div><div class=sub>${pf(b.s/D)} /km${b.date?' · '+fdate(b.date):''}</div></div></div>`
 +(pv?`<div class=dl>▲ −${hms(Math.round(pv.s-b.s))} vs ton précédent record</div>`:'')+`</button>`
-+`<div class=pod>${[1,2].map(k=>{const x=ov[k+1]||top[k];const v=x&&x.s>0?x:null;return`<button data-a=podset data-i=${i} data-r=${k+1}><span>${MD[k]}</span><b>${v?hms(Math.round(v.s)):'—'}</b><em>${v?fdate(v.date)||'modifier':'ajouter'}</em></button>`}).join('')}</div>`}
-else{const p=predAt(D,C);
++`<div class=pod>${[1,2].map(k=>{const o2=ov[k+1],x=o2&&(!recYr||(o2.date||'').slice(0,4)===recYr)?o2:o2?null:top[k];const v=x&&x.s>0?x:null;return`<button data-a=podset data-i=${i} data-r=${k+1}><span>${MD[k]}</span><b>${v?hms(Math.round(v.s)):'—'}</b><em>${v?fdate(v.date)||'modifier':'ajouter'}</em></button>`}).join('')}</div>`}
+else{const p=predAt(D,CA);
 h=`<div class=rtop><div class="tro lk">🔒</div><div style="flex:1"><div class=rl><span>${n}<i class=rn>${RN[i]}</i></span><span class=pr>${i===3?'FUTUR':'À CONQUÉRIR'}</span></div>`+(p?`<div class="rtm mu">≈ ${hms(Math.round(p.t))}</div><div class=sub>Prévu d'après ton ${p.from}</div>`:`<div class="rtm mu">—</div><div class=sub>Touche pour saisir</div>`)+`</div></div>`}
 if(gl&&b){const pc=Math.max(0,Math.min(100,Math.round(gl.time/b.s*100)));h+=`<div class=gl><div style="display:flex;justify-content:space-between"><span>Objectif ${hms(gl.time)}</span><span>${b.s>gl.time?'−'+hms(Math.round(b.s-gl.time))+' à gagner':'atteint ✓'}</span></div><div class=gbar><i style="width:${pc}%"></i></div></div>`}
 else if(gl)h+=`<div class=gl>Objectif ${hms(gl.time)}</div>`;
 return b?`<div class="rc on" style="--d:${i*.12}s">${h}</div>`:`<button class=rc style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
-return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>HALL OF FAME</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}</div></div><div class=rl1>${cards}</div>${SC()&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
+return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>HALL OF FAME</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}${recYr?' · '+recYr:''}</div></div><div class=rl1>${cards}</div>${yrs.length?acc('ryr','Filtrer par année',recYr||'Toutes',`<div class=bar style="flex-wrap:wrap">${['',...yrs].map(y=>`<button class="sm${(recYr||'')===y?' on':''}" data-a=ryr data-v="${y}" style="flex:none">${y||'Toutes'}</button>`).join('')}</div>`):''}${SC()&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
 const SCW={c:.65,r:.35};
 function weekScore(w){const td=new Date(),cur=w===wk(td.getTime()),f0=Math.min(Infinity,...(S.runs||[]).map(r=>+rdate(r)),...S.h.map(h=>+new Date(h.date)));if(w+7*864e5<=f0)return{t:null,P:{},X:{},km:0,cur,left:null};
 const tk=iso(td),R=(S.runs||[]).filter(r=>wk(rdate(r))===w),km=R.reduce((a,r)=>a+r.km,0),W=S.plan&&S.plan.weeks.find(x=>x.w===w),P={},X={},T=S.rt||2,nh=S.h.filter(h=>wk(new Date(h.date))===w).length,ren=!!(S.h.length||S.t.length);let nr=0;
@@ -876,7 +877,8 @@ sheet(M[k]||[])}
 else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
 else if(a==='htab'){histTab=b.dataset.v;hOpen=-1;fxN=1}
 else if(a==='hopen')hOpen=hOpen===i?-1:i;
-else if(a==='rtab'){runTab=b.dataset.v;fxN=1;if(runTab==='rec')setTimeout(fetchEfforts,50)}
+else if(a==='rtab'){runTab=b.dataset.v;fxN=1;if(runTab==='rec')setTimeout(async()=>{if(!S.hist&&SC())await syncRuns(true);else fetchEfforts()},50)}
+else if(a==='ryr'){recYr=b.dataset.v}
 else if(a==='effgo'){effSt='';fetchEfforts()}
 else if(a==='rall')runAll=!runAll;
 else if(a==='acc')accOpen[b.dataset.k]=!accOpen[b.dataset.k];
