@@ -182,7 +182,7 @@ save();render();
 function fmt(e){if(e.skip)return'Pas fait';if(e.t==='cardio')return e.sets.filter(s=>s.done).map(s=>`${s.d} min${s.l?' · niveau '+s.l:''}`).join(', ')||'—';return e.sets.filter(s=>s.done).map(s=>`${s.r}×${s.w}kg`).join(', ')||'—'}
 function render(){
 if(S.plan)reconcilePlan();
-if(view==='hist'){view='train';if(histTab==='t')histTab='s'}
+if(view==='hist')view='train'
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train'}[view]||view)));
 $('#app').innerHTML=(ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'||view==='mcoach'?chatView(view==='coach'?'coach':'mc'):view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?session():history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
 if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
@@ -271,7 +271,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='2.8.1';
+const VER='2.9.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -344,7 +344,7 @@ IC.c='<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-
 const CH='<svg class=chev viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>';
 const ago=x=>{const a=new Date(x);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);const j=Math.round((b-a)/864e5);return j<=0?"Aujourd'hui":j===1?'Hier':'Il y a '+j+' j'};
 const item=(go,ic,t,sub,end)=>`<button class=item data-a=nav data-v=${go}><div class=ico>${IC[ic]}</div><div><b>${t}</b><div class=sub>${sub}</div></div>${end||CH}</button>`;
-let sx=null,histTab='t',fxN=0,hOpen=-1,runTab='p',runAll=false,accOpen={};
+let sx=null,histTab='m',fxN=0,hOpen=-1,runTab='p',runAll=false,accOpen={};
 const GEAR='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>';
 function sheet(items){const o=document.createElement('div');o.className='sheet';
 o.innerHTML=`<div class=sh-bg></div><div class=sh-box><div class=grab></div>${items.map(([l,at,dg])=>`<button${dg?' class=d':''} ${Object.entries(at).map(([k,v])=>`data-${k}="${esc(v)}"`).join(' ')}>${esc(l)}</button>`).join('')}<button data-a=close style="color:var(--mut)">Annuler</button></div>`;
@@ -383,7 +383,7 @@ S.h.forEach((h,hi)=>h.ex.forEach((e,ei)=>{const ok=e.sets.filter(s=>s.done&&+s.w
 const m=Math.max(...ok.map(s=>+s.w));(ser[e.name]=ser[e.name]||[]).push(m);
 if(e.name in best&&m>best[e.name])pr[hi+'.'+ei]=1;if(!(e.name in best)||m>best[e.name])best[e.name]=m;
 e1[e.name]=Math.max(e1[e.name]||0,...ok.map(s=>s.w*(1+s.r/30)))}));
-const seg=`<div class=seg>${[['t','Séances'],['s','Historique'],['r','Records'],['m','Muscles']].map(([v,l])=>`<button class="${histTab===v?'on':''}" data-a=htab data-v=${v}>${l}</button>`).join('')}</div>`,top=`<div class=top><h1>Renfo</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>${seg}`;
+const seg=`<div class=seg>${[['m','Muscles'],['t','Séances'],['s','Historique'],['r','Records']].map(([v,l])=>`<button class="${histTab===v?'on':''}" data-a=htab data-v=${v}>${l}</button>`).join('')}</div>`,top=`<div class=top><h1>Renfo</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>${seg}`;
 if(histTab==='t')return top+trainList();
 if(histTab==='m')return top+muscleView();
 if(histTab==='r'){const rc=Object.entries(best);
@@ -646,55 +646,97 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 <div class=mg>${MG.map(([k,l])=>`<button class="mc${m.p.includes(k)?' p':m.s.includes(k)?' s':''}" data-a=mmcyc data-k=${k}>${l}${m.p.includes(k)?'<small>Principal</small>':m.s.includes(k)?'<small>Secondaire</small>':''}</button>`).join('')}</div>
 <button class=p data-a=mmsave style="width:100%;margin-top:14px"${m.p.length?'':' disabled style="width:100%;margin-top:14px;opacity:.4"'}>Enregistrer</button>
 <div class=row style="gap:8px;margin-top:8px"><button class=sm data-a=mmauto style="flex:1">Automatique</button><button class=sm data-a=mmign style="flex:1">Ignorer</button></div>`}
-const M3=[],_d=Math.PI/180,mk=(k,x,y,z,rx,ry,rz,az=0,t=0,m=1,sp=0)=>M3.push({k,c:[x,y,z],r:[rx,ry,rz],a:[0,0,az*_d],t,m,sp,s:m?1:0});
-[[0,172,1,8.2,10.5,9.2,0,0,0],[0,158,-.5,4.8,7.5,5,0,0,0],[0,128,0,17.5,21,10.8,0,0,0],[0,106,0,14,15,9,0,0,0],[0,92,-1,16,11,10,0,0,0],
- [20,146,0,5.5,5.5,5.5],[25.2,131.5,0,4.3,15.5,4.2,13,.1],[28.6,118,0,3.9,3.4,3.9],[34,105.4,0,3.4,13.5,3.3,23,.15],[41.4,88.5,.5,2.8,5.8,4,23],
- [10.2,71,0,8.2,21.8,8.2,0,.12],[10.2,50,.4,5.4,4,5.6],[10.2,29.5,0,5,21,5.2,0,.15],[10.2,4,4.5,4.2,3.8,10.5]].forEach(a=>mk(null,...a));
-[['pec',11,134.5,6.2,6.6,12,5.6,-60,0,1,.55],
- ['epf',21.2,146,4,5.2,8,4.8,6,0,1,.4],['epl',25.4,146,0,5,8.2,5.6,12,0,1,.45],['epr',21.2,146,-4,5.2,7.8,4.8,6,0,1,.4],
- ['bi',26.4,131.5,3.6,4.2,12,3.9,13,0,1,.7],['tri',24.2,131.5,-3.6,4.5,12.5,4.1,13,0,1,.6],
- ['avb',34.9,106,2.5,3.9,13,3.3,23,.1,1,.55],['avb',33.1,106,-2.7,3.9,13,3.3,23,.1,1,.55],
- ['abd',3.1,123.5,8.4,3.4,3.8,3],['abd',3.1,117.2,7.9,3.4,3.8,3],['abd',3.1,111,7.6,3.4,3.8,3],['abd',3.1,105,7.4,3.4,3.8,3],
- ['obl',14,113,1.4,5.2,12.5,7.6,-6,0,1,.4],
- ['dos',11.5,124,-7.2,7.2,14.5,4.6,-16,0,1,.5],['dos',17,138.5,-6.4,4.6,3.8,3.2],
- ['trap',9,152.5,-2.8,4.8,11.5,4.6,-75,0,1,.5],['trap',4.6,139,-8.8,6.2,11.5,3.4,0,.1,1,.4],
- ['lom',3.9,109,-6.8,3.8,12.5,3.4,0,0,1,.4],
- ['fes',7.6,88.5,-6.8,8.2,9,7,-8],
- ['abu',14.8,99.5,-4.6,6.2,6.4,5.2,-30,0,1,.4],['abu',16.4,94.5,3.8,3.4,7.6,3.8,-8,0,1,.6],
- ['qua',10.6,72,5.8,5,18,5,0,.05,1,.5],['qua',16.2,68,1.8,5,17,6.2,-3,0,1,.5],['qua',6.4,60.5,3.4,4.7,11,5.4,3,-.3,1,.4],
- ['add',4.6,72,.2,3.8,14,6.6,-3,0,1,.5],
- ['isc',14.6,68,-4.8,5,18,5.4,-2,0,1,.5],['isc',7,68,-5,5,18,5.6,2,0,1,.5],
- ['mol',8.2,37.5,-3.6,4.6,11.5,5.2,2,.25,1,.45],['mol',12.4,37,-3.4,4.4,10.5,5,-2,.25,1,.45],['mol',10.2,27,-3.2,4.8,10.5,4.6,0,0,1,.4],
- ['tib',12,31,3.8,3.1,14.5,3.4,-1,.2,1,.6]].forEach(a=>mk(...a));
-M3.slice().forEach(o=>{if(o.m&&o.c[0]>.01)M3.push({...o,c:[-o.c[0],o.c[1],o.c[2]],a:[0,0,-o.a[2]],s:-1})});
-M3.forEach(o=>{const az=o.a[2],cz=Math.cos(az),sz=Math.sin(az),R=[[cz,-sz,0],[sz,cz,0],[0,0,1]];o.R=R;
-  o.M=new Float32Array([R[0][0]*o.r[0],R[1][0]*o.r[0],0,0,R[0][1]*o.r[1],R[1][1]*o.r[1],0,0,0,0,o.r[2],0,o.c[0],o.c[1],o.c[2],1]);
-  o.N=new Float32Array([R[0][0]/o.r[0],R[1][0]/o.r[0],0,R[0][1]/o.r[1],R[1][1]/o.r[1],0,0,0,1/o.r[2]])});
+const _d=Math.PI/180,PR=[],GU=19,GB=20,GP=21;
+// [groupe|'u'|null, x,y,z, rx,ry,rz, rotation z°, effilement, miroir, flou]
+const SPIN=new Set(['bi','tri','avb','qua','isc','mol','tib','lom','add','obl','dos','u']),
+ pr=(k,x,y,z,rx,ry,rz,az=0,t=0,m=1,kb=1.8)=>PR.push({k,c:[x,y,z],r:[rx,ry,rz],t,m,kb,sp:SPIN.has(k)&&ry>rx*1.7?1:0,s:1,cz:Math.cos(az*_d),sz:Math.sin(az*_d),g:k===null?GB:k==='u'?GU:MG_KEYS.indexOf(k)}),
+ B=(...a)=>pr(null,...a.slice(0,9),a[9]||2.4);
+[[0,172,1,8,10.5,9.2],[0,166,3.2,6,5.2,6.4],[0,162.6,7,2.8,2,2.4,0,0,0,1.2],[0,168.6,9.6,1.2,2.8,1.9,0,0,0,1.2],[0,174.2,7.4,6.3,1.2,2.4,0,0,0,1.4],[4.3,169,6.4,2.6,1.7,2.2,0,0,1,1.4],[8.3,171,.2,.9,2.7,1.9,0,0,1,1.2],
+ [0,158,-.5,4.6,7.5,5],[0,128,0,14.2,19.5,9],[0,106,0,11.2,14,7.4],[0,92,-1,13.4,10,8.4],[10.5,147,4.2,8.5,1.1,1.3,5,0,1,1.4],
+ [19,146,0,5,5,5],[25.2,131.5,0,3.7,15,3.6,13,.05],[28.6,118,0,3.3,3,3.3],[34,105.4,0,3,13,2.9,23,.1],
+ [41.4,88.5,.5,2.4,4.6,4,23],[43.6,83.2,.6,2,4,3.2,23,.25],[40.6,88.8,4.6,1.2,3.4,1.2,35],
+ [10.2,71,0,6.6,21.5,6.8,0,.1],[10.2,50,.4,5,4.2,5.4],[10.2,29.5,0,4.2,20.5,4.2,0,.1],[10.2,4,4.5,3.8,3.6,10]].forEach(a=>B(...a));
+[['pec',10,134,8.1,9.2,6.2,3.2,10],['pec',15.5,139,5.8,4.6,3.4,2.6,24],
+ ['epf',21.3,145.5,4.6,3.7,7,3.9,8],['epl',25.6,145,0,3.9,7.4,5.1,10],['epr',21.4,145.6,-4.6,3.7,7,3.9,8],
+ ['bi',26.2,132,3.5,3.3,10.8,3.2,13,.05],['u',27,125,2.2,2.4,6,2.4,13],['tri',24.2,131.5,-3.6,4,11.8,3.5,13,.1],['tri',23,127,-2.4,3.1,8,3,13],
+ ['avb',34.9,106,2.5,3.6,12.5,3.1,23,.2],['avb',33.1,106,-2.7,3.6,12.5,3.1,23,.2],['avb',37,108,.2,2.4,10,2.4,23,.2],
+ ['abd',3.1,123.5,8,3.4,3.8,2.6,0,0,1,1.1],['abd',3.1,117.2,7.6,3.4,3.8,2.6,0,0,1,1.1],['abd',3.1,111,7.2,3.4,3.8,2.6,0,0,1,1.1],['abd',3.1,105,6.9,3.4,3.8,2.5,0,0,1,1.1],
+ ['obl',13,113,1.2,4.6,12,6.4,-6],['u',13.2,123.5,3.4,3.4,7,4.2,-8],['u',8,98,6,3.2,5,2.2,-25],
+ ['dos',11.4,124,-6.8,6.8,14,3.6,-16],['dos',17,138.5,-6,4.2,3.6,2.8],
+ ['trap',10.5,150.4,-3.6,8.8,4.6,3.8,-17],['trap',5.8,141.5,-8.4,6.2,7.4,2.2],['trap',3.6,128.6,-9.4,3.6,10.5,2.2],['u',9,136,-8.2,4,4,2],['u',3.6,156.5,.6,1.6,6.2,2.2,-16],
+ ['lom',3.9,109,-6.4,3.6,12.5,3.2],
+ ['fes',8,88.5,-6.8,7.8,8.2,5.4,-10],
+ ['abu',14.6,99.5,-4.4,5.8,6.2,4.8,-30],['abu',16.2,94.5,3.8,3.2,7.4,3.6,-8],
+ ['qua',10.6,72,5.4,4.9,18,4.7,0,.05],['qua',16.2,68,1.6,4.8,17,5.6,-3],['qua',6.6,60.5,3.4,4.4,11,5,3,-.3],['u',7.2,76,6,2.2,18,2.2,-15],
+ ['add',4.6,72,.2,3.6,14,6,-3],['u',6,92,5,3,5,3.2,-20],
+ ['isc',14.6,68,-4.6,4.8,18,5,-2],['isc',7,68,-4.8,4.8,18,5.2,2],
+ ['mol',8.2,37.5,-3.6,4.4,11.5,4.8,2,.25],['mol',12.4,37,-3.4,4.2,10.5,4.6,-2,.25],['mol',10.2,27,-3.2,4.4,10.5,4.2],['u',14,33,-.2,2.2,9,3,-2],
+ ['tib',12,31,3.5,3,14.5,3.1,-1,.2]].forEach(a=>pr(...a));
+PR.slice().forEach(o=>{if(o.m&&o.c[0]>.01)PR.push({...o,c:[-o.c[0],o.c[1],o.c[2]],sz:-o.sz,s:-1})});
 const M3V={pec:[.4,.1],epf:[.7,.1],epl:[1.57,.05],epr:[2.5,.1],bi:[.9,.05],tri:[2.3,.05],avb:[.9,.1],abd:[0,.05],obl:[1.1,.05],dos:[3.14,.1],trap:[3.14,.3],lom:[3.14,.05],fes:[2.9,.05],abu:[2.2,.05],add:[-1.4,.05],qua:[.5,.05],isc:[3,.05],mol:[2.8,.05],tib:[.6,.05]},
  M3B=new Set(['pec','abd','dos','trap','lom','fes','qua','isc','mol','tib']),M3CUT=new Set(['add']);
 const Mx={cv:null,hc:null,gl:null,ok:null,cam:{y:.45,p:.1,d:420,t:[0,90,0]},tg:null,cnt:{},sel:null,raf:0,col:{},last:0,idle:0,T:0,rm:matchMedia('(prefers-reduced-motion:reduce)').matches};
-const heatRGB=v=>{const h=125*(1-Math.min(v,10)/10),S=.85,L=.52,a=S*Math.min(L,1-L),f=n=>{const k=(n+h/30)%12;return L-a*Math.max(-1,Math.min(k-3,9-k,1))};return[f(0),f(8),f(4)]};
-const VS='attribute vec3 p;uniform mat4 uVP,uM;uniform mat3 uN;uniform float uT,uP,uO;varying vec3 vN,vW,vL;void main(){float s=sqrt(max(1.-p.y*p.y,0.));vec3 q=p;q.xz=s>.001?p.xz/s*mix(s,1.-pow(abs(p.y),1.6),uP):vec2(0.);q.xz*=1.+uT*q.y;vec3 n=normalize(uN*p);vec4 w=uM*vec4(q,1.);w.xyz+=n*uO;vW=w.xyz;vN=n;vL=p;gl_Position=uVP*w;}';
-const FS='#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\nvarying vec3 vN,vW,vL;uniform vec3 uC,uL,uE;uniform float uMode,uHi,uDim,uTime,uPulse,uPass,uSw;'
-+'void main(){if(uPass>.5){gl_FragColor=vec4(mix(vec3(.01,.012,.02),vec3(1.,.84,.04),uHi*(.7+.3*sin(uTime*6.))),1.);return;}'
-+'if(uMode>1.5){float r=length(vL.xz),a=atan(vL.z,vL.x)+uTime*.15;float ln=smoothstep(.014,0.,abs(r-.96))+smoothstep(.01,0.,abs(r-.66))*.6+smoothstep(.01,0.,abs(r-.36))*.35+step(.92,r)*step(.8,fract(a*9.55))*.9;if(ln<.05||vN.y<0.)discard;gl_FragColor=vec4(vec3(1.,.84,.04)*ln*.85,1.);return;}'
-+'vec3 n=normalize(vN),v=normalize(uE-vW);float nl=dot(n,uL)*.5+.5,f=1.-max(dot(n,v),0.),cel=.5+.26*smoothstep(.34,.4,nl)+.24*smoothstep(.68,.74,nl);'
-+'vec3 col;if(uMode<.5){col=uC*cel;float g=abs(fract(vW.y/3.5)-.5);col=mix(col,vec3(.22,.28,.4),smoothstep(.44,.5,g)*.5);col+=vec3(.15,.22,.38)*pow(f,3.)*.9;}'
-+'else{float fb=abs(sin(atan(vL.z,vL.x)*7.+vL.y*1.2));col=uC*cel*(1.-.2*smoothstep(.82,1.,fb));col+=uC*pow(f,2.)*.6*(1.-uDim);col*=1.+uPulse*.3*(.5+.5*sin(uTime*2.6+vW.y*.06));col+=vec3(1.,.84,.2)*pow(f,2.)*uHi*.5;col+=vec3(.5)*pow(max(dot(reflect(-uL,n),v),0.),28.)*.22*(1.-uDim);}'
-+'col+=vec3(1.,.84,.04)*exp(-pow((vW.y-uSw)/5.,2.))*.3;gl_FragColor=vec4(col,1.);}';
-function m3Init(){if(Mx.ok!==null)return Mx.ok;const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:clamp(340px,48vh,460px);display:block;touch-action:none;border-radius:16px';
+const heatRGB=v=>{const h=125*(1-Math.min(v,10)/10),S=.78,L=.47,a=S*Math.min(L,1-L),f=n=>{const k=(n+h/30)%12;return L-a*Math.max(-1,Math.min(k-3,9-k,1))};return[f(0),f(8),f(4)]};
+// distance normalisée (q) d'un point à une primitive, et distance signée approchée
+let QA=0,QB=0,QC=0;
+// distance signée approchée (cm) à une primitive ; QA/QB = coordonnées locales normalisées (travers / long)
+function pd(o,x,y,z){const r=o.r,dx=x-o.c[0],dy=y-o.c[1],ly=-o.sz*dx+o.cz*dy,e=o.t?1/Math.max(.3,1+o.t*ly/r[1]):1;QA=(o.cz*dx+o.sz*dy)*e/r[0];QB=ly/r[1];QC=(z-o.c[2])*e/r[2];
+  if(o.sp){const ab=Math.abs(QB),rx=Math.sqrt(QA*QA+QC*QC),lat=Math.min(r[0],r[2])/e;if(ab>=1)return Math.hypot(rx*lat,(ab-1)*r[1]);const R=1-Math.pow(ab,1.8);return(rx-R)*lat/Math.sqrt(1+Math.pow(1.8*Math.pow(ab,.8)*lat/r[1],2))}
+  const k0=Math.sqrt(QA*QA+QB*QB+QC*QC);if(k0<1e-6)return-Math.min(r[0],r[1],r[2]);const k1=Math.sqrt(QA*QA/(r[0]*r[0])+QB*QB/(r[1]*r[1])+QC*QC/(r[2]*r[2]));return k0*(k0-1)/k1}
+const smin=(a,b,k)=>{const h=Math.max(k-Math.abs(a-b),0)/k;return Math.min(a,b)-h*h*k*.25};
+function m3Field(x,y,z){let f=1e3;for(const o of PR)f=smin(f,pd(o,x,y,z),o.kb);return f}
+function m3Build(){const h=.9,ox=-50,oy=-4,oz=-18,nx=112,ny=212,nz=41,F=new Float32Array(nx*ny*nz).fill(1e3),ix=(i,j,k)=>i+nx*(j+ny*k);
+  for(const o of PR){const R=Math.max(...o.r)*(1+Math.abs(o.t))+o.kb*2+2,i0=Math.max(0,Math.floor((o.c[0]-R-ox)/h)),i1=Math.min(nx-1,Math.ceil((o.c[0]+R-ox)/h)),j0=Math.max(0,Math.floor((o.c[1]-R-oy)/h)),j1=Math.min(ny-1,Math.ceil((o.c[1]+R-oy)/h)),k0=Math.max(0,Math.floor((o.c[2]-R-oz)/h)),k1=Math.min(nz-1,Math.ceil((o.c[2]+R-oz)/h));
+    for(let k=k0;k<=k1;k++)for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const n=ix(i,j,k);F[n]=smin(F[n],pd(o,ox+i*h,oy+j*h,oz+k*h),o.kb)}}
+  const vid=new Int32Array(nx*ny*nz).fill(-1),P=[],E=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]],f8=new Float32Array(8);
+  for(let k=0;k<nz-1;k++)for(let j=0;j<ny-1;j++)for(let i=0;i<nx-1;i++){let m=0;for(let c=0;c<8;c++){const v=F[ix(i+(c&1),j+((c>>1)&1),k+((c>>2)&1))];f8[c]=v;if(v<0)m|=1<<c}
+    if(!m||m===255)continue;let ax=0,ay=0,az=0,n=0;for(const[a,b]of E){if((f8[a]<0)!==(f8[b]<0)){const t=f8[a]/(f8[a]-f8[b]);ax+=(a&1)+t*((b&1)-(a&1));ay+=((a>>1)&1)+t*(((b>>1)&1)-((a>>1)&1));az+=((a>>2)&1)+t*(((b>>2)&1)-((a>>2)&1));n++}}
+    vid[ix(i,j,k)]=P.length/3;P.push(ox+(i+ax/n)*h,oy+(j+ay/n)*h,oz+(k+az/n)*h)}
+  const T=[],D=[[1,0,0],[0,1,0],[0,0,1]];
+  for(let k=1;k<nz-1;k++)for(let j=1;j<ny-1;j++)for(let i=1;i<nx-1;i++){const a=F[ix(i,j,k)]<0;for(let d=0;d<3;d++){const b=F[ix(i+D[d][0],j+D[d][1],k+D[d][2])]<0;if(a===b)continue;
+    const u=D[(d+1)%3],v=D[(d+2)%3],q=[ix(i,j,k),ix(i-u[0],j-u[1],k-u[2]),ix(i-u[0]-v[0],j-u[1]-v[1],k-u[2]-v[2]),ix(i-v[0],j-v[1],k-v[2])].map(n=>vid[n]);if(q.some(n=>n<0))continue;
+    if(a)T.push(q[0],q[1],q[2],q[0],q[2],q[3]);else T.push(q[0],q[2],q[1],q[0],q[3],q[2])}}
+  const nv=P.length/3,N=new Float32Array(nv*3);for(let t=0;t<T.length;t+=3){const a=T[t]*3,b=T[t+1]*3,c=T[t+2]*3,u=[P[b]-P[a],P[b+1]-P[a+1],P[b+2]-P[a+2]],v=[P[c]-P[a],P[c+1]-P[a+1],P[c+2]-P[a+2]],n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];for(const q of[a,b,c]){N[q]+=n[0];N[q+1]+=n[1];N[q+2]+=n[2]}}
+  const A=new Float32Array((nv+64)*4),Gd=new Uint8Array(nv+64);
+  for(let v=0;v<nv;v++){const l=Math.hypot(N[v*3],N[v*3+1],N[v*3+2])||1;N[v*3]/=l;N[v*3+1]/=l;N[v*3+2]/=l;const x=P[v*3],y=P[v*3+1],z=P[v*3+2];let b1=9,b2=9,bo=null,bl=0,bm=0;
+    for(const o of PR){if(o.g===GB)continue;const q=pd(o,x,y,z);if(q<b1){b2=b1;b1=q;bo=o;bl=QA;bm=QB}else if(q<b2)b2=q}
+    const base=!bo||b1>1.5;let g=base?GB:bo.g;A[v*4]=base?0:bl;A[v*4+1]=base?0:bm;A[v*4+2]=base?1:Math.min(1,(b2-b1)*.9);A[v*4+3]=g;Gd[v]=g}
+  // plateforme holographique
+  const pv=[];pv.push(0,.2,0);for(let i=0;i<=40;i++){const a=i/40*6.2832;pv.push(Math.cos(a)*40,.2,Math.sin(a)*40)}
+  const PP=new Float32Array((nv+42)*3);PP.set(P);PP.set(pv,nv*3);const NN=new Float32Array((nv+42)*3);NN.set(N);for(let i=0;i<42;i++)NN[(nv+i)*3+1]=1;
+  const AA=new Float32Array((nv+42)*4);AA.set(A.subarray(0,nv*4));for(let i=0;i<42;i++){AA[(nv+i)*4]=pv[i*3]/40;AA[(nv+i)*4+1]=pv[i*3+2]/40;AA[(nv+i)*4+3]=GP}
+  for(let i=1;i<=40;i++)T.push(nv,nv+i,nv+i+1);
+  Mx.mesh={P:PP,N:NN,A:AA,T:new Uint16Array(T),nv,g:Gd.slice(0,nv)}}
+const VS='attribute vec3 p,n,f;attribute vec4 a,c;uniform mat4 uVP;varying vec3 vN,vW,vC,vF;varying vec4 vA;void main(){vW=p;vN=n;vA=a;vC=c.xyz;vF=f;gl_Position=uVP*vec4(p,1.);}';
+const FS='#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\nvarying vec3 vN,vW,vC,vF;varying vec4 vA;uniform vec3 uL,uE;uniform float uTime,uSw,uCut;'
++'float hs(vec2 q){return fract(sin(dot(q,vec2(12.9898,78.233)))*43758.5453);}'
++'void main(){if(vA.w>20.5){float r=length(vA.xy),a=atan(vA.y,vA.x)+uTime*.15;float ln=smoothstep(.014,0.,abs(r-.96))+smoothstep(.01,0.,abs(r-.66))*.6+smoothstep(.01,0.,abs(r-.36))*.35+step(.92,r)*step(.8,fract(a*9.55))*.9;if(ln<.05)discard;gl_FragColor=vec4(vec3(1.,.84,.04)*ln*.85,1.);return;}'
++'if(uCut>.5&&(vW.x<-3.||vW.y>96.))discard;if(!gl_FrontFacing){gl_FragColor=vec4(.05,.055,.07,1.);return;}'
++'vec3 n=normalize(vN),v=normalize(uE-vW),L=normalize(uL);float base=step(19.5,vA.w),un=step(18.5,vA.w)*(1.-base);'
++'float ax=vA.x,fz=vF.z,ln=abs(vA.y),gr=1.-smoothstep(.0,.6,vA.z);'
++'float fib=.5+.5*sin(ax*26.+hs(vec2(floor(ax*13.),floor(vA.y*4.)))*6.),fb2=hs(vec2(floor(ax*34.),floor(vW.y*.7)));'
++'vec3 alb=vC;if(base>.5){float g=abs(fract(vW.y/3.5)-.5);alb=mix(vC,vec3(.3,.34,.42),smoothstep(.46,.5,g)*.4);}else{'
++'alb*=1.-.26*fib*(1.-fz)-.1*fb2;float tn=smoothstep(.72,.97,ln);alb=mix(alb,vec3(.6,.54,.45)*(1.-.6*fz)*(.7+.3*fib),tn*.7);alb*=1.-.7*gr;}'
++'float nl=dot(n,L),d=clamp((nl+.25)/1.25,0.,1.),fill=clamp(dot(n,normalize(vec3(-L.x,.15,-L.z)))*.5+.5,0.,1.)*.2,hemi=.5+.5*n.y,nv_=max(dot(n,v),0.),f=1.-nv_;'
++'vec3 h=normalize(L+v);float sp=(pow(max(dot(n,h),0.),22.)*.16+pow(max(dot(n,h),0.),90.)*.22)*(base>.5?.3:1.)*(1.-.75*gr)*(1.-fz)*(.55+.9*fib);'
++'vec3 col=alb*(.16+.22*hemi+.85*d+fill)*(1.-.35*gr);col+=vec3(1.,.93,.88)*sp;col+=alb*vec3(1.,.55,.4)*pow(f,2.4)*.28*(1.-base);if(base>.5)col+=vec3(.14,.2,.32)*pow(f,3.);'
++'col*=1.+vF.y*.3*(.5+.5*sin(uTime*2.6+vW.y*.06));col+=vec3(1.,.84,.15)*pow(f,1.8)*vF.x*.9;'
++'col+=vec3(1.,.84,.04)*exp(-pow((vW.y-uSw)/5.,2.))*.26;gl_FragColor=vec4(col,1.);}';
+function m3Init(){if(Mx.ok!==null)return Mx.ok;const cv=document.createElement('canvas');cv.style.cssText='width:100%;height:clamp(340px,52vh,480px);display:block;touch-action:none;border-radius:16px';
   const g=cv.getContext('webgl',{antialias:true,alpha:true});if(!g)return Mx.ok=false;
-  const sh=(t,s)=>{const o=g.createShader(t);g.shaderSource(o,s);g.compileShader(o);return o},pr=g.createProgram();
-  g.attachShader(pr,sh(g.VERTEX_SHADER,VS));g.attachShader(pr,sh(g.FRAGMENT_SHADER,FS));
-  g.linkProgram(pr);if(!g.getProgramParameter(pr,g.LINK_STATUS))return Mx.ok=false;g.useProgram(pr);
-  const P=[],I=[],A=18,B=28;for(let i=0;i<=A;i++){const t=Math.PI*i/A;for(let j=0;j<=B;j++){const f=2*Math.PI*j/B;P.push(Math.sin(t)*Math.cos(f),Math.cos(t),Math.sin(t)*Math.sin(f))}}
-  for(let i=0;i<A;i++)for(let j=0;j<B;j++){const a=i*(B+1)+j,b=a+B+1;I.push(a,b,a+1,a+1,b,b+1)}
-  g.bindBuffer(g.ARRAY_BUFFER,g.createBuffer());g.bufferData(g.ARRAY_BUFFER,new Float32Array(P),g.STATIC_DRAW);const l=g.getAttribLocation(pr,'p');g.enableVertexAttribArray(l);g.vertexAttribPointer(l,3,g.FLOAT,false,0,0);
-  g.bindBuffer(g.ELEMENT_ARRAY_BUFFER,g.createBuffer());g.bufferData(g.ELEMENT_ARRAY_BUFFER,new Uint16Array(I),g.STATIC_DRAW);
-  g.enable(g.DEPTH_TEST);g.enable(g.CULL_FACE);g.frontFace(g.CW);Mx.n=I.length;Mx.u=Object.fromEntries(['uVP','uM','uN','uT','uP','uO','uC','uL','uE','uMode','uHi','uDim','uTime','uPulse','uPass','uSw'].map(k=>[k,g.getUniformLocation(pr,k)]));
-  Mx.pf={M:new Float32Array([40,0,0,0,0,.01,0,0,0,0,40,0,0,0,0,1]),N:new Float32Array([.025,0,0,0,1,0,0,0,.025])};
+  const sh=(t,s)=>{const o=g.createShader(t);g.shaderSource(o,s);g.compileShader(o);return o},p=g.createProgram();
+  g.attachShader(p,sh(g.VERTEX_SHADER,VS));g.attachShader(p,sh(g.FRAGMENT_SHADER,FS));g.linkProgram(p);if(!g.getProgramParameter(p,g.LINK_STATUS))return Mx.ok=false;g.useProgram(p);
+  m3Build();const M=Mx.mesh,B=(n,d,sz,dyn)=>{const b=g.createBuffer();g.bindBuffer(g.ARRAY_BUFFER,b);g.bufferData(g.ARRAY_BUFFER,d,dyn?g.DYNAMIC_DRAW:g.STATIC_DRAW);const l=g.getAttribLocation(p,n);g.enableVertexAttribArray(l);g.vertexAttribPointer(l,sz,g.FLOAT,false,0,0);return b};
+  B('p',M.P,3);B('n',M.N,3);B('a',M.A,4);Mx.bc=B('c',new Float32Array((M.nv+42)*4),4,1);Mx.bf=B('f',new Float32Array((M.nv+42)*3),3,1);
+  g.bindBuffer(g.ELEMENT_ARRAY_BUFFER,g.createBuffer());g.bufferData(g.ELEMENT_ARRAY_BUFFER,M.T,g.STATIC_DRAW);
+  g.enable(g.DEPTH_TEST);Mx.u=Object.fromEntries(['uVP','uL','uE','uTime','uSw','uCut'].map(k=>[k,g.getUniformLocation(p,k)]));
   const hc=document.createElement('canvas');hc.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none';
   Mx.cv=cv;Mx.hc=hc;Mx.gl=g;m3Bind(cv);return Mx.ok=true}
+function m3Paint(){const g=Mx.gl,M=Mx.mesh,n=M.nv+42,C=new Float32Array(n*4),Fx=new Float32Array(n*3),sel=Mx.sel,gs=sel?MG_KEYS.indexOf(sel):-1,
+  col=MG_KEYS.map(k=>Mx.col[k]);col[GU]=[.33,.27,.27];col[GB]=[.15,.14,.16];
+  for(let v=0;v<M.nv;v++){const q=M.g[v],on=q===gs,dim=gs>=0&&!on&&q<GU;let c=col[q]||col[GB];if(dim)c=c.map(x=>x*.3+.05);if(gs>=0&&!on&&q>=GU)c=c.map(x=>x*.7);
+    C[v*4]=c[0];C[v*4+1]=c[1];C[v*4+2]=c[2];Fx[v*3]=on?1:0;Fx[v*3+1]=!Mx.rm&&!dim&&q<GU&&Mx.cnt[MG_KEYS[q]]>=8?1:0;Fx[v*3+2]=dim?1:0}
+  g.bindBuffer(g.ARRAY_BUFFER,Mx.bc);g.bufferData(g.ARRAY_BUFFER,C,g.DYNAMIC_DRAW);g.bindBuffer(g.ARRAY_BUFFER,Mx.bf);g.bufferData(g.ARRAY_BUFFER,Fx,g.DYNAMIC_DRAW)}
 function m3Mat(w,h){const c=Mx.cam,cp=Math.cos(c.p),e=[c.t[0]+c.d*Math.sin(c.y)*cp,c.t[1]+c.d*Math.sin(c.p),c.t[2]+c.d*Math.cos(c.y)*cp],
   nz=a=>{const l=Math.hypot(...a);return a.map(x=>x/l)},cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
   f=nz([c.t[0]-e[0],c.t[1]-e[1],c.t[2]-e[2]]),r=nz(cr(f,[0,1,0])),u=cr(r,f),
@@ -702,27 +744,21 @@ function m3Mat(w,h){const c=Mx.cam,cp=Math.cos(c.p),e=[c.t[0]+c.d*Math.sin(c.y)*
   Pm=[q/as,0,0,0,0,q,0,0,0,0,(fa+n)/(n-fa),-1,0,0,2*fa*n/(n-fa),0],VP=new Float32Array(16);
   for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=Pm[k*4+j]*V[i*4+k];VP[i*4+j]=s}
   return{VP,e,f,r,u,as}}
-function m3Vis(o){return!(Mx.sel&&M3CUT.has(Mx.sel)&&(o.s<0&&o.c[0]<-3||o.c[1]>(o.k?98:86)))}
 function m3Draw(){const g=Mx.gl,cv=Mx.cv;if(!g||!cv.width)return;g.viewport(0,0,cv.width,cv.height);g.clearColor(0,0,0,0);g.clear(g.COLOR_BUFFER_BIT|g.DEPTH_BUFFER_BIT);
-  const M=m3Mat(cv.width,cv.height),{VP,e,f,r,u}=M,U=Mx.u,L=[-f[0]*.7+u[0]*.6-r[0]*.4,-f[1]*.7+u[1]*.6-r[1]*.4,-f[2]*.7+u[2]*.6-r[2]*.4],ll=Math.hypot(...L),T=Mx.T,sel=Mx.sel,ow=Math.max(.24,Math.min(.62,Mx.cam.d*.0017));
-  g.uniformMatrix4fv(U.uVP,false,VP);g.uniform3f(U.uL,L[0]/ll,L[1]/ll,L[2]/ll);g.uniform3f(U.uE,...e);g.uniform1f(U.uTime,T);g.uniform1f(U.uSw,Mx.rm?-99:(T*38%260)-20);g.uniform1f(U.uPulse,0);g.uniform1f(U.uDim,0);g.uniform1f(U.uHi,0);g.uniform1f(U.uP,0);g.uniform1f(U.uT,0);g.uniform1f(U.uO,0);
-  g.uniform1f(U.uPass,0);g.uniform1f(U.uMode,2);g.uniformMatrix4fv(U.uM,false,Mx.pf.M);g.uniformMatrix3fv(U.uN,false,Mx.pf.N);g.disable(g.CULL_FACE);g.drawElements(g.TRIANGLES,Mx.n,g.UNSIGNED_SHORT,0);g.enable(g.CULL_FACE);
-  const V0=M3.filter(m3Vis);
-  for(const pass of[1,0]){g.cullFace(pass?g.FRONT:g.BACK);g.uniform1f(U.uPass,pass);
-    for(const o of V0){const on=o.k&&o.k===sel;g.uniformMatrix4fv(U.uM,false,o.M);g.uniformMatrix3fv(U.uN,false,o.N);g.uniform1f(U.uT,o.t);g.uniform1f(U.uP,o.sp);g.uniform1f(U.uMode,o.k?1:0);g.uniform1f(U.uHi,on?1:0);
-      if(pass)g.uniform1f(U.uO,ow*(on?1.7:1));else{const c=o.k?Mx.col[o.k]:[.11,.125,.17],dim=o.k&&sel&&!on;g.uniform3f(U.uC,...(dim?c.map(x=>x*.28+.07):c));g.uniform1f(U.uDim,dim?1:0);g.uniform1f(U.uO,0);g.uniform1f(U.uPulse,o.k&&!Mx.rm&&!dim&&Mx.cnt[o.k]>=8?1:0)}
-      g.drawElements(g.TRIANGLES,Mx.n,g.UNSIGNED_SHORT,0)}}
-  g.cullFace(g.BACK);m3Hud(M)}
+  const M=m3Mat(cv.width,cv.height),{VP,e,f,r,u}=M,U=Mx.u,L=[-f[0]*.7+u[0]*.6-r[0]*.4,-f[1]*.7+u[1]*.6-r[1]*.4,-f[2]*.7+u[2]*.6-r[2]*.4];
+  g.uniformMatrix4fv(U.uVP,false,VP);g.uniform3f(U.uL,...L);g.uniform3f(U.uE,...e);g.uniform1f(U.uTime,Mx.T);g.uniform1f(U.uSw,Mx.rm?-99:(Mx.T*38%260)-20);g.uniform1f(U.uCut,Mx.sel&&M3CUT.has(Mx.sel)?1:0);
+  g.drawElements(g.TRIANGLES,Mx.mesh.T.length,g.UNSIGNED_SHORT,0);m3Hud(M)}
 function m3Proj(M,p){const v=M.VP,w=v[3]*p[0]+v[7]*p[1]+v[11]*p[2]+v[15];return[(v[0]*p[0]+v[4]*p[1]+v[8]*p[2]+v[12])/w,(v[1]*p[0]+v[5]*p[1]+v[9]*p[2]+v[13])/w]}
 function m3Hud(M){const h=Mx.hc,x=h.getContext('2d'),W=h.width,H=h.height,d=W/h.clientWidth||1;x.clearRect(0,0,W,H);x.lineWidth=1.5*d;x.strokeStyle='rgba(255,214,10,.75)';x.fillStyle='rgba(255,214,10,.85)';
   const m=14*d,l=18*d;[[m,m,1,1],[W-m,m,-1,1],[m,H-m,1,-1],[W-m,H-m,-1,-1]].forEach(([a,b,sx,sy])=>{x.beginPath();x.moveTo(a,b+sy*l);x.lineTo(a,b);x.lineTo(a+sx*l,b);x.stroke()});
   x.font=`600 ${9*d}px -apple-system,system-ui,sans-serif`;x.globalAlpha=.7;x.fillText('FITLOG · ANATOMIE',m+6*d,m+22*d);x.globalAlpha=1;
-  const sel=Mx.sel;if(!sel)return;const L=M3.filter(o=>o.k===sel&&o.s>=0&&m3Vis(o));if(!L.length)return;const c=[0,1,2].map(i=>L.reduce((a,o)=>a+o.c[i],0)/L.length),p=m3Proj(M,c),px=(p[0]*.5+.5)*W,py=(.5-p[1]*.5)*H,
+  const sel=Mx.sel;if(!sel)return;const L=PR.filter(o=>o.k===sel&&o.s>=0&&m3Vis(o));if(!L.length)return;const c=[0,1,2].map(i=>L.reduce((a,o)=>a+o.c[i],0)/L.length),p=m3Proj(M,c),px=(p[0]*.5+.5)*W,py=(.5-p[1]*.5)*H,
   right=px<W*.5,lx=right?W-m-6*d:m+6*d,ly=m+46*d;
   x.beginPath();x.arc(px,py,4*d,0,7);x.fill();x.beginPath();x.moveTo(px,py);x.lineTo(right?lx-70*d:lx+70*d,ly+22*d);x.lineTo(lx,ly+22*d);x.stroke();
   x.textAlign=right?'right':'left';x.font=`700 ${12*d}px -apple-system,system-ui,sans-serif`;x.fillText((MG.find(a=>a[0]===sel)||[,sel])[1].toUpperCase(),lx,ly);
   x.font=`600 ${10*d}px -apple-system,system-ui,sans-serif`;x.globalAlpha=.8;x.fillText((Mx.cnt[sel]||0).toFixed(1).replace('.',',')+' SÉRIES / SEM.',lx,ly+15*d);x.globalAlpha=1;x.textAlign='left'}
-function m3Focus(k){if(!k)return{y:Mx.cam.y,p:.1,d:420,t:[0,90,0]};const v=M3V[k]||[0,.1],all=M3B.has(k),L=M3.filter(o=>o.k===k&&(all||o.s>=0)&&m3Vis(o)),n=L.length,
+function m3Vis(o){return!(Mx.sel&&M3CUT.has(Mx.sel)&&(o.s<0&&o.c[0]<-3||o.c[1]>(o.k?98:86)))}
+function m3Focus(k){if(!k)return{y:Mx.cam.y,p:.1,d:420,t:[0,90,0]};const v=M3V[k]||[0,.1],all=M3B.has(k),L=PR.filter(o=>o.k===k&&(all||o.s>=0)&&m3Vis(o)),n=L.length,
   t=[0,1,2].map(i=>L.reduce((a,o)=>a+o.c[i],0)/n),ext=i=>Math.max(...L.map(o=>Math.abs(o.c[i]-t[i])+Math.max(...o.r)));
   const sy=Math.abs(Math.sin(v[0])),eh=sy>.7?ext(2):ext(0);return{y:v[0],p:v[1],d:Math.min(300,Math.max(125,ext(1)*6.2,eh*8.2)),t}}
 function m3Kick(){if(!Mx.raf&&Mx.cv&&Mx.cv.isConnected)Mx.raf=requestAnimationFrame(m3Tick)}
@@ -732,26 +768,23 @@ function m3Tick(now){Mx.raf=0;if(!Mx.cv.isConnected)return;const dt=Math.min((no
     if(Math.abs(dy)+Math.abs(T.p-c.p)+Math.abs(T.d-c.d)/50+Math.abs(T.t[1]-c.t[1])/50<.004)Mx.tg=null}
   else if(!Mx.sel&&!Mx.rm&&now-Mx.idle>2500)c.y+=dt*.28;
   m3Draw();Mx.raf=requestAnimationFrame(m3Tick)}
-function m3Set(cnt,sel){Mx.cnt=cnt;const ch=Mx.sel!==sel;Mx.sel=sel;Mx.col={};MG_KEYS.forEach(k=>{Mx.col[k]=cnt[k]>0?heatRGB(cnt[k]):[.24,.27,.34]});
-  if(sel&&!cnt[sel])Mx.col[sel]=[.5,.55,.66];if(ch)Mx.tg=m3Focus(sel);m3Kick()}
+function m3Set(cnt,sel){Mx.cnt=cnt;const ch=Mx.sel!==sel;Mx.sel=sel;Mx.col={};MG_KEYS.forEach(k=>{Mx.col[k]=cnt[k]>0?heatRGB(cnt[k]):[.36,.3,.3]});
+  if(sel&&!cnt[sel])Mx.col[sel]=[.5,.55,.66];if(ch)Mx.tg=m3Focus(sel);m3Paint();m3Kick()}
 function m3Attach(host){if(!Mx.ok||!host)return;if(Mx.cv.parentNode!==host){host.style.position='relative';host.appendChild(Mx.cv);host.appendChild(Mx.hc)}const d=Math.min(devicePixelRatio||1,2),w=Math.round(host.clientWidth*d),h=Math.round(Mx.cv.clientHeight*d);
   if(Mx.cv.width!==w||Mx.cv.height!==h){Mx.cv.width=Mx.hc.width=w;Mx.cv.height=Mx.hc.height=h}m3Kick()}
 function m3Pick(px,py){const cv=Mx.cv,b=cv.getBoundingClientRect(),{e,f,r,u,as}=m3Mat(cv.width,cv.height),nx=(px-b.left)/b.width*2-1,ny=1-(py-b.top)/b.height*2,tn=Math.tan(14*_d),
-  D=[0,1,2].map(i=>f[i]+r[i]*nx*tn*as+u[i]*ny*tn);let best=1e9,hit=null;
-  for(const o of M3){if(!m3Vis(o))continue;const R=o.R,q=[e[0]-o.c[0],e[1]-o.c[1],e[2]-o.c[2]],
-    lo=[0,1,2].map(i=>(R[0][i]*q[0]+R[1][i]*q[1]+R[2][i]*q[2])/o.r[i]),ld=[0,1,2].map(i=>(R[0][i]*D[0]+R[1][i]*D[1]+R[2][i]*D[2])/o.r[i]),
-    a=ld[0]*ld[0]+ld[1]*ld[1]+ld[2]*ld[2],bb=lo[0]*ld[0]+lo[1]*ld[1]+lo[2]*ld[2],cc=lo[0]*lo[0]+lo[1]*lo[1]+lo[2]*lo[2]-1,ds=bb*bb-a*cc;
-    if(ds<0)continue;const t=(-bb-Math.sqrt(ds))/a;if(t>0&&t<best){best=t;hit=o}}
-  return hit?hit.k:null}
-function m3Bind(cv){const P=new Map();let mv=0,pd=0;
-  cv.addEventListener('pointerdown',ev=>{cv.setPointerCapture(ev.pointerId);P.set(ev.pointerId,[ev.clientX,ev.clientY]);mv=0;Mx.idle=performance.now();if(P.size===2){const[a,b]=[...P.values()];pd=Math.hypot(a[0]-b[0],a[1]-b[1])}});
+  D=[0,1,2].map(i=>f[i]+r[i]*nx*tn*as+u[i]*ny*tn),l=Math.hypot(...D);let t=Math.max(0,Mx.cam.d-110);
+  for(let i=0;i<120;i++){const p=[e[0]+D[0]/l*t,e[1]+D[1]/l*t,e[2]+D[2]/l*t],dd=m3Field(...p);if(dd<.15){let b1=9,bo=null;for(const o of PR){if(o.g===GB)continue;const q=pd(o,...p);if(q<b1){b1=q;bo=o}}return bo&&b1<1.5&&bo.g<GU?MG_KEYS[bo.g]:null}t+=Math.max(dd,.2);if(t>e[2]+900)break}return null}
+function m3Bind(cv){const P=new Map();let mv=0,pd2=0;
+  cv.addEventListener('pointerdown',ev=>{cv.setPointerCapture(ev.pointerId);P.set(ev.pointerId,[ev.clientX,ev.clientY]);mv=0;Mx.idle=performance.now();if(P.size===2){const[a,b]=[...P.values()];pd2=Math.hypot(a[0]-b[0],a[1]-b[1])}});
   cv.addEventListener('pointermove',ev=>{const o=P.get(ev.pointerId);if(!o)return;const n=[ev.clientX,ev.clientY],c=Mx.cam;Mx.idle=performance.now();
     if(P.size===1){const dx=n[0]-o[0],dy=n[1]-o[1];mv+=Math.abs(dx)+Math.abs(dy);if(mv>8){Mx.tg=null;c.y-=dx*.009;c.p=Math.max(-1.2,Math.min(1.2,c.p+dy*.006))}}
-    else if(P.size===2){P.set(ev.pointerId,n);const[a,b]=[...P.values()],nd=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pd){Mx.tg=null;c.d=Math.max(45,Math.min(450,c.d*pd/nd))}pd=nd;mv=99}
+    else if(P.size===2){P.set(ev.pointerId,n);const[a,b]=[...P.values()],nd=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pd2){Mx.tg=null;c.d=Math.max(45,Math.min(450,c.d*pd2/nd))}pd2=nd;mv=99}
     P.set(ev.pointerId,n)});
   const up=ev=>{const was=P.size===1&&mv<=8&&ev.type==='pointerup';P.delete(ev.pointerId);Mx.idle=performance.now();if(was&&Mx.onTap)Mx.onTap(m3Pick(ev.clientX,ev.clientY))};
   cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
   cv.addEventListener('wheel',ev=>{ev.preventDefault();Mx.tg=null;Mx.idle=performance.now();Mx.cam.d=Math.max(45,Math.min(450,Mx.cam.d*(1+ev.deltaY*.001)))},{passive:false})}
+setTimeout(()=>{try{m3Init()}catch(e){Mx.ok=false}},1200);
 function muscleView(){m3Init();Mx.onTap=k=>{mSel=k;render()};const{cnt,un,src}=muscleStats(mmN);Mx.cnt=cnt;const rows=MG.map(([k,l])=>({k,l,v:cnt[k]})).sort((a,b)=>a.v-b.v),has=Object.values(cnt).some(v=>v>0)||Object.keys(un).length,low=rows.filter(r=>r.v<6).slice(0,3).map(r=>r.l),
   L=mSel&&MG.find(x=>x[0]===mSel),g={};if(L)(src[mSel]||[]).forEach(([n,c,w])=>{g[n]=g[n]||[0,w];g[n][0]+=c});
   const lv=v=>v<=0?'pas travaillé':v<2?'très peu travaillé':v<6?'sous-travaillé':v<12?'bien travaillé':'très sollicité',
@@ -769,12 +802,12 @@ return`<div class=seg style="margin-bottom:12px">${[7,14,30].map(n=>`<button cla
 (()=>{let x0=0,y0=0,ok=false;const A=document.getElementById('app');
 A.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;ok=e.touches.length===1&&!e.target.closest('input,select,textarea,.sheet,svg,canvas')},{passive:true});
 A.addEventListener('touchend',e=>{if(!ok||ed||S.a&&view==='train')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*2)return;
-let O,cur,set;if(view==='train'){O=['t','s','r','m'];cur=histTab;set=v=>{histTab=v;hOpen=-1}}else if(view==='run'){O=['p','r','rec'];cur=runTab;set=v=>{runTab=v}}else return;
+let O,cur,set;if(view==='train'){O=['m','t','s','r'];cur=histTab;set=v=>{histTab=v;hOpen=-1}}else if(view==='run'){O=['p','r','rec'];cur=runTab;set=v=>{runTab=v}}else return;
 const n=O.indexOf(cur)+(dx<0?1:-1);if(n<0||n>=O.length)return;set(O[n]);fxN=1;render()},{passive:true})})();
 document.addEventListener('click',async ev=>{
 if(ev.target.classList&&ev.target.classList.contains('sh-bg')){ev.target.closest('.sheet').remove();return}
 const b=ev.target.closest('button');if(!b)return;const shx=b.closest('.sheet');if(shx)shx.remove();const a=b.dataset.a,i=+b.dataset.i;
-if(a==='nav'){view=b.dataset.v;ed=null}
+if(a==='nav'){if(b.dataset.v==='train'&&!['train','hist'].includes(view))histTab='m';view=b.dataset.v;ed=null}
 else if(a==='new')ed={new:1,id:uid(),name:'',ex:[]};
 else if(a==='edit')ed=JSON.parse(JSON.stringify(S.t.find(t=>t.id===b.dataset.id)));
 else if(a==='addex'){ed.ex.push({name:'',sets:3,min:8,max:12,w:0,inc:2.5,m:'double'});ed.open=ed.ex.length-1}
@@ -786,7 +819,7 @@ const k=S.t.findIndex(t=>t.id===ed.id);delete ed.new;k<0?S.t.push(ed):S.t[k]=ed;
 else if(a==='start'){start(b.dataset.id);view='train'}
 else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:true});save()}
 else if(a==='editlog'){if(S.a&&!confirm('Une séance est en cours : elle sera remplacée. Continuer ?'))return;S.a=JSON.parse(JSON.stringify(S.h[i]));S.a.editIdx=i;view='train'}
-else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist'}
+else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist';histTab='s'}
 else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
 else if(a==='pull')await pull();
 else if(a==='login')showLogin();
@@ -873,7 +906,7 @@ else if(a==='cancel'){if(!confirm(S.a.editIdx!==undefined?'Annuler les modificat
 else if(a==='finish'){
 const ex=S.a.ex.map(e=>e.skip?{...e,sets:[]}:{...e,sets:e.sets.filter(s=>+(e.t==='cardio'?s.d:s.r)>0).map(s=>({...s,done:true}))}).filter(e=>e.skip||e.sets.length);
 if(!ex.length&&!confirm('Aucune série validée. Terminer quand même ?'))return;
-const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist';toast('Séance enregistrée')}
+const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx]=o}else{o.dur=Math.round((Date.now()-new Date(S.a.date))/60000);S.h.push(o)}S.a=null;tm=null;save();view='hist';histTab='s';toast('Séance enregistrée')}
 else if(a==='export'){const j=JSON.stringify(S);
 try{navigator.share?await navigator.share({text:j}):(await navigator.clipboard.writeText(j),alert('Sauvegarde copiée.'))}catch(e){}return}
 else if(a==='import'){const j=prompt('Colle ta sauvegarde');if(!j)return;try{S=JSON.parse(j);save()}catch(e){alert('Sauvegarde invalide.');return}}
