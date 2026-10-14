@@ -261,20 +261,20 @@ if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void
 if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
 if(S.a&&!ed)keep();
 }
-const WU=()=>{try{return(FL.api||JSON.parse(localStorage.getItem('fitlog-strava')||'{}').url||'').replace(/\/$/,'')}catch(e){return''}};
+const WU=()=>(FL.api||S.api||'').replace(/\/$/,'');
 const SC=()=>{const u=WU();return u&&AU()?{url:u}:null};
 const SH=async j=>{const a=await authOK();return a?{Authorization:'Bearer '+a.access,...(j?{'Content-Type':'application/json'}:{})}:null};
-try{localStorage.removeItem('fitlog-sync');const o=JSON.parse(localStorage.getItem('fitlog-strava')||'null');if(o&&'key'in o){delete o.key;localStorage.setItem('fitlog-strava',JSON.stringify(o))}}catch(e){}
+try{localStorage.removeItem('fitlog-sync');const o=JSON.parse(localStorage.getItem('fitlog-strava')||'null');if(o&&o.url&&!S.api)S.api=o.url;localStorage.removeItem('fitlog-strava')}catch(e){}
 let stS='',stWait=0;const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
 async function syncRuns(auto){const c=SC(),H=c&&await SH();if(!H){if(!auto)setSv(WU()?'Connecte-toi à ton compte FitLog.':"Renseigne l'adresse du Worker.");return}
 try{setSv('Synchronisation…');S.runs=S.runs||[];
 const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist;
 const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,base=c.url+'/activities?after='+after;
 let a=[];for(let p=1;p<=60;p+=5){const r=await fetch(base+'&p='+p,{headers:H});
-if(r.status===409){setSv('Strava pas encore connecté : touche « Se connecter avec Strava ».');return}
+if(r.status===409){delete S.sv;save();setSv('Strava pas encore connecté : touche « Se connecter avec Strava ».');return}
 if(!r.ok)throw new Error(r.status);const x=await r.json();a.push(...x);if(!full||x.length<500)break;setSv('Historique complet… '+a.length+' sorties')}
 a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});if(full)S.hist=1;
-S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts()
+S.sv=1;S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts()
 }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
 let effSt='',recYr='';
 async function fetchEfforts(){const c=SC(),H=c&&await SH();if(!H)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
@@ -287,13 +287,14 @@ if(r.status===409){effSt='Strava pas connecté.';up();return}
 if(!r.ok&&r.status!==429){effSt='Erreur Strava ('+r.status+').';up();return}
 const d=await r.json();Object.assign(S.be,d.done||d);save();up();if(r.status===429){effSt='Limite Strava atteinte : réessaie dans 15 min.';up();return}}
 const left=all.filter(r=>S.be[r.id]===undefined).length;effSt=left?left+' sorties restantes : touche pour continuer.':'Records à jour sur '+all.length+' sorties.';up()}catch(e){effSt='Échec : '+e.message;up()}}
-const autoSync=()=>{if(SC()&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
+const autoSync=()=>{if(SC()&&(!S.sv||!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
 const pace=r=>{const t=Math.round(r.s/r.km);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
-function stravaCard(){const u=WU(),sc=SC(),m=stS||(!u?"Adresse du Worker à renseigner (une seule fois).":!sc?'Connecte-toi à ton compte pour utiliser Strava.':S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé.');
-return`<div class=card><h2>Strava</h2><div class=sub id=sv>${esc(m)}</div>${u?'':'<label>Adresse du Worker</label><input style="text-align:left" data-p=url placeholder="https://fitlog-strava.xxx.workers.dev" autocapitalize=none autocorrect=off>'}`
-+(S.syncAt?'<div class=bar><button data-a=connect>Reconnecter</button><button class=p data-a=syncnow>Synchroniser</button></div>':'<button class=strv style="width:100%" data-a=connect>Se connecter avec Strava</button>')+'</div>'}
+function stravaCard(){const m=stS||(!AU()?'Connecte-toi à ton compte pour utiliser Strava.':S.sv?(S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Connecté.'):'Autorise FitLog à lire tes sorties en un geste.');
+return`<div class=card><h2>Strava</h2><div class=sub id=sv>${esc(m)}</div>`
++(S.sv?'<div class=bar><button data-a=connect>Reconnecter</button><button class=p data-a=syncnow>Synchroniser</button></div>':'<button class=strv style="width:100%" data-a=connect>Se connecter avec Strava</button>')
++(WU()?'<button class=gh style="width:100%;margin-top:6px" data-a=apiset>Adresse du Worker</button>':'')+'</div>'}
 const DN=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],DF=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 let ge=null,planAll=false;
 const pf=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -354,7 +355,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='3.2.0';
+const VER='3.2.1';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -563,7 +564,7 @@ if(runTab==='p')return head+coachItem()+planBlock();
 const now=wk(Date.now()),W=[];for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
 const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
 const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" style="fill:${i===7?'var(--y)':'var(--s3)'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" style="fill:var(--t2)">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" style="fill:var(--mut)">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
-return head+(S.syncAt?'':STRAVA_CTA)+(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
+return head+(S.sv?'':STRAVA_CTA)+(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
 +R.slice(0,runAll?40:5).map(r=>`<div class=card style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="min-width:0"><h2>${esc(r.n)}</h2><div class=sub style="margin:0">${new Date(r.d.slice(0,10)+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} · ${hms(r.s)} · ${pace(r)} /km${r.up?' · D+ '+r.up+' m':''}${r.hr?' · '+r.hr+' bpm':''}</div></div><div class=big>${r.km.toFixed(1)}<span class=sub style="margin:0"> km</span></div></div>`).join('')
 +(R.length>5?`<button class=gh style="width:100%" data-a=rall>${runAll?'Réduire':'Tout afficher'}</button>`:''):`<div class=empty>Aucune sortie pour l'instant.</div>`)}
 function acc(k,t,sub,body){const o=accOpen[k];return`<div class="acc${o?' open':''}"><button data-a=acc data-k=${k}><span>${t}${sub?`<br><small>${sub}</small>`:''}</span>${CH}</button>${o?`<div class=body>${body}</div>`:''}</div>`}
@@ -572,7 +573,7 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 +acc('th','Thème',THEMES[themeId].n,themePicker())
 +acc('cp','Compte',a?esc(a.email):SBU?'Non connecté':'Cloud non configuré',accountCard())
 +acc('zn','Zones cardiaques','Pour ton plan de course',zonesCard())
-+acc('sv','Strava et coach IA',S.syncAt?'Connecté':'Non connecté',stravaCard())
++acc('sv','Strava et coach IA',S.sv?'Connecté':'Non connecté',stravaCard())
 +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
 +acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
 const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
@@ -1033,7 +1034,10 @@ else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exerci
 if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
 else if(a==='rn'){const o=b.dataset.n,n=(prompt('Nouveau nom pour « '+o+' » (partout : historique et séances types)',o)||'').trim();if(!n||n===o)return;
 S.h.forEach(h=>h.ex.forEach(e=>{if(e.name===o)e.name=n}));S.t.forEach(t=>t.ex.forEach(e=>{if(e.name===o)e.name=n}));if(S.a)S.a.ex.forEach(e=>{if(e.name===o)e.name=n});save()}
-else if(a==='connect'){const u=WU();if(!u){toast("Renseigne d'abord l'adresse du Worker (Réglages).");return}const au=await authOK();if(!au){SBU?showLogin():toast('Cloud non configuré');return}stWait=1;window.open(u+'/connect?jwt='+encodeURIComponent(au.access),'_blank')}
+else if(a==='connect'){const a0=AU(),au=a0&&a0.exp>Date.now()/1000+60?a0:await authOK();if(!au){SBU?showLogin():toast('Cloud non configuré');return}
+let u=WU();if(!u){const v=(prompt("Colle l'adresse de ton Worker Strava (une seule fois, elle sera retenue sur ton compte)")||'').trim().replace(/\/$/,'');if(!/^https:\/\/[^\s]+$/.test(v))return;S.api=v;save();u=v}
+stWait=1;window.open(u+'/connect?jwt='+encodeURIComponent(au.access),'_blank')}
+else if(a==='apiset'){const v=(prompt('Adresse du Worker Strava',WU())||'').trim().replace(/\/$/,'');if(/^https:\/\/[^\s]+$/.test(v)){S.api=v;save()}}
 else if(a==='syncnow')await syncRuns();
 else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed)save();else ed.open=j}}
 else if(a==='skip'){S.a.ex[i].skip=!S.a.ex[i].skip;save()}
@@ -1056,7 +1060,6 @@ if(k){const p=k.split('.'),x=S.a.ex[p[0]];
 if(p.length===2)x[p[1]]=t.value;else x.sets[p[1]][p[2]]=t.type==='checkbox'?t.checked:t.value;save()}
 else if(e){const p=e.split('.');
 if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value.trim()}
-else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
 else if(t.dataset.q){sx[t.dataset.q]=t.dataset.q==='km'?+t.value:t.value}
 else if(t.dataset.g){ge[t.dataset.g]=['long','dist','base'].includes(t.dataset.g)?+t.value:t.value}
 else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]=+t.value;S.zones={...(S.zones||{}),[k]:z};save()}
