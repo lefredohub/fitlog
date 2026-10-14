@@ -47,7 +47,7 @@ button{background:var(--s2);color:var(--tx);border:0;border-radius:14px;padding:
 button:active{transform:scale(.97);opacity:.8}
 button.p{background:var(--y);color:var(--on);font-weight:700}
 button.d{background:none;color:var(--rd)}
-button.gh{background:none;color:var(--mut);font-weight:500;padding:10px 8px}button.gh.d{color:var(--rd)}
+button.strv{background:#fc4c02;color:#fff;font-weight:700;border-radius:14px;padding:14px}button.gh{background:none;color:var(--mut);font-weight:500;padding:10px 8px}button.gh.d{color:var(--rd)}
 button.sm{padding:9px 16px;font-size:14px;border-radius:12px}
 .mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}button.mc{padding:14px 4px;font-size:13px;border-radius:14px;background:#1d1e22;color:var(--tx,#fff);border:1.5px solid transparent;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:62px;justify-content:center}button.mc small{font-size:10px;opacity:.85;font-weight:500}button.mc.p{background:var(--y);color:var(--on)}button.mc.s{background:transparent;border-color:var(--y);color:var(--y)}
 button.more{background:none;color:var(--mut);padding:6px 8px;font-size:20px;line-height:1;letter-spacing:1px;border-radius:10px}
@@ -139,7 +139,7 @@ div.rc.on::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:1
 .rcm{all:unset;display:block;width:100%;cursor:pointer;box-sizing:border-box}div.rc{background:var(--s1);border:1px solid var(--ln);border-radius:20px;padding:14px 14px 12px}.rc.on .rtm{color:var(--y)}.pod{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--ln)}.pod button{flex:1;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--s2);border-radius:12px;padding:8px 10px;font-weight:400;text-align:left;margin:0;width:auto}.pod b{font-size:15px}.pod em{font-style:normal;color:var(--mut);font-size:11px}
 .gbar{height:5px;border-radius:3px;background:var(--s3);margin-top:7px;overflow:hidden}.gbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yd),var(--y))}
 @media (prefers-reduced-motion:reduce){.hof h2,.hofs,.tro,.pr.nw,button.rc,div.rc.on::after{animation:none}}
-.rg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+
 button.rc{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;background:var(--s1);border:1px dashed rgba(255,255,255,.14);border-radius:20px;padding:14px 14px 12px;font-weight:400;min-height:132px}
 div.rc.on{border:1px solid rgba(var(--yr),.3);background:linear-gradient(160deg,rgba(var(--yr),.12),rgba(var(--yr),0) 60%),var(--s1)}
 .rl{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--mut);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
@@ -211,27 +211,8 @@ const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let S;try{S=JSON.parse(localStorage.getItem('fitlog'))}catch(e){}
 S=S||{t:[],h:[],a:null};
-let pt=0,stT='';
-const save=()=>{S._mod=Date.now();localStorage.setItem('fitlog',JSON.stringify(S));if(CFG()||AU()){clearTimeout(pt);pt=setTimeout(()=>{pt=0;pushAll()},5000)}};
-const CFG=()=>{try{const c=JSON.parse(localStorage.getItem('fitlog-sync'));return c&&c.repo&&c.token?c:null}catch(e){return null}};
-const setSt=t=>{stT=t;const e=$('#st');if(e)e.textContent=t};
-const b64=t=>btoa(unescape(encodeURIComponent(t)));
-const API=c=>`https://api.github.com/repos/${c.repo}/contents/fitlog.json`;
-const HD=(c,a='application/vnd.github+json')=>({Authorization:'Bearer '+c.token,Accept:a});
-async function push(){const c=CFG();if(!c)return;
-try{let sha;const g=await fetch(API(c),{headers:HD(c)});
-if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw new Error(g.status);
-const r=await fetch(API(c),{method:'PUT',headers:HD(c),body:JSON.stringify({message:'sauvegarde '+new Date().toISOString(),content:b64(JSON.stringify(S)),sha})});
-if(!r.ok)throw new Error(r.status);
-setSt('Dernière sauvegarde : '+new Date().toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))
-}catch(e){setSt('Échec de la sauvegarde ('+e.message+')')}}
-async function pull(){const c=CFG();if(!c){setSt('Renseigne le dépôt et le jeton.');return}
-try{const r=await fetch(API(c),{headers:HD(c,'application/vnd.github.raw+json')});if(!r.ok)throw new Error(r.status);
-const d=JSON.parse(await r.text());if(!confirm('Remplacer les données de ce téléphone par la sauvegarde ?'))return;
-S=d;localStorage.setItem('fitlog',JSON.stringify(S));setSt('Données restaurées.')
-}catch(e){setSt('Échec de la restauration ('+e.message+')')}}
-function syncCard(){const c=CFG()||JSON.parse(localStorage.getItem('fitlog-sync')||'{}');
-return`<div class=card><h2>Sauvegarde GitHub (facultative)</h2><div class=sub id=st>${esc(stT||(CFG()?'Active : sauvegarde après chaque modification.':'Non configurée.'))}</div><label>Dépôt GitHub privé</label><input style="text-align:left" data-s=repo placeholder="pseudo/fitlog-data" autocapitalize=none autocorrect=off value="${esc(c.repo||'')}"><label>Jeton d'accès</label><input type=password style="text-align:left" data-s=token placeholder="github_pat_…" autocapitalize=none value="${esc(c.token||'')}"><div class=bar><button data-a=pushnow>Sauvegarder</button><button data-a=pull>Restaurer</button></div></div>`}
+let pt=0;
+const save=()=>{S._mod=Date.now();localStorage.setItem('fitlog',JSON.stringify(S));if(AU()){clearTimeout(pt);pt=setTimeout(()=>{pt=0;cloudPush()},5000)}};
 let lv='',view='home',ed=null,tm=null;
 const LOGO=(c='logo')=>`<img class="${c}" src="icon-180.png" alt="">`;
 const mv=i=>`<button data-a=mv data-i=${i} data-d=-1 style="padding:8px 11px;font-size:14px">↑</button><button data-a=mv data-i=${i} data-d=1 style="padding:8px 11px;font-size:14px">↓</button>`;
@@ -280,24 +261,27 @@ if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void
 if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
 if(S.a&&!ed)keep();
 }
-const SC=()=>{try{const c=JSON.parse(localStorage.getItem('fitlog-strava'));return c&&c.url&&c.key?c:null}catch(e){return null}};
-let stS='';const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
-async function syncRuns(auto){const c=SC();if(!c){if(!auto)setSv("Renseigne l'adresse du Worker et la clé.");return}
+const WU=()=>{try{return(FL.api||JSON.parse(localStorage.getItem('fitlog-strava')||'{}').url||'').replace(/\/$/,'')}catch(e){return''}};
+const SC=()=>{const u=WU();return u&&AU()?{url:u}:null};
+const SH=async j=>{const a=await authOK();return a?{Authorization:'Bearer '+a.access,...(j?{'Content-Type':'application/json'}:{})}:null};
+try{localStorage.removeItem('fitlog-sync');const o=JSON.parse(localStorage.getItem('fitlog-strava')||'null');if(o&&'key'in o){delete o.key;localStorage.setItem('fitlog-strava',JSON.stringify(o))}}catch(e){}
+let stS='',stWait=0;const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
+async function syncRuns(auto){const c=SC(),H=c&&await SH();if(!H){if(!auto)setSv(WU()?'Connecte-toi à ton compte FitLog.':"Renseigne l'adresse du Worker.");return}
 try{setSv('Synchronisation…');S.runs=S.runs||[];
 const last=S.runs.reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist;
-const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,H={Authorization:'Bearer '+c.key},base=c.url.replace(/\/$/,'')+'/activities?after='+after;
+const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,base=c.url+'/activities?after='+after;
 let a=[];for(let p=1;p<=60;p+=5){const r=await fetch(base+'&p='+p,{headers:H});
-if(r.status===409){setSv('Strava pas encore connecté : touche « Connecter Strava ».');return}
+if(r.status===409){setSv('Strava pas encore connecté : touche « Se connecter avec Strava ».');return}
 if(!r.ok)throw new Error(r.status);const x=await r.json();a.push(...x);if(!full||x.length<500)break;setSv('Historique complet… '+a.length+' sorties')}
 a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);i<0?S.runs.push(x):S.runs[i]=x});if(full)S.hist=1;
 S.syncAt=Date.now();save();setSv(a.length+' sortie(s) récupérée(s)');if(view==='run'&&!ed)render();await fetchEfforts()
 }catch(e){setSv('Échec de la synchro ('+e.message+')')}}
 let effSt='',recYr='';
-async function fetchEfforts(){const c=SC();if(!c)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
+async function fetchEfforts(){const c=SC(),H=c&&await SH();if(!H)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
 try{S.be=S.be||{};const all=S.runs.filter(r=>r.km>=4.9&&r.id),todo=all.filter(r=>S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
 if(!todo.length){effSt=all.length?'Records à jour sur '+all.length+' sorties.':'';up();return}
 effSt='Analyse des meilleurs efforts…';up();
-for(let i=0;i<todo.length;i+=8){const ids=todo.slice(i,i+8).map(r=>r.id).join(','),r=await fetch(c.url.replace(/\/$/,'')+'/efforts?ids='+ids,{headers:{Authorization:'Bearer '+c.key}});
+for(let i=0;i<todo.length;i+=8){const ids=todo.slice(i,i+8).map(r=>r.id).join(','),r=await fetch(c.url+'/efforts?ids='+ids,{headers:H});
 if(r.status===404||r.status===501){effSt='Worker pas à jour : redéploie worker.js sur Cloudflare.';up();return}
 if(r.status===409){effSt='Strava pas connecté.';up();return}
 if(!r.ok&&r.status!==429){effSt='Erreur Strava ('+r.status+').';up();return}
@@ -307,9 +291,9 @@ const autoSync=()=>{if(SC()&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
 const pace=r=>{const t=Math.round(r.s/r.km);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
-function stravaCard(){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');
-const m=stS||(SC()?(S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé.'):'Non configuré : voir le guide strava-setup.md.');
-return`<div class=card><h2>Strava</h2><div class=sub id=sv>${esc(m)}</div><label>Adresse du Worker</label><input style="text-align:left" data-p=url placeholder="https://fitlog-strava.xxx.workers.dev" autocapitalize=none autocorrect=off value="${esc(c.url||'')}"><label>Clé d'accès</label><input type=password style="text-align:left" data-p=key autocapitalize=none value="${esc(c.key||'')}"><div class=bar><button data-a=connect>Connecter Strava</button><button class=p data-a=syncnow>Synchroniser</button></div></div>`}
+function stravaCard(){const u=WU(),sc=SC(),m=stS||(!u?"Adresse du Worker à renseigner (une seule fois).":!sc?'Connecte-toi à ton compte pour utiliser Strava.':S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé.');
+return`<div class=card><h2>Strava</h2><div class=sub id=sv>${esc(m)}</div>${u?'':'<label>Adresse du Worker</label><input style="text-align:left" data-p=url placeholder="https://fitlog-strava.xxx.workers.dev" autocapitalize=none autocorrect=off>'}`
++(S.syncAt?'<div class=bar><button data-a=connect>Reconnecter</button><button class=p data-a=syncnow>Synchroniser</button></div>':'<button class=strv style="width:100%" data-a=connect>Se connecter avec Strava</button>')+'</div>'}
 const DN=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],DF=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 let ge=null,planAll=false;
 const pf=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -370,7 +354,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='3.1.3';
+const VER='3.2.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -379,12 +363,12 @@ if(m&&m[1]!==VER){if(S.a||ed)toast('Mise à jour disponible : elle s\'installera
 else if(manual)toast('Tu as la dernière version')
 }catch(e){if(manual)toast('Impossible de vérifier')}}
 const installCard=()=>(/iphone|ipad/i.test(navigator.userAgent||'')&&!navigator.standalone&&!localStorage.getItem('fitlog-inst'))?`<div class=card><h2>Installe FitLog</h2><div class=sub>Touche Partager (le carré avec une flèche) puis « Sur l'écran d'accueil » pour l'utiliser comme une vraie app.</div><button data-a=hideinst style="width:100%">J'ai compris</button></div>`:'';
-const backupHint=()=>(S.h.length>=3&&!CFG()&&!AU()&&!localStorage.getItem('fitlog-bk'))?`<div class=card><h2>Protège ton historique</h2><div class=sub>Active la sauvegarde automatique : tes séances ne seront jamais perdues.</div><div class=bar><button data-a=hidebk>Plus tard</button><button class=p data-a=nav data-v=set>Configurer</button></div></div>`:'';
-function showOnb(){const P=[['Tes séances',"Crée tes séances de muscu et saisis ce que tu fais : l'app calcule ta prochaine charge selon la méthode choisie."],['Ta course','Connecte Strava et fixe un objectif : un plan semaine par semaine se construit tout seul.'],['Tes données','Sauvegarde automatique dans ton propre dépôt GitHub : rien n\'est perdu, rien n\'est partagé.']];
+const backupHint=()=>(S.h.length>=3&&SBU&&!AU()&&!localStorage.getItem('fitlog-bk'))?`<div class=card><h2>Protège ton historique</h2><div class=sub>Connecte-toi : tes séances seront sauvegardées et retrouvées sur tous tes appareils.</div><div class=bar><button data-a=hidebk>Plus tard</button><button class=p data-a=login>Se connecter</button></div></div>`:'';
+function showOnb(){const P=[['Tes séances',"Crée tes séances de muscu et saisis ce que tu fais : l'app calcule ta prochaine charge selon la méthode choisie."],['Ta course','Connecte Strava en un geste et fixe un objectif : un plan semaine par semaine se construit tout seul.'],['Tes données','Ton compte sauvegarde tout dans le cloud : rien n\'est perdu, retrouve tes données sur chaque appareil.']];
 let i=0;const o=document.createElement('div');o.className='ov';document.body.appendChild(o);
 const draw=()=>{o.innerHTML=`${LOGO('logo lg')}<h1 style="margin-bottom:10px">${P[i][0]}</h1><div class=sub style="font-size:17px;max-width:300px">${P[i][1]}</div><div style="margin:22px 0">${P.map((_,k)=>`<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px;background:${k===i?'var(--y)':'var(--s3)'}"></i>`).join('')}</div><button class=p style="width:240px" id=ob>${i<2?'Suivant':'Commencer'}</button>`;
 o.querySelector('#ob').onclick=()=>{if(i<2){i++;draw()}else{localStorage.setItem('fitlog-onb','1');o.remove();if(needLogin())showLogin()}}};draw()}
-const STRAVA_CTA=`<div class=card><h2>Strava</h2><div class=sub>Importe tes sorties automatiquement.</div><button class=p style="width:100%" data-a=nav data-v=set>Configurer dans Réglages</button></div>`;
+const STRAVA_CTA=`<div class=card><h2>Strava</h2><div class=sub>Importe tes sorties automatiquement.</div><button class=strv style="width:100%" data-a=connect>Se connecter avec Strava</button></div>`;
 const FL=window.FITLOG||{},SBU=(FL.url||'').replace(/\/$/,''),SBK=FL.key||'';
 let csT='',lastCS=0,rp=null;
 const setCs=t=>{csT=t;const e=$('#cs');if(e)e.textContent=t};
@@ -418,7 +402,6 @@ if(dirty&&!confirm('Ce téléphone a des modifications non synchronisées. OK = 
 S=rd;S._sync=S._mod;localStorage.setItem('fitlog',JSON.stringify(S));setCs('Données récupérées du cloud.');render()
 }else if(lm>rm)await cloudPush();else setCs('À jour.')
 }catch(e){setCs('Hors ligne ou erreur : nouvelle tentative plus tard ('+e.message+')')}}
-const pushAll=async()=>{if(AU())await cloudPush();if(CFG())await push()};
 function accountCard(){const a=AU();
 if(!SBU)return`<div class=card><h2>Compte</h2><div class=sub style="margin:0">Cloud non configuré : voir le guide cloud-setup.md.</div></div>`;
 return a?`<div class=card><h2>Compte</h2><div class=sub id=cs>${esc(csT||'Connecté : '+a.email)}</div><div class=bar><button class=p data-a=cloudsync>Synchroniser</button><button class=d data-a=logout>Déconnexion</button></div></div>`
@@ -580,7 +563,7 @@ if(runTab==='p')return head+coachItem()+planBlock();
 const now=wk(Date.now()),W=[];for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
 const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1);
 const chart=`<svg viewBox="0 0 320 110" width="100%">${km.map((v,i)=>{const h=v/mx*68;return`<rect x="${i*40+8}" y="${86-h}" width="24" height="${Math.max(h,2)}" rx="6" style="fill:${i===7?'var(--y)':'var(--s3)'}"/><text x="${i*40+20}" y="${82-h}" text-anchor="middle" font-size="11" style="fill:var(--t2)">${v?Math.round(v):''}</text><text x="${i*40+20}" y="104" text-anchor="middle" font-size="10" style="fill:var(--mut)">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
-return head+(SC()?'':STRAVA_CTA)+(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
+return head+(S.syncAt?'':STRAVA_CTA)+(R.length?`<div class=card><h2>Kilomètres par semaine</h2><div class=sub>Cette semaine : ${km[7].toFixed(1)} km</div>${chart}</div>`
 +R.slice(0,runAll?40:5).map(r=>`<div class=card style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="min-width:0"><h2>${esc(r.n)}</h2><div class=sub style="margin:0">${new Date(r.d.slice(0,10)+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} · ${hms(r.s)} · ${pace(r)} /km${r.up?' · D+ '+r.up+' m':''}${r.hr?' · '+r.hr+' bpm':''}</div></div><div class=big>${r.km.toFixed(1)}<span class=sub style="margin:0"> km</span></div></div>`).join('')
 +(R.length>5?`<button class=gh style="width:100%" data-a=rall>${runAll?'Réduire':'Tout afficher'}</button>`:''):`<div class=empty>Aucune sortie pour l'instant.</div>`)}
 function acc(k,t,sub,body){const o=accOpen[k];return`<div class="acc${o?' open':''}"><button data-a=acc data-k=${k}><span>${t}${sub?`<br><small>${sub}</small>`:''}</span>${CH}</button>${o?`<div class=body>${body}</div>`:''}</div>`}
@@ -589,10 +572,9 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 +acc('th','Thème',THEMES[themeId].n,themePicker())
 +acc('cp','Compte',a?esc(a.email):SBU?'Non connecté':'Cloud non configuré',accountCard())
 +acc('zn','Zones cardiaques','Pour ton plan de course',zonesCard())
-+acc('sv','Strava et coach IA',SC()?'Connecté':'Non configuré',stravaCard())
-+acc('gh','Sauvegarde GitHub','Facultative',syncCard())
++acc('sv','Strava et coach IA',S.syncAt?'Connecté':'Non connecté',stravaCard())
 +acc('dt','Données',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Tout effacer</button>`)
-+acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · marge ${getComputedStyle(document.documentElement).getPropertyValue('--gap')||0} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
++acc('ab','À propos','FitLog v'+VER,`<div class=sub>Écran ${innerWidth}×${innerHeight} · appareil ${screen.width}×${screen.height} · standalone ${navigator.standalone?'oui':'non'}</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
 const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
 const TP={Endurance:{z:'ef'},'Sortie longue':{z:'ef',x:0},Tempo:{z:'tp',m:20},'Fractionné':{z:'iv',r:6},'Allure objectif':{z:'ob',m:20},Course:{},Libre:{}};
 const rdate=r=>new Date(r.d.slice(0,10)+'T12:00:00'),rday=r=>(rdate(r).getDay()+6)%7;
@@ -674,13 +656,13 @@ sorties:(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d)).slice(0,14).map
 renfo:S.h.slice(-4).map(h=>({d:h.date.slice(0,10),n:h.name,ex:h.ex.filter(e=>!e.skip).map(e=>e.name+' '+fmt(e)).join('; ').slice(0,300)})),
 mem:(S.coach||{}).mem||''})}
 async function chatSend(k,t){const c=SC(),q=(t||'').trim(),V=CHAT[k],X=CX[k];if(!q||V.busy)return;
-if(!c){alert("Renseigne d'abord le Worker dans Réglages > Strava et coach IA.");return}
+if(!c){alert('Connecte-toi à ton compte et renseigne le Worker (Réglages > Strava et coach IA).');return}
 const C=S[k]=S[k]||{msgs:[]},M=C.msgs;M.push({r:'u',t:q});V.busy=1;V.draft='';render();
 try{
 const ms=M.slice(-7).map((m,i,a)=>({role:m.r==='u'?'user':'assistant',content:i===a.length-1?'CONTEXTE: '+X.ctx()+'\n\nMESSAGE: '+m.t:m.t}));
 while(ms.length&&ms[0].role!=='user')ms.shift();
-const r=await fetch(c.url.replace(/\/$/,'')+'/coach',{method:'POST',headers:{Authorization:'Bearer '+c.key,'Content-Type':'application/json'},body:JSON.stringify({system:X.sys,messages:ms})});
-if(r.status===501)throw new Error('clé IA absente du Worker');if(!r.ok)throw new Error(r.status);
+const H=await SH(1);if(!H)throw new Error('connexion requise');const r=await fetch(c.url+'/coach',{method:'POST',headers:H,body:JSON.stringify({system:X.sys,messages:ms})});
+if(r.status===501)throw new Error('clé IA absente du Worker');if(r.status===401)throw new Error('session expirée');if(!r.ok)throw new Error(r.status);
 const raw=(await r.json()).text||'';let o;try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0])}catch(e){o={reply:raw}}
 const ch=(Array.isArray(o.changes)?o.changes:[]).filter(X.ok).slice(0,X.n);
 M.push({r:'a',t:String(o.reply||'Fait.').slice(0,700),ch:ch.map(x=>({...x,x:X.txt(x)}))});
@@ -973,8 +955,6 @@ else if(a==='start'){start(b.dataset.id);view='train'}
 else if(a==='addset'){const s=S.a.ex[i].sets,l=s[s.length-1];s.push({w:l?l.w:0,r:l?l.r:8,rpe:'',done:true});save()}
 else if(a==='editlog'){if(S.a&&!confirm('Une séance est en cours : elle sera remplacée. Continuer ?'))return;S.a=JSON.parse(JSON.stringify(S.h[i]));S.a.editIdx=i;view='train'}
 else if(a==='dellog'){if(!confirm("Supprimer cette séance de l'historique ?"))return;S.h.splice(S.a.editIdx,1);S.a=null;save();view='hist';histTab='s'}
-else if(a==='pushnow'){setSt('Sauvegarde…');await push()}
-else if(a==='pull')await pull();
 else if(a==='login')showLogin();
 else if(a==='logout'){if(!confirm('Se déconnecter ? Tes données restent sur ce téléphone.'))return;localStorage.removeItem('fitlog-auth');localStorage.removeItem('fitlog-nolog');csT='';toast('Déconnecté')}
 else if(a==='cloudsync'){setCs('Synchronisation…');await cloudSync(false)}
@@ -1053,7 +1033,7 @@ else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exerci
 if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
 else if(a==='rn'){const o=b.dataset.n,n=(prompt('Nouveau nom pour « '+o+' » (partout : historique et séances types)',o)||'').trim();if(!n||n===o)return;
 S.h.forEach(h=>h.ex.forEach(e=>{if(e.name===o)e.name=n}));S.t.forEach(t=>t.ex.forEach(e=>{if(e.name===o)e.name=n}));if(S.a)S.a.ex.forEach(e=>{if(e.name===o)e.name=n});save()}
-else if(a==='connect'){const c=SC();if(!c)setSv("Renseigne d'abord l'adresse du Worker et la clé.");else window.open(c.url.replace(/\/$/,'')+'/connect?key='+encodeURIComponent(c.key),'_blank')}
+else if(a==='connect'){const u=WU();if(!u){toast("Renseigne d'abord l'adresse du Worker (Réglages).");return}const au=await authOK();if(!au){SBU?showLogin():toast('Cloud non configuré');return}stWait=1;window.open(u+'/connect?jwt='+encodeURIComponent(au.access),'_blank')}
 else if(a==='syncnow')await syncRuns();
 else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed)save();else ed.open=j}}
 else if(a==='skip'){S.a.ex[i].skip=!S.a.ex[i].skip;save()}
@@ -1076,7 +1056,6 @@ if(k){const p=k.split('.'),x=S.a.ex[p[0]];
 if(p.length===2)x[p[1]]=t.value;else x.sets[p[1]][p[2]]=t.type==='checkbox'?t.checked:t.value;save()}
 else if(e){const p=e.split('.');
 if(p.length===1)ed[p[0]]=t.value;else ed.ex[p[0]][p[1]]=t.type==='number'?+t.value:t.value.trim()}
-else if(t.dataset.s){const c=JSON.parse(localStorage.getItem('fitlog-sync')||'{}');c[t.dataset.s]=t.value.trim();localStorage.setItem('fitlog-sync',JSON.stringify(c));if(CFG()&&!stT)push()}
 else if(t.dataset.p){const c=JSON.parse(localStorage.getItem('fitlog-strava')||'{}');c[t.dataset.p]=t.value.trim();localStorage.setItem('fitlog-strava',JSON.stringify(c))}
 else if(t.dataset.q){sx[t.dataset.q]=t.dataset.q==='km'?+t.value:t.value}
 else if(t.dataset.g){ge[t.dataset.g]=['long','dist','base'].includes(t.dataset.g)?+t.value:t.value}
@@ -1084,7 +1063,7 @@ else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]
 if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){if(stWait){stWait=0;syncRuns()}else autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.id==='chq'){ev.preventDefault();chatSend(ev.target.dataset.c,ev.target.value)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
@@ -1096,14 +1075,7 @@ if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
 render();
 autoSync();
 if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true);
-const fitNav=()=>{try{const r=document.documentElement,st=r.style;let pb=document.getElementById('pb');if(!pb){pb=document.createElement('div');pb.id='pb';pb.style.cssText='position:fixed;left:0;bottom:0;width:1px;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';document.body.appendChild(pb)}
-const sa=parseFloat(getComputedStyle(pb).paddingBottom)||0;let gap=0;
-if(navigator.standalone===true){const sh=innerHeight>innerWidth?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);gap=Math.round(Math.min(60,Math.max(0,sh-pb.getBoundingClientRect().bottom)))}
-st.setProperty('--gap',gap+'px');st.setProperty('--sb',Math.max(sa,gap)+'px');
-st.setProperty('--nh',document.querySelector('nav').offsetHeight+'px')}catch(e){}};
-
-setTimeout(()=>{try{const nb=document.querySelector('nav').getBoundingClientRect(),pb=document.getElementById('pb').getBoundingClientRect(),d=document.createElement('div');d.style.cssText='position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 4px);z-index:999;background:#fff;color:#000;font:11px/1.35 monospace;padding:6px 8px;border-radius:8px';
-d.textContent=`DIAG inner ${innerWidth}x${innerHeight} | screen ${screen.width}x${screen.height} | vv ${Math.round(visualViewport.height)} | nav bottom ${Math.round(nb.bottom)} | fixed0 ${Math.round(pb.bottom)} | sa ${getComputedStyle(document.getElementById('pb')).paddingBottom} | sat ${getComputedStyle(document.documentElement).getPropertyValue('--gap')} | standalone ${navigator.standalone} | docH ${document.documentElement.clientHeight}`;d.onclick=()=>d.remove();document.body.appendChild(d);setTimeout(()=>d.remove(),20000)}catch(e){}},2500);
+const fitNav=()=>{try{document.documentElement.style.setProperty('--nh',document.querySelector('nav').offsetHeight+'px')}catch(e){}};
 fitNav();addEventListener('resize',fitNav);addEventListener('orientationchange',fitNav);
 setTimeout(checkUpdate,4000);
 </script></body></html>
