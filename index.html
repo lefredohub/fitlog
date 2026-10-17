@@ -27,6 +27,7 @@
 <style>
 :root{--bg:#000;--s1:#101113;--s2:#1a1b1e;--s3:#26282c;--ln:rgba(255,255,255,.07);--tx:#f4f4f5;--mut:#8b8d93;--y:#ffd60a;--yr:255,214,10;--on:#000;--t2:#c4c5cb;--yd:#a87400;--yl:#fff6b0;--fh:-apple-system,"SF Pro Display",system-ui,sans-serif;--hw:700;--hu:none;--hl:0;--rad:18px;--ok:#34c759;--rd:#ff5d52;box-sizing:border-box;color-scheme:dark}
 *{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
 html,body{margin:0;min-height:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 input,select{-webkit-user-select:text;user-select:text}
@@ -400,7 +401,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.0.6';
+const VER='4.0.7';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
