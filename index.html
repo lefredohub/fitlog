@@ -102,6 +102,8 @@ button.pbody{flex:1;min-width:0;display:block;background:none;text-align:left;pa
 button.sb{background:none;padding:2px;color:var(--mut);flex:none;border-radius:50%}
 .sb svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.sb.ok{color:var(--ok)}.sb.ko{color:var(--rd)}
 html,body{height:100%;overflow:hidden;touch-action:manipulation}
+/* iPhone, app installée : WebKit donne parfois une fenêtre plus courte que l'écran (bande en bas). Une page au moins aussi haute que l'écran corrige ça. */
+@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}
 body{position:fixed;inset:0;width:100%;display:flex;flex-direction:column}
 main{flex:1;min-height:0;width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:28px}
 nav{position:relative;flex:none;left:auto;right:auto;bottom:auto;background:#000;padding:2px 12px calc(env(safe-area-inset-bottom)*.35)}
@@ -401,7 +403,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.0.7';
+const VER='4.0.8';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -1434,5 +1436,13 @@ try{const w=+localStorage.getItem('fitlog-stw');if(w&&Date.now()-w<9e5){stWait=w
 if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true);
 const fitNav=()=>{try{document.documentElement.style.setProperty('--nh',document.querySelector('nav').offsetHeight+'px')}catch(e){}};
 fitNav();addEventListener('resize',fitNav);addEventListener('orientationchange',fitNav);
+/* plein écran iPhone : si la fenêtre est plus courte que l'écran (bug WebKit), on force une page aussi haute que l'écran */
+(function(){const std=()=>navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+function fit(){try{if(!std())return;const h=document.documentElement,por=innerHeight>innerWidth,sh=por?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height),gap=sh-innerHeight;
+if(!por){h.style.minHeight='';return}
+if(gap>20&&gap<130)h.style.minHeight=sh+'px';fitNav()}catch(e){}}
+addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));addEventListener('pageshow',fit);document.addEventListener('visibilitychange',()=>{if(!document.hidden)fit()});
+fit();setTimeout(fit,400)})();
+
 setTimeout(checkUpdate,4000);
 </script></body></html>
