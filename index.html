@@ -226,10 +226,8 @@ button.sbtn.ok .fbt{display:none}
 .hlp p{margin:0 0 10px;color:var(--t2);font-size:15px;line-height:1.5}.hlp p:last-child{margin-bottom:0}
 .hlp dl{margin:0}.hlp dt{font-weight:650;margin-top:12px}.hlp dd{margin:2px 0 0;color:var(--t2);font-size:14.5px;line-height:1.45}
 
-.dg{flex:none;width:34px;align-self:stretch;min-height:34px;display:grid;place-items:center;color:var(--mut);touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none}
-.dg::before{content:"";width:12px;height:18px;background:radial-gradient(circle,currentColor 1.6px,transparent 2.1px) 0 0/6px 6px;opacity:.75}
-.dr{display:flex;align-items:stretch;gap:0}
-.dgg{position:relative;z-index:6;box-shadow:0 14px 34px rgba(0,0,0,.6)!important;transition:none!important;opacity:.98}
+[data-di]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.dgg{position:relative;z-index:6;box-shadow:0 16px 38px rgba(0,0,0,.65)!important;transition:none!important;opacity:.98}
 </style></head><body><main id="app"></main>
 <nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span class=nl>Accueil</span></button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg><span class=nl>Course</span></button><button data-a="nav" data-v="train"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg><span class=nl>Muscu</span></button></nav>
 <script src="config.js"></script>
@@ -286,7 +284,7 @@ A.querySelectorAll('.acc>button').forEach(b=>b.setAttribute('aria-expanded',b.pa
 A.querySelectorAll('.seg').forEach(g=>{const tab=g.querySelector('[data-a=htab],[data-a=rtab]');if(tab)g.setAttribute('role','tablist');g.querySelectorAll('button').forEach(b=>{if(tab){b.setAttribute('role','tab');b.setAttribute('aria-selected',b.classList.contains('on'))}else b.setAttribute('aria-pressed',b.classList.contains('on'))})});
 A.querySelectorAll('svg:not([role])').forEach(v=>{if(!v.closest('button'))v.setAttribute('aria-hidden','true')});
 document.querySelectorAll('nav button').forEach((b,i)=>{b.setAttribute('aria-label',['Accueil','Course à pied','Musculation'][i]);b.title=b.textContent.trim();if(b.classList.contains('on'))b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}catch(e){}}
-function render(){fxKey();
+function render(){fxKey();if(!FX.ch&&!fxN&&view===lv){const a0=$('#app');a0.classList.remove('fx','fy','fxin')}
 if(S.plan)reconcilePlan();
 if(view==='hist')view='train'
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train',prog:'train',rform:'run',help:'home'}[view]||view)));
@@ -402,7 +400,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.0.3';
+const VER='4.0.5';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -523,13 +521,13 @@ function fxFrame(dt){const c=FX.x,w=FX.w,h=FX.h,t=FX.t,id=themeId,yr=THEMES[id].
   FX.P.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<-p.r)p.x=w+p.r;if(p.x>w+p.r)p.x=-p.r;if(p.y<-p.r)p.y=h+p.r;if(p.y>h+p.r)p.y=-p.r;
    const a=p.a*(.7+.3*Math.sin(t*.6+p.ph)),g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);const col=p.o?'143,211,200':'170,190,195';g.addColorStop(0,`rgba(${col},${a})`);g.addColorStop(1,`rgba(${col},0)`);c.fillStyle=g;c.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);
    if(p.o){const ox=p.x+Math.sin(t*.5+p.ph)*30,oy=p.y+Math.cos(t*.4+p.ph)*20,og=c.createRadialGradient(ox,oy,0,ox,oy,9);og.addColorStop(0,`rgba(143,211,200,${.5+.3*Math.sin(t*2+p.ph)})`);og.addColorStop(1,'rgba(143,211,200,0)');c.fillStyle=og;c.fillRect(ox-9,oy-9,18,18)}});
-  const fl=Math.random()<.012?.12:0;if(fl){c.fillStyle=`rgba(0,0,0,${fl*3})`;c.fillRect(0,0,w,h)}
+  const fl=Math.random()<.004?.12:0;if(fl){c.fillStyle=`rgba(0,0,0,${fl*3})`;c.fillRect(0,0,w,h)}
   if(Math.random()<.0012)FX.fl=1;if(FX.fl>0){c.fillStyle=`rgba(255,255,255,${FX.fl*.22})`;c.fillRect(0,0,w,h);c.fillStyle=`rgba(${yr},${FX.fl*.12})`;c.fillRect(0,0,w,h);FX.fl-=.06*dt}}
  else if(id==='sh'){
   FX.P.forEach(p=>{if(p.r>50){p.y+=p.vy*.4*dt;p.x+=Math.sin(t*.2+p.ph)*.25;if(p.y<-p.r)p.y=h+p.r;const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);g.addColorStop(0,`rgba(${yr},${.07+.03*Math.sin(t*.5+p.ph)})`);g.addColorStop(1,`rgba(${yr},0)`);c.fillStyle=g;c.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2)}
    else{p.y+=p.vy*dt;p.x+=Math.sin(t+p.ph)*.35;if(p.y<-6){p.y=h+6;p.x=fxR(0,w)}c.fillStyle=`rgba(${yr},${.35+.35*Math.sin(t*2+p.ph)})`;c.beginPath();c.arc(p.x,p.y,p.r,0,7);c.fill()}});
   const e=Math.max(0,Math.sin(t*.35)*1.6-.9);if(e>0){c.fillStyle=`rgba(${yr},${Math.min(1,e*1.4)})`;c.shadowColor=`rgb(${yr})`;c.shadowBlur=14;c.beginPath();c.ellipse(w*.8,h*.3,6,2.2,-.2,0,7);c.ellipse(w*.8+22,h*.3-2,6,2.2,.2,0,7);c.fill();c.shadowBlur=0}}}
-function fxKey(){try{const k=view+'|'+(typeof runTab!=='undefined'?runTab:'')+'|'+(typeof histTab!=='undefined'?histTab:'');if(k===FX.k)return;FX.k=k;const a=document.getElementById('app');if(!a||themeId==='cl')return;a.classList.remove('fxin');void a.offsetWidth;a.classList.add('fxin');clearTimeout(FX.tm);FX.tm=setTimeout(()=>a.classList.remove('fxin'),1300)}catch(e){}}
+function fxKey(){try{const k=view+'|'+(typeof runTab!=='undefined'?runTab:'')+'|'+(typeof histTab!=='undefined'?histTab:'');if(k===FX.k){FX.ch=0;return}FX.ch=1;FX.k=k;const a=document.getElementById('app');if(!a||themeId==='cl')return;a.classList.remove('fxin');void a.offsetWidth;a.classList.add('fxin');clearTimeout(FX.tm);FX.tm=setTimeout(()=>a.classList.remove('fxin'),1300)}catch(e){}}
 
 function applyTheme(id,noRender){
  if(!THEMES[id])id='cl';themeId=id;const v=THEMES[id].v,r=document.documentElement;
@@ -566,10 +564,10 @@ return`<div class=card style="display:flex;align-items:center;gap:10px"><div sty
 function session(){const a=S.a,E=a.editIdx!==undefined;
 return`<div class=top><h1>${E?'Modifier':esc(a.name)}</h1>${E?'':'<span class=pill id=el>00:00</span>'}</div>${E?`<div class=sub style="margin:-12px 0 16px">${esc(a.name)}</div>`:''}`
 +a.ex.map((e,i)=>{
-if(e.skip)return`<div class=card data-di=${i} style="opacity:.5;display:flex;align-items:center;gap:8px"><div class=dg role=button aria-label="Déplacer l'exercice (glisser)"></div><div style="flex:1;min-width:0"><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button class=gh data-a=skip data-i=${i}>Annuler</button></div>`;
+if(e.skip)return`<div class=card data-di=${i} style="opacity:.5;display:flex;align-items:center;justify-content:space-between"><div><h2>${esc(e.name)}</h2><div class=sub style="margin:0">Pas fait</div></div><button class=gh data-a=skip data-i=${i}>Annuler</button></div>`;
 const forced=e.rest||e.note,open=e.more||forced;
-const head=`<div class=row style="justify-content:space-between;margin:0 0 6px;align-items:flex-start"><div class=dg role=button aria-label="Déplacer l'exercice : glisser vers le haut ou le bas"></div><div style="min-width:0;flex:1"><h2>${esc(e.name)}</h2><div class=sub style="margin:0">${e.tg}</div></div>${MORE('ex','data-i='+i)}</div>${hint(e)}`;
-const extra=open?`<div class=row style="justify-content:flex-end;margin:0 0 4px"><span class=sub style="margin:0 6px 0 0">Déplacer</span>${mv(i)}</div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div>${noteField(i,e)}`:'';
+const head=`<div class=row style="justify-content:space-between;margin:0 0 6px;align-items:flex-start"><div style="min-width:0"><h2>${esc(e.name)}</h2><div class=sub style="margin:0">${e.tg}</div></div>${MORE('ex','data-i='+i)}</div>${hint(e)}`;
+const extra=open?`<div class=row style="justify-content:flex-end;margin:0 0 4px"><span class=sub style="margin:0 6px 0 0">Déplacer (ou appui long sur l'exercice)</span>${mv(i)}</div><div class=row><input type=number inputmode=numeric placeholder="repos (s)" data-k="${i}.rest" value="${e.rest}"><button data-a=chrono data-i=${i}>${tm&&tm.i===i?'Stop':'Chrono'}</button></div>${noteField(i,e)}`:'';
 const tog=forced?'':`<button class=gh data-a=more data-i=${i}>${e.more?'Masquer':'Repos & note'}</button>`;
 if(e.t==='cardio')return`<div class=card data-di=${i}>${head}<div class=row><div style="flex:1"><label style="margin-top:0">Minutes</label><input type=number inputmode=decimal step=any data-k="${i}.0.d" value="${e.sets[0]?e.sets[0].d:''}"></div><div style="flex:1"><label style="margin-top:0">Niveau</label><input type=number inputmode=decimal step=any data-k="${i}.0.l" value="${e.sets[0]?e.sets[0].l:''}"></div></div>${extra}<div class=row style="justify-content:flex-end;margin-bottom:0">${tog}</div></div>`;
 return`<div class=card data-di=${i}>${head}<div class=row><span class=n style="background:none"></span><div class=sub style="flex:1;margin:0;text-align:center">${e.eq==='c'?'kg (lest, facultatif)':'kg'}</div><div class=sub style="flex:1;margin:0;text-align:center">${e.m==='sec'?'secondes':'reps'}</div></div>`
@@ -578,12 +576,12 @@ return`<div class=card data-di=${i}>${head}<div class=row><span class=n style="b
 +`<button class=gh style="width:100%;margin-top:6px" data-a=lbopenl>+ Ajouter un exercice</button><button class=p style="width:100%;padding:16px;margin-top:10px" data-a=finish>${E?'Enregistrer':'Terminer la séance'}</button><div class=bar style="margin-top:4px">${E?'<button class="gh d" data-a=dellog>Supprimer</button>':''}<button class=gh data-a=cancel>${E?'Annuler':'Abandonner'}</button></div>`}
 function editor(){
 const sum=x=>x.t==='cardio'?`Cardio · ${x.min} min${x.lvl?' · niveau '+x.lvl:''}`:`${x.sets} × ${x.min}${x.m==='double'?'–'+x.max:''}${+x.w?' · '+x.w+' kg':''} · ${METH[x.m]}`;
-return`<div class=top><h1>${ed.new?'Nouvelle séance':'Modifier'}</h1></div><div class=card><label style="margin-top:0">Nom de la séance</label><input style="text-align:left" data-e=name value="${esc(ed.name)}"></div>`
+return`<div class=top><h1>${ed.new?'Nouvelle séance':'Modifier'}</h1></div><div class=card><label style="margin-top:0">Nom de la séance</label><input style="text-align:left" data-e=name value="${esc(ed.name)}"></div>${ed.ex.length>1?'<div class=sub style="margin:-2px 4px 10px">Appui long sur un exercice, puis glisse pour changer l\'ordre.</div>':''}`
 +ed.ex.map((x,i)=>ed.open===i?`<div class=card data-di=${i}><label style="margin-top:0">Exercice</label><input style="text-align:left" list=exn data-e="${i}.name" value="${esc(x.name)}" placeholder="Ex. Squat, Pompes, Curl…" autocomplete=off autocapitalize=sentences><label>Type</label><select data-e="${i}.t"><option value="">Muscu<option value=cardio${x.t==='cardio'?' selected':''}>Cardio (minutes)</select>`
 +(x.t==='cardio'?`<div class=g style="grid-template-columns:1fr 1fr"><div><label>Durée (min)</label><input type=number inputmode=decimal step=any data-e="${i}.min" value="${x.min}"></div><div><label>Niveau</label><input type=number inputmode=decimal step=any data-e="${i}.lvl" value="${x.lvl||''}"></div></div>`
 :`<div class=g><div><label>Séries</label><input type=number inputmode=numeric data-e="${i}.sets" value="${x.sets}"></div><div><label>Reps min</label><input type=number inputmode=numeric data-e="${i}.min" value="${x.min}"></div><div><label>Reps max</label><input type=number inputmode=numeric data-e="${i}.max" value="${x.max}"></div><div><label>Charge (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.w" value="${x.w}"></div><div><label>Pas (kg)</label><input type=number inputmode=decimal step=any data-e="${i}.inc" value="${x.inc}"></div></div><div class=sub style="margin:8px 2px 0">Reps = répétitions par série. Le « pas » est l'écart de charge quand tu progresses (ex. 2,5 kg).</div><label>Progression</label><select data-e="${i}.m">${Object.entries(METH).map(([k,v])=>`<option value=${k}${x.m===k?' selected':''}>${v}`).join('')}</select><div class=sub style="margin:6px 2px 0">${METHD[x.m]||''}</div>`)
 +`<div class=bar style="margin-top:12px">${mv(i)}<button class=gh data-a=exopen data-i=${i}>Fermer</button><button class="gh d" data-a=delex data-i=${i}>Retirer</button></div></div>`
-:`<div class=dr data-di=${i}><div class=dg role=button aria-label="Déplacer l'exercice (glisser)"></div><button class=item data-a=exopen data-i=${i} style="flex:1;min-width:0"><div><b>${esc(x.name)||'Exercice sans nom'}</b><div class=sub>${sum(x)}</div></div>${CH}</button></div>`).join('')
+:`<button class=item data-di=${i} data-a=exopen data-i=${i}><div><b>${esc(x.name)||'Exercice sans nom'}</b><div class=sub>${sum(x)}</div></div>${CH}</button>`).join('')
 +`<button class=p style="width:100%;margin-bottom:10px" data-a=lbopen>+ Ajouter un exercice</button><button class=p style="width:100%;padding:16px" data-a=savet>Enregistrer</button><div class=bar style="margin-top:4px"><button class=gh data-a=back>Annuler</button>${ed.new?'':'<button class="gh d" data-a=delt>Supprimer</button>'}</div>`}
 function history(){
 const best={},ser={},pr={},e1={};
@@ -626,7 +624,7 @@ function helpView(){if(accOpen.h0===undefined)accOpen.h0=true;
 const H=h=>`<div class=hlp>${h}</div>`;
 return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','home')}<h1>Aide</h1></div></div><div class=sub style="margin:-8px 4px 14px">Le mode d'emploi, simplement. Touche un titre pour le déplier.</div>`
 +acc('h0','Par où commencer ?','',H(`<p><b>FitLog</b> est ton carnet d'entraînement. Il a trois écrans, en bas :</p><p>• <b>${TW('home')}</b> : ce qu'il y a à faire aujourd'hui et ton score de la semaine.<br>• <b>${TW('run')}</b> : tes sorties à pied, ton plan d'entraînement et tes records.<br>• <b>${TW('train')}</b> : tes séances de musculation, tes muscles et tes records de charge.</p><p>Rien à régler avant de commencer : choisis un programme dans Muscu, ou ajoute une sortie dans Course.</p>`))
-+acc('h1','Muscu : faire une séance','',H(`<p><b>1. Créer.</b> Dans Muscu > Séances, touche « + » : crée une séance ou choisis un <b>programme type</b> (poids du corps, salle, coureur…). « + Ajouter un exercice » ouvre une bibliothèque de plus de 150 exercices avec les muscles travaillés, ou te laisse créer le tien. Pour changer l'ordre, glisse la poignée à gauche d'un exercice.</p><p><b>2. Démarrer.</b> Touche « Démarrer » : FitLog pré-remplit la charge et les répétitions à viser, d'après ta dernière séance.</p><p><b>3. Noter.</b> Corrige les chiffres si tu as fait autre chose, ajoute une série avec « + Série » (ou retire-en une avec « − Série »). Il manque un exercice ? « + Ajouter un exercice » marche aussi en pleine séance. Puis « Terminer la séance ».</p><p><b>4. Progresser.</b> À la séance suivante, la cible est recalculée toute seule (voir « Double progression » dans le glossaire).</p><p>Première fois ? Choisis une charge légère : celle avec laquelle tu pourrais faire encore 2 ou 3 répétitions.</p>`))
++acc('h1','Muscu : faire une séance','',H(`<p><b>1. Créer.</b> Dans Muscu > Séances, touche « + » : crée une séance ou choisis un <b>programme type</b> (poids du corps, salle, coureur…). « + Ajouter un exercice » ouvre une bibliothèque de plus de 150 exercices avec les muscles travaillés, ou te laisse créer le tien. Pour changer l'ordre, appuie longuement sur un exercice puis glisse-le.</p><p><b>2. Démarrer.</b> Touche « Démarrer » : FitLog pré-remplit la charge et les répétitions à viser, d'après ta dernière séance.</p><p><b>3. Noter.</b> Corrige les chiffres si tu as fait autre chose, ajoute une série avec « + Série » (ou retire-en une avec « − Série »). Il manque un exercice ? « + Ajouter un exercice » marche aussi en pleine séance. Puis « Terminer la séance ».</p><p><b>4. Progresser.</b> À la séance suivante, la cible est recalculée toute seule (voir « Double progression » dans le glossaire).</p><p>Première fois ? Choisis une charge légère : celle avec laquelle tu pourrais faire encore 2 ou 3 répétitions.</p>`))
 +acc('h2','Muscu : muscles et records','',H(`<p><b>Muscles.</b> Un corps en 3D s'allume selon les séries des derniers jours (7, 14 ou 30). Vert = peu travaillé, rouge = beaucoup. Touche un muscle pour voir quels exercices le sollicitent. Un exercice n'est pas reconnu ? Touche-le dans « Exercices et muscles » pour l'associer à un muscle.</p><p><b>Records.</b> Ta meilleure charge par exercice et ton 1RM estimé (voir le glossaire).</p>`))
 +acc('h3','Course : sorties, plan et records','',H(`<p><b>Sorties.</b> Importe-les avec Strava (bouton « Se connecter avec Strava » dans Course) ou ajoute-les à la main avec « + » : date, distance, durée. Strava est facultatif.</p><p><b>Plan.</b> Dans Plan, « Définir un objectif » : ta course, la distance, la date et le temps visé. FitLog construit un plan semaine par semaine. Touche le rond à droite d'une séance pour la marquer faite ou manquée, ou la séance elle-même pour la déplacer.</p><p><b>Records.</b> 5 km, 10 km, semi, marathon : tes meilleurs temps (touche une carte pour en saisir un à la main). Les temps « prévus » sont des estimations d'après tes meilleures performances.</p>`))
 +acc('h4','Le score de la semaine','',H(`<p>Un anneau qui se remplit au fil de la semaine.</p><p><b>Course (65 %)</b> : kilomètres du plan réalisés. Sans plan, on compare à ta moyenne des 4 dernières semaines.<br><b>Muscu (35 %)</b> : séances faites sur l'objectif de la semaine (modifiable dans le menu « ··· » du score).<br>Un malus jusqu'à −15 points apparaît si tu dépasses le plan de plus de 15 % : c'est un risque de blessure.</p>`))
@@ -1239,24 +1237,30 @@ A.addEventListener('touchend',e=>{if(!ok||ed||S.a&&view==='train')return;const t
 let O,cur,set;if(view==='train'){O=['m','t','s','r'];cur=histTab;set=v=>{histTab=v;hOpen=-1}}else if(view==='run'){O=['p','r','rec'];cur=runTab;set=v=>{runTab=v}}else return;
 const n=O.indexOf(cur)+(dx<0?1:-1);if(n<0||n>=O.length)return;set(O[n]);fxN=1;render()},{passive:true})})();
 
-/* ===== glisser pour réordonner ===== */
-(function(){const A=document.getElementById('app');let D=null;
-const mp=(x,i,j)=>x===i?j:i<j&&x>i&&x<=j?x-1:j<i&&x>=j&&x<i?x+1:x;
+/* ===== appui long puis glisser pour réordonner ===== */
+(function(){const A=document.getElementById('app');let D=null,P=null,sw=0;
+const mp=(x,i,j)=>x===i?j:i<j&&x>i&&x<=j?x-1:j<i&&x>=j&&x<i?x+1:x,vb=n=>{if(navigator.vibrate)try{navigator.vibrate(n)}catch(e){}};
 function upd(){const dy=(D.y-D.y0)+(A.scrollTop-D.s0),R=D.R,i=D.i,c=R[i].t+R[i].h/2+dy;let j=i;
 R.forEach((q,k)=>{const m=q.t+q.h/2;if(k<i&&c<m)j=Math.min(j,k);if(k>i&&c>m)j=Math.max(j,k)});
-if(j!==D.j&&navigator.vibrate)try{navigator.vibrate(6)}catch(e){}D.j=j;D.card.style.transform=`translateY(${dy}px)`;
+if(j!==D.j)vb(6);D.j=j;D.card.style.transform=`translateY(${dy}px) scale(1.02)`;
 const sh=R[i].h+D.gap;D.L.forEach((x,k)=>{if(k===i)return;x.style.transform=j>i&&k>i&&k<=j?`translateY(${-sh}px)`:j<i&&k>=j&&k<i?`translateY(${sh}px)`:''})}
 function tick(){if(!D)return;const r=A.getBoundingClientRect();if(D.y<r.top+80)A.scrollTop-=10;else if(D.y>r.bottom-110)A.scrollTop+=10;upd();D.raf=requestAnimationFrame(tick)}
-function end(ok){if(!D)return;const d=D;D=null;cancelAnimationFrame(d.raf);d.card.classList.remove('dgg');d.L.forEach(x=>{x.style.transform='';x.style.transition=''});
+function begin(){const p=P;P=null;const card=p.card,L=[...card.parentNode.children].filter(x=>x.hasAttribute('data-di')),i=L.indexOf(card);if(i<0)return;
+const R=L.map(x=>{const q=x.getBoundingClientRect();return{t:q.top+A.scrollTop,h:q.height}});
+D={card,L,i,j:i,R,y0:p.y,y:p.y,s0:A.scrollTop,raf:0,gap:parseFloat(getComputedStyle(card).marginBottom)||0};
+try{card.setPointerCapture(p.id)}catch(_){}
+const f=document.activeElement;if(f&&f.blur)f.blur();
+card.classList.add('dgg');L.forEach(x=>{if(x!==card)x.style.transition='transform .18s'});vb(12);tick()}
+function end(ok){if(P){clearTimeout(P.t);P=null}if(!D)return;const d=D;D=null;sw=Date.now();cancelAnimationFrame(d.raf);d.card.classList.remove('dgg');d.card.style.transform='';d.L.forEach(x=>{x.style.transform='';x.style.transition=''});
 if(!ok||d.i===d.j)return;const L=ed?ed.ex:S.a.ex,m=L.splice(d.i,1)[0];L.splice(d.j,0,m);
 if(ed)ed.open=mp(ed.open,d.i,d.j);else{if(tm)tm.i=mp(tm.i,d.i,d.j);save()}render()}
-A.addEventListener('pointerdown',e=>{const h=e.target.closest('.dg');if(!h||D)return;const card=h.closest('[data-di]');if(!card)return;e.preventDefault();
-const L=[...card.parentNode.children].filter(x=>x.hasAttribute('data-di')),i=L.indexOf(card);if(i<0)return;
-const R=L.map(x=>{const q=x.getBoundingClientRect();return{t:q.top+A.scrollTop,h:q.height}});
-D={card,L,i,j:i,R,y0:e.clientY,y:e.clientY,s0:A.scrollTop,raf:0,gap:parseFloat(getComputedStyle(card).marginBottom)||0};
-try{h.setPointerCapture(e.pointerId)}catch(_){}card.classList.add('dgg');L.forEach(x=>{if(x!==card)x.style.transition='transform .18s'});if(navigator.vibrate)try{navigator.vibrate(8)}catch(_){}tick()});
-A.addEventListener('pointermove',e=>{if(D)D.y=e.clientY});
+A.addEventListener('pointerdown',e=>{if(D||P||(e.pointerType==='mouse'&&e.button))return;if(e.target.closest('input,select,textarea,.sheet'))return;const card=e.target.closest('[data-di]');if(!card)return;
+P={card,x:e.clientX,y:e.clientY,id:e.pointerId,t:setTimeout(begin,480)}});
+A.addEventListener('pointermove',e=>{if(D){D.y=e.clientY;return}if(P&&Math.hypot(e.clientX-P.x,e.clientY-P.y)>8){clearTimeout(P.t);P=null}});
 A.addEventListener('pointerup',()=>end(true));A.addEventListener('pointercancel',()=>end(false));
+A.addEventListener('touchmove',e=>{if(D)e.preventDefault()},{passive:false});
+A.addEventListener('contextmenu',e=>{if(D||P)e.preventDefault()});
+A.addEventListener('click',e=>{if(Date.now()-sw<400){e.stopPropagation();e.preventDefault()}},true);
 })();
 document.addEventListener('click',async ev=>{
 if(ev.target.classList&&ev.target.classList.contains('sh-bg')){ev.target.closest('.sheet').remove();return}
