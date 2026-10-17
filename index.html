@@ -291,8 +291,8 @@ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dat
 $('#app').innerHTML=(LB&&(ed||LB.live&&S.a)?lbView():ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'||view==='mcoach'?chatView(view==='coach'?'coach':'mc'):view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='prog'?progView():view==='rform'&&RX?rform():view==='help'?helpView():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?session():history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
 if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
 $('#app').classList.toggle('hm',!ed&&view==='home');
-if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0}
-if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0}
+if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0;clearTimeout(FX.t2);FX.t2=setTimeout(()=>m.classList.remove('fx','fy'),450)}
+if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0;clearTimeout(FX.t2);FX.t2=setTimeout(()=>m.classList.remove('fx','fy'),450)}
 if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
 if(S.a&&!ed)keep();a11y();
 }
@@ -400,7 +400,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=card><label>Jours de course (minimum 2)</label><div class=bar style="flex-wrap:wrap">${DN.map((d,i)=>`<button data-a=gday data-i=${i} class="${g.days.includes(i)?'p':''}" style="flex:none;padding:10px 12px">${d}</button>`).join('')}</div><label>Sortie longue le</label><select data-g=long>${DN.map((d,i)=>`<option value=${i}${g.long==i?' selected':''}>${DF[i]}`).join('')}</select><label>Volume actuel (km par semaine)</label><input type=number inputmode=decimal step=any data-g=base value="${g.base}"></div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.0.5';
+const VER='4.0.6';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
