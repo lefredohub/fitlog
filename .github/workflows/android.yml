@@ -51,6 +51,38 @@ jobs:
           open(p,'w',encoding='utf-8').write(s)
           PY
           grep -n 'fitlog' build/android/app/src/main/AndroidManifest.xml
+      - name: Plein écran (barres noires, bouton Android masqué)
+        run: |
+          python3 - <<'PY'
+          import glob,re
+          # barres système noires, comme l'app
+          p='build/android/app/src/main/res/values/styles.xml'
+          s=open(p,encoding='utf-8').read()
+          a='<item name="android:background">@null</item>'
+          if a in s and 'navigationBarColor' not in s:
+              s=s.replace(a,a+'\n        <item name="android:navigationBarColor">#000000</item>\n        <item name="android:statusBarColor">#000000</item>\n        <item name="android:windowBackground">#000000</item>',1)
+              open(p,'w',encoding='utf-8').write(s)
+          # barre de navigation masquée (réapparaît d'un glissement depuis le bas)
+          f=glob.glob('build/android/app/src/main/java/**/MainActivity.java',recursive=True)[0]
+          pk=re.search(r'^package\s+[^;]+;',open(f,encoding='utf-8').read(),re.M).group(0)
+          open(f,'w',encoding='utf-8').write(pk+"""
+          import android.os.Bundle;
+          import androidx.core.view.WindowCompat;
+          import androidx.core.view.WindowInsetsCompat;
+          import androidx.core.view.WindowInsetsControllerCompat;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+            @Override public void onCreate(Bundle b) { super.onCreate(b); immersive(); }
+            @Override public void onWindowFocusChanged(boolean focus) { super.onWindowFocusChanged(focus); if (focus) immersive(); }
+            private void immersive() {
+              WindowInsetsControllerCompat c = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+              c.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+              c.hide(WindowInsetsCompat.Type.navigationBars());
+            }
+          }
+          """)
+          PY
       - name: Icône de l'application
         run: |
           sudo apt-get install -y imagemagick >/dev/null
