@@ -1,8 +1,9 @@
 // FitLog × Strava : relais (Cloudflare Worker) v4
 // « Se connecter avec Strava » : l'identité de l'utilisateur, c'est son compte Strava. Aucune clé à saisir côté app, aucun compte FitLog requis.
-// Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules),
-//             GEMINI_API_KEY (coach IA, facultatif), COACH_MODEL (facultatif), COACH_DAILY (messages/jour/personne, 40 par défaut)
+// Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules).
+//
 // KV : TOKENS
+// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 10), AI_GLOBAL (messages/jour au total, 60), AI_MODEL.
 //
 // Principe : chaque appareil fabrique une clé secrète aléatoire (jamais envoyée dans une adresse). Le Worker ne reçoit que son empreinte SHA-256 pour /connect,
 // la relie au compte Strava une fois l'autorisation donnée, puis reconnaît l'appareil grâce à l'en-tête Authorization.
@@ -17,6 +18,7 @@ const tok = async (env, body) => (await fetch('https://www.strava.com/oauth/toke
 const bearer = req => (req.headers.get('Authorization') || '').replace(/^Bearer /, '');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const page = (body, s = 200) => new Response('<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>FitLog</title><body style="font:20px -apple-system,system-ui,sans-serif;padding:48px 28px;background:#000;color:#fff;text-align:center;line-height:1.4">' + body, { status: s, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+
 
 // Appareil -> athlète Strava (empreinte de la clé de l'appareil)
 async function who(env, req) {
@@ -69,8 +71,33 @@ export default {
       return page(`<div style="font-size:54px">✅</div><b style="color:#ffd60a">Strava est connecté</b>${r.athlete.firstname ? '<br>' + esc(r.athlete.firstname) : ''}<br><br><span style="color:#aaa;font-size:17px">Reviens dans l'application FitLog : tes sorties arrivent toutes seules.</span>` + (/android/i.test(ua) ? '<br><br><a href="fitlog://strava" style="display:inline-block;background:#ffd60a;color:#000;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:14px">Ouvrir FitLog</a>' : ''));
     }
 
+    // 2 bis) Coach IA gratuit (Cloudflare Workers AI) : aucun compte requis, quota par appareil + plafond global pour rester dans l'offre gratuite
+    if (u.pathname === '/ai' && req.method === 'POST') {
+      if (!env.AI) return J({ error: 'no_ai' }, 501, cors);
+      const k = bearer(req);
+      if (!/^[0-9a-f]{32,128}$/.test(k)) return J({ error: 'auth' }, 401, cors);
+      const raw = await req.text();
+      if (raw.length > 24000) return J({ error: 'too_big' }, 413, cors);
+      let b; try { b = JSON.parse(raw); } catch (e) { return J({ error: 'bad' }, 400, cors); }
+      if (typeof b.system !== 'string' || !Array.isArray(b.messages) || !b.messages.length || b.messages.length > 8) return J({ error: 'bad' }, 400, cors);
+      const day = new Date().toISOString().slice(0, 10), dk = `q:${await sha(k)}:${day}`, gk = `g:${day}`;
+      const [dn, gn] = (await Promise.all([env.TOKENS.get(dk), env.TOKENS.get(gk)])).map(x => +x || 0);
+      if (dn >= (+env.AI_DAILY || 10)) return J({ error: 'device' }, 429, cors);
+      if (gn >= (+env.AI_GLOBAL || 60)) return J({ error: 'global' }, 429, cors);
+      await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), env.TOKENS.put(gk, String(gn + 1), { expirationTtl: 172800 })]);
+      const msgs = [{ role: 'system', content: b.system.slice(0, 6000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
+      for (const m of [env.AI_MODEL || '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.1-8b-instruct-fp8-fast']) {
+        try {
+          const r = await env.AI.run(m, { messages: msgs, max_tokens: 900, temperature: 0.4 });
+          const t = typeof r === 'string' ? r : r.response || (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content) || '';
+          if (t) return J({ text: String(t) }, 200, cors);
+        } catch (e) { }
+      }
+      return J({ error: 'ai_fail' }, 502, cors);
+    }
+
     // Routes protégées : appareil relié à un compte Strava
-    if (!['/me', '/activities', '/efforts', '/coach', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
+    if (!['/me', '/activities', '/efforts', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
     const aid = await who(env, req);
     if (!aid) return J({ error: 'not_connected' }, 409, cors);
 
@@ -126,32 +153,6 @@ export default {
       return J(out, 200, cors);
     }
 
-    // 7) Coach IA : relais vers Google Gemini (palier gratuit ; la clé reste ici). Plafond par personne et par jour.
-    if (u.pathname === '/coach' && req.method === 'POST') {
-      if (!env.GEMINI_API_KEY) return J({ error: 'no_ai' }, 501, cors);
-      const b = await req.json().catch(() => null);
-      if (!b || !Array.isArray(b.messages) || typeof b.system !== 'string' || b.system.length > 6000 || JSON.stringify(b.messages).length > 40000) return J({ error: 'bad_request' }, 400, cors);
-      const qk = 'q:' + aid + ':' + new Date().toISOString().slice(0, 10), n = +(await env.TOKENS.get(qk) || 0);
-      if (n >= (+env.COACH_DAILY || 40)) return J({ error: 'quota' }, 429, cors);
-      await env.TOKENS.put(qk, String(n + 1), { expirationTtl: 172800 });
-      const body = JSON.stringify({
-        systemInstruction: { parts: [{ text: b.system }] },
-        contents: b.messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: String(m.content) }] })),
-        generationConfig: { maxOutputTokens: 4000, temperature: 0.4, responseMimeType: 'application/json' }
-      });
-      let st = 502;
-      for (const m of [env.COACH_MODEL || 'gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-flash-latest']) {
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: 'POST', headers: { 'x-goog-api-key': env.GEMINI_API_KEY, 'content-type': 'application/json' }, body });
-        if (r.ok) {
-          const d = await r.json();
-          const t = ((d.candidates || [])[0] || {}).content;
-          return J({ text: ((t && t.parts) || []).filter(p => !p.thought).map(p => p.text || '').join('') }, 200, cors);
-        }
-        st = r.status;
-        if (st === 400 || st === 401 || st === 403) break;
-      }
-      return J({ error: 'ai_' + st }, 502, cors);
-    }
     return J({ error: 'not_found' }, 404, cors);
   }
 };

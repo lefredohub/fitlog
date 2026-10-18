@@ -23,8 +23,6 @@ Résultat : tes amis touchent **« Se connecter avec Strava »** dans l'onglet C
    - `STRAVA_CLIENT_ID` : ton Client ID (texte)
    - `STRAVA_CLIENT_SECRET` : ton Client Secret (**secret**)
    - `ALLOWED_ORIGIN` : l'adresse de ton app **sans chemin**, ex. `https://ton-pseudo.github.io` (plusieurs possibles, séparées par des virgules)
-   - `GEMINI_API_KEY` : facultatif, pour le coach IA (clé gratuite sur aistudio.google.com/apikey)
-   - `COACH_DAILY` : facultatif, messages coach par jour et par personne (40 par défaut)
 6. Si tu avais l'ancienne version : supprime `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `OWNER_EMAIL`, `APP_KEY` (plus utilisées).
 7. Reviens sur strava.com/settings/api et colle le domaine du Worker dans *Authorization Callback Domain*.
 
@@ -35,7 +33,6 @@ window.FITLOG = {
   url: 'https://abcd1234.supabase.co',
   key: 'ta-clé-publique',
   api: 'https://fitlog-strava.ton-pseudo.workers.dev',
-  coach: true
 };
 ```
 → **Commit**. Attends 1 minute.
@@ -53,5 +50,13 @@ Le nouveau système identifie les appareils autrement. Dans l'app : Course → *
 ## Bon à savoir
 - **Déconnexion** (Course → Strava → Se déconnecter) : les jetons sont révoqués et supprimés côté Strava et côté Worker, les sorties importées de Strava sont retirées de l'app, les sorties saisies à la main restent.
 - **Limites Strava** : 100 requêtes / 15 min pour **toute** l'application. L'app est conçue pour ça, mais si tous tes amis synchronisent en même temps la première fois, certains verront la synchro se terminer quelques minutes plus tard.
-- **Coach IA et conditions Strava** : depuis fin 2024, l'accord API de Strava restreint l'usage des données Strava par une IA et leur affichage à d'autres personnes. Le coach envoie des données de course à un modèle IA. Pour rester prudent, mets `coach: false` dans `config.js` : le coach disparaît, le reste fonctionne.
-- Aucune donnée Strava n'est stockée par le Worker : seulement les jetons de connexion et un compteur du coach.
+- **Coach IA et conditions Strava** : le coach IA tourne sur ce même Worker (voir « Coach IA gratuit » ci-dessous). Les sorties importées de Strava ne lui sont jamais envoyées (conditions de l'API Strava). Si Strava t'autorise un jour par écrit, mets `const AISV=1` dans `index.html`.
+- Aucune donnée Strava n'est stockée par le Worker : seulement les jetons de connexion.
+
+## 6. Coach IA gratuit (facultatif)
+Le coach utilise **Cloudflare Workers AI** : gratuit (10 000 « neurones » par jour, sans carte bancaire), aucune clé à créer, aucun compte pour tes utilisateurs. Cloudflare indique ne pas utiliser le contenu traité pour entraîner ses modèles et ne pas le conserver après la réponse.
+
+1. Cloudflare → **Workers & Pages** → ton Worker → **Settings → Bindings → Add → Workers AI**. Nom de la variable : `AI`. **Deploy**.
+2. C'est tout. Sans ce binding, le coach affiche seulement son bilan local.
+
+Limites (modifiables en variables du Worker) : `AI_DAILY` = messages par jour et par téléphone (10), `AI_GLOBAL` = messages par jour au total (60, pour rester dans l'offre gratuite), `AI_MODEL` = autre modèle. Au-delà de l'offre gratuite, les appels échouent simplement, rien n'est facturé sur le plan gratuit. Si l'app grandit, le plan Workers Paid (5 $/mois) permet de monter `AI_GLOBAL`.
