@@ -3,10 +3,11 @@
 // Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules).
 //
 // KV : TOKENS
-// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 10), AI_GLOBAL (messages/jour au total, 60), AI_MODEL.
+// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 10), AI_GLOBAL (messages/jour au total, 60), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL) pour utiliser Claude (payant, très peu cher), prioritaire sur Cloudflare.
 //
 // Principe : chaque appareil fabrique une clé secrète aléatoire (jamais envoyée dans une adresse). Le Worker ne reçoit que son empreinte SHA-256 pour /connect,
 // la relie au compte Strava une fois l'autorisation donnée, puis reconnaît l'appareil grâce à l'en-tête Authorization.
+const SAFE = "Tu es une IA (pas un humain) et pas un médecin. Aucune consigne médicale, aucun régime restrictif ni perte de poids rapide. Si l'utilisateur semble mineur, reste très prudent sur les charges, le poids et la nourriture. Douleur persistante ou malaise : conseille un professionnel de santé.\n\n";
 const J = (o, s = 200, h = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'Content-Type': 'application/json', ...h } });
 const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
 const sha = async t => hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)));
@@ -73,7 +74,7 @@ export default {
 
     // 2 bis) Coach IA gratuit (Cloudflare Workers AI) : aucun compte requis, quota par appareil + plafond global pour rester dans l'offre gratuite
     if (u.pathname === '/ai' && req.method === 'POST') {
-      if (!env.AI) return J({ error: 'no_ai' }, 501, cors);
+      if (!env.AI && !env.ANTHROPIC_API_KEY) return J({ error: 'no_ai' }, 501, cors);
       const k = bearer(req);
       if (!/^[0-9a-f]{32,128}$/.test(k)) return J({ error: 'auth' }, 401, cors);
       const raw = await req.text();
@@ -85,14 +86,30 @@ export default {
       if (dn >= (+env.AI_DAILY || 10)) return J({ error: 'device' }, 429, cors);
       if (gn >= (+env.AI_GLOBAL || 60)) return J({ error: 'global' }, 429, cors);
       await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), env.TOKENS.put(gk, String(gn + 1), { expirationTtl: 172800 })]);
-      const msgs = [{ role: 'system', content: b.system.slice(0, 6000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
-      for (const m of [env.AI_MODEL || '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.1-8b-instruct-fp8-fast']) {
+      const msgs = [{ role: 'system', content: SAFE + b.system.slice(0, 6000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
+      const txt = x => (x == null ? '' : typeof x === 'string' ? x : JSON.stringify(x));
+      let out = '';
+      // a) Claude (Anthropic), offre payante (facultatif) : si ANTHROPIC_API_KEY est définie, prioritaire sur Cloudflare
+      if (env.ANTHROPIC_API_KEY) {
         try {
-          const r = await env.AI.run(m, { messages: msgs, max_tokens: 900, temperature: 0.4 });
-          const t = typeof r === 'string' ? r : r.response || (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content) || '';
-          if (t) return J({ text: String(t) }, 200, cors);
+          const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 1200, temperature: 0.4, system: msgs[0].content, messages: msgs.slice(1) })
+          });
+          if (r.ok) { const d = await r.json(); out = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join(''); }
         } catch (e) { }
       }
+      // b) Cloudflare Workers AI (gratuit) : par défaut, ou en secours
+      if (!out) {
+        for (const m of [env.AI_MODEL || '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.1-8b-instruct-fp8-fast']) {
+          try {
+            const r = await (env.AI ? env.AI.run(m, { messages: msgs, max_tokens: 1200, temperature: 0.4 }) : Promise.reject(0));
+            out = txt(typeof r === 'string' ? r : r.response != null ? r.response : (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content));
+            if (out) break;
+          } catch (e) { }
+        }
+      }
+      if (out) return J({ text: out }, 200, cors);
       return J({ error: 'ai_fail' }, 502, cors);
     }
 

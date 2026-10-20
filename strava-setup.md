@@ -60,3 +60,10 @@ Le coach utilise **Cloudflare Workers AI** : gratuit (10 000 « neurones » par 
 2. C'est tout. Sans ce binding, le coach affiche seulement son bilan local.
 
 Limites (modifiables en variables du Worker) : `AI_DAILY` = messages par jour et par téléphone (10), `AI_GLOBAL` = messages par jour au total (60, pour rester dans l'offre gratuite), `AI_MODEL` = autre modèle. Au-delà de l'offre gratuite, les appels échouent simplement, rien n'est facturé sur le plan gratuit. Si l'app grandit, le plan Workers Paid (5 $/mois) permet de monter `AI_GLOBAL`.
+
+### Option : Claude (Anthropic), meilleure qualité, payant mais moins cher que Gemini
+Ajoute dans le Worker (Settings → Variables and Secrets) un **secret** `ANTHROPIC_API_KEY` (console.anthropic.com → API keys, avec quelques euros de crédit). Il passe alors en premier ; Cloudflare reste en secours.
+- Modèle par défaut : `claude-haiku-5-5` (0,10 $ / million de tokens en entrée, 0,50 $ en sortie) : environ 0,05 centime par message, soit 0,5 € pour 1 000 messages. Variable `ANTHROPIC_MODEL` pour en changer. Pose une limite de dépense dans la console.
+- Anthropic autorise les mineurs sur son API si l'app met des garde-fous : FitLog indique que c'est une IA, ajoute une consigne de prudence aux réponses (pas de régime restrictif, pas d'avis médical, prudence pour un mineur) et le dit dans la page Confidentialité. Garde-les.
+- Monte `AI_GLOBAL` (messages par jour au total) selon ton budget.
+- Ton abonnement Claude personnel ne peut pas servir de moteur pour l'app : il faut une clé API de la console.
