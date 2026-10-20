@@ -78,15 +78,15 @@ export default {
       const k = bearer(req);
       if (!/^[0-9a-f]{32,128}$/.test(k)) return J({ error: 'auth' }, 401, cors);
       const raw = await req.text();
-      if (raw.length > 24000) return J({ error: 'too_big' }, 413, cors);
+      if (raw.length > 48000) return J({ error: 'too_big' }, 413, cors);
       let b; try { b = JSON.parse(raw); } catch (e) { return J({ error: 'bad' }, 400, cors); }
-      if (typeof b.system !== 'string' || !Array.isArray(b.messages) || !b.messages.length || b.messages.length > 8) return J({ error: 'bad' }, 400, cors);
+      if (typeof b.system !== 'string' || !Array.isArray(b.messages) || !b.messages.length || b.messages.length > 14) return J({ error: 'bad' }, 400, cors);
       const day = new Date().toISOString().slice(0, 10), dk = `q:${await sha(k)}:${day}`, gk = `g:${day}`;
       const [dn, gn] = (await Promise.all([env.TOKENS.get(dk), env.TOKENS.get(gk)])).map(x => +x || 0);
       if (dn >= (+env.AI_DAILY || 10)) return J({ error: 'device' }, 429, cors);
       if (gn >= (+env.AI_GLOBAL || 60)) return J({ error: 'global' }, 429, cors);
       await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), env.TOKENS.put(gk, String(gn + 1), { expirationTtl: 172800 })]);
-      const msgs = [{ role: 'system', content: SAFE + b.system.slice(0, 6000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
+      const msgs = [{ role: 'system', content: SAFE + b.system.slice(0, 14000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
       const txt = x => (x == null ? '' : typeof x === 'string' ? x : JSON.stringify(x));
       let out = '';
       // a) Claude (Anthropic), offre payante (facultatif) : si ANTHROPIC_API_KEY est définie, prioritaire sur Cloudflare
@@ -94,7 +94,7 @@ export default {
         try {
           const r = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 1200, temperature: 0.4, system: msgs[0].content, messages: msgs.slice(1) })
+            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 1400, temperature: 0.7, system: msgs[0].content, messages: msgs.slice(1) })
           });
           if (r.ok) { const d = await r.json(); out = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join(''); }
         } catch (e) { }
@@ -103,7 +103,7 @@ export default {
       if (!out) {
         for (const m of [env.AI_MODEL || '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.1-8b-instruct-fp8-fast']) {
           try {
-            const r = await (env.AI ? env.AI.run(m, { messages: msgs, max_tokens: 1200, temperature: 0.4 }) : Promise.reject(0));
+            const r = await (env.AI ? env.AI.run(m, { messages: msgs, max_tokens: 1400, temperature: 0.7 }) : Promise.reject(0));
             out = txt(typeof r === 'string' ? r : r.response != null ? r.response : (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content));
             if (out) break;
           } catch (e) { }

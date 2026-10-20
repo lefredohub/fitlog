@@ -420,7 +420,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.1.4';
+const VER='4.1.5';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -801,12 +801,13 @@ return`<div class=top><h1>${q.i>=0?'Modifier la séance':'Nouvelle séance'}</h1
 +`<button class=p style="width:100%;padding:16px" data-a=ssave>Enregistrer</button><div class=bar style="margin-top:4px"><button class=gh data-a=scancel>Annuler</button>${q.i>=0?'<button class="gh d" data-a=sdel>Supprimer</button>':''}</div>`}
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
 return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#c9cacf" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
-const COACH_SYS=`Tu es le coach de course à pied de l'utilisateur dans l'app FitLog. Sa priorité : l'objectif de course (voir CONTEXTE). Données en JSON : plan à venir par date (j = jour, st = fait/manqué/à faire), sorties récentes, renfo récent, zones FC en bpm, mémoire.
-Réponds UNIQUEMENT par un objet JSON : {"reply":"...","changes":[...],"mem":"..."}
-- reply : français, tutoiement, 70 mots max, direct, appuyé sur les données.
-- changes (max 8, [] si simple question ou rien à changer) : {"op":"set","date":"AAAA-MM-JJ","t":"Endurance|Sortie longue|Tempo|Fractionné|Allure objectif|Libre","km":nombre,"txt":"détail court facultatif"} crée ou remplace la séance de ce jour ; {"op":"del","date":"AAAA-MM-JJ"} la supprime. Uniquement des dates d'aujourd'hui ou futures, jamais la séance « Course ». N'invente aucune donnée absente du contexte.
-- mem : mémoire à jour (blessure, disponibilités, préférences durables ; 200 caractères max), ou null si inchangée.
-Principes : environ 80 % du volume en endurance facile ; hausse hebdo ≤ 10 % ; semaine allégée toutes les 4 semaines ; pas de séance de qualité la veille d'une grosse séance de jambes ; affûtage avant la course. Douleur ou blessure : prudence, réduis, conseille un avis médical si elle persiste. Si la demande est floue, pose une seule question sans proposer de changement.`;
+const COACH_SYS=`Tu es le coach de course à pied de l'utilisateur dans l'app FitLog. Sa priorité : l'objectif de course. Les DONNÉES JSON (en fin de consigne) contiennent : plan à venir par date (j = jour, st = fait/manqué/à faire), sorties récentes, renfo récent, zones FC en bpm, mémoire.
+Tu discutes comme un vrai coach sympa, en français, en tutoyant, de façon naturelle et chaleureuse, comme dans une conversation avec ChatGPT. Réponds d'abord précisément à ce qui est demandé, explique le pourquoi, rebondis, et pose au maximum UNE question quand elle aide vraiment. Ne répète jamais une phrase ou une idée déjà dite plus haut dans la conversation, varie tes formulations et la façon de commencer. Longueur adaptée : une ou deux phrases pour une question simple, 100 à 180 mots quand une analyse le demande. Pas de titres, pas de listes à puces sauf si elles aident vraiment, pas de formules creuses ni de compliments automatiques. Appuie-toi sur les DONNÉES et cite des chiffres concrets ; n'invente jamais une donnée absente. Si la question sort du sport, réponds brièvement et ramène doucement vers l'entraînement.
+Modifier le plan : seulement si l'utilisateur le demande ou accepte ta proposition. Décris alors le changement en une phrase dans ta réponse, puis ajoute tout à la fin, sur une ligne séparée, un bloc : <fitlog>{"changes":[...],"mem":"..."}</fitlog>
+- changes (max 8) : {"op":"set","date":"AAAA-MM-JJ","t":"Endurance|Sortie longue|Tempo|Fractionné|Allure objectif|Libre","km":nombre,"txt":"détail court facultatif"} crée ou remplace la séance de ce jour ; {"op":"del","date":"AAAA-MM-JJ"} la supprime. Uniquement des dates d'aujourd'hui ou futures, jamais la séance « Course ».
+- mem (facultatif) : mémoire à jour (blessure, disponibilités, préférences durables ; 200 caractères max).
+Sans modification ni mémoire à noter, n'écris aucun bloc.
+Principes : environ 80 % du volume en endurance facile ; hausse hebdo ≤ 10 % ; semaine allégée toutes les 4 semaines ; pas de séance de qualité la veille d'une grosse séance de jambes ; affûtage avant la course. Douleur ou blessure : prudence, réduis, conseille un avis médical si elle persiste.`;
 const CT=['Endurance','Sortie longue','Tempo','Fractionné','Allure objectif','Libre'];
 const CHAT={coach:{busy:0,draft:''},mc:{busy:0,draft:''}};
 const planAt=d=>{const dt=new Date(d+'T12:00:00');if(isNaN(dt)||!S.plan)return null;const W=S.plan.weeks.find(x=>x.w===wk(dt));if(!W)return null;const dn=(dt.getDay()+6)%7;return{W,dn,k:W.s.findIndex(s=>s.d===dn)}};
@@ -826,16 +827,18 @@ if(!c){toast("Le coach IA n'est pas disponible dans cette version");return}
 if(!S.cc){if(!confirm("Pour répondre, le coach envoie un résumé de tes séances (et de tes sorties ajoutées à la main, jamais celles de Strava) à un service d'IA (Cloudflare ou Anthropic) qui ne s'en sert pas pour entraîner ses modèles. Tu parles à une IA : ses conseils ne remplacent pas un avis médical. Rien n'est envoyé sans ta question. Continuer ?"))return;S.cc=Date.now();save()}
 const C=S[k]=S[k]||{msgs:[]},M=C.msgs;M.push({r:'u',t:q});V.busy=1;V.draft='';render();
 try{
-const ms=M.slice(-7).map((m,i,a)=>({role:m.r==='u'?'user':'assistant',content:i===a.length-1?'CONTEXTE: '+X.ctx()+'\n\nMESSAGE: '+m.t:m.t}));
+const ms=M.slice(-13).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t}));
 while(ms.length&&ms[0].role!=='user')ms.shift();
 const H=await SH(1);if(!H)throw new Error('appareil non reconnu');
-const r=await fetch(c.url+'/ai',{method:'POST',headers:H,body:JSON.stringify({system:X.sys,messages:ms})});
+const r=await fetch(c.url+'/ai',{method:'POST',headers:H,body:JSON.stringify({system:X.sys+'\n\nDONNÉES :\n'+X.ctx(),messages:ms})});
 if(r.status===501)throw new Error("pas encore activé par l'éditeur");
 if(r.status===429){const e=await r.json().catch(()=>({}));throw new Error(e.error==='device'?'tu as atteint ta limite du jour, reviens demain':"très demandé aujourd'hui, réessaie demain")}
 if(!r.ok)throw new Error(r.status);
-const j=await r.json(),raw=typeof j.text==='string'?j.text:JSON.stringify(j.text||'');let o;try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0])}catch(e){{const m=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);let rp=raw;if(m)try{rp=JSON.parse('"'+m[1]+'"')}catch(e2){rp=m[1]}o={reply:rp}}}
+const j=await r.json(),raw=typeof j.text==='string'?j.text:JSON.stringify(j.text||'');let o={},rp=raw.trim();const mt=raw.match(/<fitlog>([\s\S]*?)(?:<\/fitlog>|$)/);
+if(mt){rp=raw.replace(mt[0],'').trim();try{o=JSON.parse(mt[1].trim())}catch(e){o={}}}
+else if(/^\s*\{[\s\S]*"reply"/.test(raw)){try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0]);rp=String(o.reply||'')}catch(e){const m=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);if(m)try{rp=JSON.parse('"'+m[1]+'"')}catch(e2){rp=m[1]}}}
 const ch=(Array.isArray(o.changes)?o.changes:[]).filter(X.ok).slice(0,X.n);
-M.push({r:'a',t:String(o.reply||'Fait.').slice(0,700),ch:ch.map(x=>({...x,x:X.txt(x)}))});
+M.push({r:'a',t:(rp||'Fait.').slice(0,2000),ch:ch.map(x=>({...x,x:X.txt(x)}))});
 if(typeof o.mem==='string')C.mem=o.mem.slice(0,300);
 C.at=Date.now();C.msgs=M.slice(-12)
 }catch(e){M.pop();V.draft=q;toast('Coach indisponible ('+e.message+')')}
@@ -848,12 +851,13 @@ W.s.push(o);W.s.sort((a,b)=>a.d-b.d)});
 m.ap=1;m.u=1;save();toast('Plan mis à jour')}
 const coachItem=()=>{if(!S.plan)return'';const at=(S.coach||{}).at||0,n=at?(S.runs||[]).filter(r=>new Date(r.d)>at).length:0;
 return item('coach','c','Coach',n?n+' nouvelle'+(n>1?'s':'')+' sortie'+(n>1?'s':'')+' à analyser':'Bilan de ta semaine et conseils')};
-const MC_SYS=`Tu es le coach de musculation de l'utilisateur dans l'app FitLog. C'est un coureur (objectif de course dans le CONTEXTE) : le renfo sert la performance, la prévention des blessures et l'équilibre musculaire. Données JSON : seances (modèles : nom, ex = exercices n/s séries/min-max reps/kg), recents (dernières séances faites), muscles (séries par semaine, moyenne sur 14 jours ; principal = 1 série, secondaire = ½), non_reconnus (exercices sans muscle associé, donc non comptés), obj_renfo (séances/semaine visées), obj (course), mem.
-Réponds UNIQUEMENT par un objet JSON : {"reply":"...","changes":[...],"mem":"..."}
-- reply : français, tutoiement, 90 mots max, concret : cite les muscles et chiffres du contexte, dis ce qui est déséquilibré ou manquant et pourquoi.
-- changes (max 6, [] si simple question) : {"op":"add","seance":"nom EXACT d'une séance existante (ou nouveau nom pour en créer une)","name":"nom d'exercice courant en français","sets":3,"min":8,"max":12} ajoute un exercice ; {"op":"del","seance":"nom exact","name":"nom exact de l'exercice"} le retire. Ne propose jamais d'exercice déjà présent dans la séance. N'invente aucune charge ni donnée absente du contexte.
-- mem : mémoire à jour (blessure, matériel, préférences durables ; 200 caractères max), ou null si inchangée.
-Principes : 6 à 10 séries par semaine et par groupe suffisent pour un coureur, jusqu'à 12-15 si l'objectif est de prendre du muscle ; équilibre poussée/tirage proche de 1:1 et épaule arrière non négligée ; priorité aux jambes (unilatéral, fessiers, ischios, mollets) et au gainage ; 5 à 8 exercices par séance ; pas de grosse séance de jambes la veille d'une sortie longue ou de qualité ; limite les exercices redondants. Douleur ou blessure : prudence, adapte, conseille un avis médical si elle persiste. Si la demande est floue, pose une seule question sans proposer de changement.`;
+const MC_SYS=`Tu es le coach de musculation de l'utilisateur dans l'app FitLog. C'est un coureur (objectif de course dans les DONNÉES) : le renfo sert la performance, la prévention des blessures et l'équilibre musculaire. Les DONNÉES JSON (en fin de consigne) contiennent : seances (modèles : nom, ex = exercices n/s séries/r reps/kg), recents (dernières séances faites), muscles (séries par semaine, moyenne sur 14 jours ; principal = 1 série, secondaire = ½), non_reconnus (exercices sans muscle associé, non comptés), obj_renfo (séances/semaine visées), obj (course), mem.
+Tu discutes comme un vrai coach sympa, en français, en tutoyant, de façon naturelle et chaleureuse, comme dans une conversation avec ChatGPT. Réponds d'abord précisément à ce qui est demandé, explique le pourquoi, rebondis, et pose au maximum UNE question quand elle aide vraiment. Ne répète jamais une phrase ou une idée déjà dite plus haut dans la conversation, varie tes formulations et la façon de commencer. Longueur adaptée : une ou deux phrases pour une question simple, 100 à 180 mots quand une analyse le demande. Pas de titres, pas de listes à puces sauf si elles aident vraiment, pas de formules creuses ni de compliments automatiques. Appuie-toi sur les DONNÉES et cite des chiffres concrets ; n'invente jamais une donnée absente. Si la question sort du sport, réponds brièvement et ramène doucement vers l'entraînement.
+Modifier les séances : seulement si l'utilisateur le demande ou accepte ta proposition. Décris alors le changement en une phrase, puis ajoute tout à la fin, sur une ligne séparée, un bloc : <fitlog>{"changes":[...],"mem":"..."}</fitlog>
+- changes (max 6) : {"op":"add","seance":"nom EXACT d'une séance existante (ou nouveau nom pour en créer une)","name":"nom d'exercice courant en français","sets":3,"min":8,"max":12} ajoute un exercice ; {"op":"del","seance":"nom exact","name":"nom exact de l'exercice"} le retire. Ne propose jamais d'exercice déjà présent dans la séance. N'invente aucune charge.
+- mem (facultatif) : blessure, matériel, préférences durables ; 200 caractères max.
+Sans modification ni mémoire à noter, n'écris aucun bloc.
+Principes : 6 à 10 séries par semaine et par groupe suffisent pour un coureur, jusqu'à 12-15 pour prendre du muscle ; équilibre poussée/tirage proche de 1:1, épaule arrière non négligée ; priorité aux jambes (unilatéral, fessiers, ischios, mollets) et au gainage ; 5 à 8 exercices par séance ; pas de grosse séance de jambes la veille d'une sortie longue ou de qualité ; limite les exercices redondants. Douleur ou blessure : prudence, adapte, conseille un avis médical si elle persiste.`;
 const mcT=n=>S.t.find(t=>nrm(t.name)===nrm(n));
 const mcOK=c=>{if(!c||typeof c.seance!=='string'||typeof c.name!=='string'||!c.seance.trim()||!c.name.trim()||c.seance.length>60||c.name.length>60)return false;const t=mcT(c.seance),e=t&&t.ex.find(x=>nrm(x.name)===nrm(c.name));
 if(c.op==='del')return!!e;if(c.op!=='add'||e)return false;return+c.sets>=1&&+c.sets<=8&&+c.min>=1&&+c.max>=+c.min&&+c.max<=40};
@@ -892,7 +896,7 @@ if(!S.h.length)L.push('Fais une première séance : le bilan se remplit ensuite 
 return L.length?L:['Pas encore assez de données : ajoute une sortie ou une séance.']}
 function chatView(k){const c=S[k]||{msgs:[]},M=c.msgs,Z=CV[k],V=CHAT[k];
 const body=M.length?M.map((m,i)=>m.r==='u'?`<div style="display:flex;justify-content:flex-end;margin:10px 0"><div style="background:var(--s3);padding:10px 14px;border-radius:18px 18px 4px 18px;max-width:85%">${esc(m.t)}</div></div>`
-:`<div class=card style="margin:10px 0"><div>${esc(m.t)}</div>`+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
+:`<div class=card style="margin:10px 0"><div style="white-space:pre-wrap;line-height:1.45">${esc(m.t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</div>`+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
 +(m.ap?`<div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0;color:var(--ok)">Appliqué</span>${m.u&&c.undo?`<button class="gh sm" data-a=chundo data-k=${k}>Annuler</button>`:''}</div>`:`<button class="p sm" style="width:100%;margin-top:8px" data-a=chapply data-k=${k} data-i=${i}>${Z.lbl}</button>`):'')+`</div>`).join('')
 :`<div class=card><h2>Bilan</h2>${bilan(k).map(x=>`<div class=sub style="color:var(--tx);margin:0 0 8px">${esc(x)}</div>`).join('')}</div>`+(CO()?`<div class=bar style="flex-wrap:wrap">${Z.chips.map(([l,q])=>`<button class=sm data-a=chsend data-k=${k} data-q="${esc(q)}" style="flex:none">${l}</button>`).join('')}</div>`:'');
 return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@',Z.back)}<h1>${Z.t}</h1></div>${MORE(k)}</div>`+body
