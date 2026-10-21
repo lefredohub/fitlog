@@ -3,7 +3,7 @@
 // Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules).
 //
 // KV : TOKENS
-// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 10), AI_GLOBAL (messages/jour au total, 60), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL) pour utiliser Claude (payant, très peu cher), prioritaire sur Cloudflare.
+// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 40), AI_GLOBAL (messages/jour au total sur Cloudflare gratuit, 80), AI_PAID_CAP (messages/jour sur Claude, 1500), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL) pour utiliser Claude (payant, très peu cher), prioritaire sur Cloudflare.
 //
 // Principe : chaque appareil fabrique une clé secrète aléatoire (jamais envoyée dans une adresse). Le Worker ne reçoit que son empreinte SHA-256 pour /connect,
 // la relie au compte Strava une fois l'autorisation donnée, puis reconnaît l'appareil grâce à l'en-tête Authorization.
@@ -72,7 +72,8 @@ export default {
       return page(`<div style="font-size:54px">✅</div><b style="color:#ffd60a">Strava est connecté</b>${r.athlete.firstname ? '<br>' + esc(r.athlete.firstname) : ''}<br><br><span style="color:#aaa;font-size:17px">Reviens dans l'application FitLog : tes sorties arrivent toutes seules.</span>` + (/android/i.test(ua) ? '<br><br><a href="fitlog://strava" style="display:inline-block;background:#ffd60a;color:#000;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:14px">Ouvrir FitLog</a>' : ''));
     }
 
-    // 2 bis) Coach IA gratuit (Cloudflare Workers AI) : aucun compte requis, quota par appareil + plafond global pour rester dans l'offre gratuite
+    // 2 bis) Coach IA : aucun compte requis. Quota par appareil ; plafonds globaux séparés (gratuit Cloudflare / payant Claude).
+    // Seuls les messages RÉUSSIS sont comptés.
     if (u.pathname === '/ai' && req.method === 'POST') {
       if (!env.AI && !env.ANTHROPIC_API_KEY) return J({ error: 'no_ai' }, 501, cors);
       const k = bearer(req);
@@ -81,36 +82,38 @@ export default {
       if (raw.length > 48000) return J({ error: 'too_big' }, 413, cors);
       let b; try { b = JSON.parse(raw); } catch (e) { return J({ error: 'bad' }, 400, cors); }
       if (typeof b.system !== 'string' || !Array.isArray(b.messages) || !b.messages.length || b.messages.length > 14) return J({ error: 'bad' }, 400, cors);
-      const day = new Date().toISOString().slice(0, 10), dk = `q:${await sha(k)}:${day}`, gk = `g:${day}`;
-      const [dn, gn] = (await Promise.all([env.TOKENS.get(dk), env.TOKENS.get(gk)])).map(x => +x || 0);
-      if (dn >= (+env.AI_DAILY || 10)) return J({ error: 'device' }, 429, cors);
-      if (gn >= (+env.AI_GLOBAL || 60)) return J({ error: 'global' }, 429, cors);
-      await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), env.TOKENS.put(gk, String(gn + 1), { expirationTtl: 172800 })]);
+      const day = new Date().toISOString().slice(0, 10), dk = `q:${await sha(k)}:${day}`, gf = `g:${day}`, gp = `p:${day}`;
+      const [dn, nf, np] = (await Promise.all([env.TOKENS.get(dk), env.TOKENS.get(gf), env.TOKENS.get(gp)])).map(x => +x || 0);
+      if (dn >= (+env.AI_DAILY || 40)) return J({ error: 'device' }, 429, cors);
+      const canPaid = !!env.ANTHROPIC_API_KEY && np < (+env.AI_PAID_CAP || 1500), canFree = !!env.AI && nf < (+env.AI_GLOBAL || 80);
+      if (!canPaid && !canFree) return J({ error: 'global' }, 429, cors);
       const msgs = [{ role: 'system', content: SAFE + b.system.slice(0, 14000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
       const txt = x => (x == null ? '' : typeof x === 'string' ? x : JSON.stringify(x));
-      let out = '';
-      // a) Claude (Anthropic), offre payante (facultatif) : si ANTHROPIC_API_KEY est définie, prioritaire sur Cloudflare
-      if (env.ANTHROPIC_API_KEY) {
+      let out = '', used = '', why = '';
+      // a) Claude (Anthropic), offre payante (facultatif) : prioritaire si ANTHROPIC_API_KEY est définie
+      if (canPaid) {
         try {
           const r = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
             body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 1400, temperature: 0.7, system: msgs[0].content, messages: msgs.slice(1) })
           });
-          if (r.ok) { const d = await r.json(); out = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join(''); }
-        } catch (e) { }
+          if (r.ok) { const d = await r.json(); out = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join(''); used = 'p'; }
+          else why = 'claude ' + r.status + ' ' + (await r.text()).slice(0, 160);
+        } catch (e) { why = 'claude ' + String(e).slice(0, 100); }
       }
       // b) Cloudflare Workers AI (gratuit) : par défaut, ou en secours
-      if (!out) {
+      if (!out && canFree) {
         for (const m of [env.AI_MODEL || '@cf/mistralai/mistral-small-3.1-24b-instruct', '@cf/meta/llama-3.1-8b-instruct-fp8-fast']) {
           try {
-            const r = await (env.AI ? env.AI.run(m, { messages: msgs, max_tokens: 1400, temperature: 0.7 }) : Promise.reject(0));
+            const r = await env.AI.run(m, { messages: msgs, max_tokens: 1400, temperature: 0.7 });
             out = txt(typeof r === 'string' ? r : r.response != null ? r.response : (r.choices && r.choices[0] && r.choices[0].message && r.choices[0].message.content));
-            if (out) break;
-          } catch (e) { }
+            if (out) { used = 'f'; break; }
+          } catch (e) { why += ' | cf ' + String(e).slice(0, 160); }
         }
       }
-      if (out) return J({ text: out }, 200, cors);
-      return J({ error: 'ai_fail' }, 502, cors);
+      if (!out) return J({ error: 'ai_fail', detail: why.trim().slice(0, 300) }, 502, cors);
+      await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), used === 'p' ? env.TOKENS.put(gp, String(np + 1), { expirationTtl: 172800 }) : env.TOKENS.put(gf, String(nf + 1), { expirationTtl: 172800 })]);
+      return J({ text: out }, 200, cors);
     }
 
     // Routes protégées : appareil relié à un compte Strava

@@ -420,7 +420,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=card><label>Nom de la co
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 <div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.1.5';
+const VER='4.1.6';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -833,7 +833,7 @@ const H=await SH(1);if(!H)throw new Error('appareil non reconnu');
 const r=await fetch(c.url+'/ai',{method:'POST',headers:H,body:JSON.stringify({system:X.sys+'\n\nDONNÉES :\n'+X.ctx(),messages:ms})});
 if(r.status===501)throw new Error("pas encore activé par l'éditeur");
 if(r.status===429){const e=await r.json().catch(()=>({}));throw new Error(e.error==='device'?'tu as atteint ta limite du jour, reviens demain':"très demandé aujourd'hui, réessaie demain")}
-if(!r.ok)throw new Error(r.status);
+if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(r.status+(e.detail?' · '+e.detail:''))}
 const j=await r.json(),raw=typeof j.text==='string'?j.text:JSON.stringify(j.text||'');let o={},rp=raw.trim();const mt=raw.match(/<fitlog>([\s\S]*?)(?:<\/fitlog>|$)/);
 if(mt){rp=raw.replace(mt[0],'').trim();try{o=JSON.parse(mt[1].trim())}catch(e){o={}}}
 else if(/^\s*\{[\s\S]*"reply"/.test(raw)){try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0]);rp=String(o.reply||'')}catch(e){const m=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);if(m)try{rp=JSON.parse('"'+m[1]+'"')}catch(e2){rp=m[1]}}}
