@@ -119,7 +119,7 @@ export default {
     }
 
     // Routes protégées : appareil relié à un compte Strava
-    if (!['/me', '/activities', '/efforts', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
+    if (!['/me', '/activities', '/efforts', '/streams', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
     const aid = await who(env, req);
     if (!aid) return J({ error: 'not_connected' }, 409, cors);
 
@@ -156,8 +156,26 @@ export default {
       return J(all.filter(a => /Run/.test(a.sport_type || a.type)).map(a => ({
         id: a.id, n: a.name, t: a.sport_type || a.type, d: a.start_date_local,
         km: +(a.distance / 1000).toFixed(2), s: a.moving_time, up: Math.round(a.total_elevation_gain || 0),
-        hr: a.average_heartrate ? Math.round(a.average_heartrate) : null
+        hr: a.average_heartrate ? Math.round(a.average_heartrate) : null,
+        mx: a.max_heartrate ? Math.round(a.max_heartrate) : null, pl: (a.map && a.map.summary_polyline) || ''
       })), 200, cors);
+    }
+
+    // 5 bis) Détail d'une sortie (carte, fréquence cardiaque, altitude) : /streams?id=123, 600 points maximum
+    if (u.pathname === '/streams') {
+      const id = u.searchParams.get('id') || '';
+      if (!/^\d+$/.test(id)) return J({ error: 'bad' }, 400, cors);
+      const t = await stravaToken(env, aid);
+      if (t.err) return J({ error: t.err === 409 ? 'not_connected' : 'refresh_failed' }, t.err, cors);
+      const r = await fetch(`https://www.strava.com/api/v3/activities/${id}/streams?keys=time,distance,latlng,altitude,heartrate&key_by_type=true`, { headers: { Authorization: 'Bearer ' + t.at } });
+      if (r.status === 401) { await env.TOKENS.delete('t:' + aid); return J({ error: 'not_connected' }, 409, cors); }
+      if (r.status === 429) return J({ error: 'rate' }, 429, cors);
+      if (r.status === 404) return J({}, 200, cors);
+      if (!r.ok) return J({ error: 'strava_' + r.status }, 502, cors);
+      const s = await r.json(), T = (s.time && s.time.data) || [], n = T.length, N = Math.min(600, n);
+      const ix = Array.from({ length: N }, (_, k) => Math.round(k * (n - 1) / Math.max(1, N - 1)));
+      const pick = k => (s[k] && Array.isArray(s[k].data) ? ix.map(i => s[k].data[i]) : null);
+      return J({ t: pick('time'), d: pick('distance'), ll: pick('latlng'), el: pick('altitude'), hr: pick('heartrate') }, 200, cors);
     }
 
     // 6) Meilleurs efforts (5K, 10K, semi, marathon) : /efforts?ids=1,2,3 (8 max)
