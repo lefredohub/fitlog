@@ -1,0 +1,85 @@
+# FitLog : fabrique un IPA SIGNÉ et l'envoie à TestFlight (compte Apple Developer payant requis).
+# Les testeurs installent avec un simple lien (app TestFlight), sans AltStore ni branchement.
+# Une version TestFlight reste valable 90 jours : ce workflow se relance tout seul tous les 2 mois (et à la main : Actions > "IPA TestFlight" > Run workflow).
+# Secrets à créer (Settings > Secrets and variables > Actions > Secrets) : APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (voir ios-setup.md).
+# Variable facultative APP_URL si ton site n'est pas à l'adresse par défaut.
+name: IPA TestFlight
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 1 */2 *'
+permissions:
+  contents: read
+jobs:
+  testflight:
+    runs-on: macos-14
+    env:
+      APP_URL: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+      TEAM: ${{ secrets.APPLE_TEAM_ID }}
+      KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+      KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Vérifier les secrets
+        run: |
+          for v in TEAM KEY_ID ISSUER KEY_P8; do [ -n "${!v}" ] || { echo "Secret manquant : $v (voir ios-setup.md)"; exit 1; }; done
+      - name: Préparer le projet Capacitor iOS
+        run: |
+          mkdir -p build/www && cd build
+          echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
+          npm init -y >/dev/null
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/ios@6 @capacitor/browser@6 @capacitor/filesystem@6 @capacitor/share@6
+          cat > capacitor.config.json <<JSON
+          { "appId": "app.fitlog.perso", "appName": "FitLog", "webDir": "www",
+            "server": { "url": "$APP_URL", "cleartext": false },
+            "ios": { "contentInset": "never", "backgroundColor": "#000000" },
+            "backgroundColor": "#000000" }
+          JSON
+          npx cap add ios
+          npx cap sync ios
+      - name: Retour depuis Strava, icône, conformité export
+        run: |
+          python3 - <<'PY'
+          import plistlib
+          p='build/ios/App/App/Info.plist'
+          d=plistlib.load(open(p,'rb'))
+          d.setdefault('CFBundleURLTypes',[]).append({'CFBundleURLName':'app.fitlog.perso','CFBundleURLSchemes':['fitlog']})
+          d['UIUserInterfaceStyle']='Dark'
+          d['ITSAppUsesNonExemptEncryption']=False
+          plistlib.dump(d,open(p,'wb'))
+          PY
+          cp icon-1024.png "build/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+      - name: Clé App Store Connect
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys ~/.private_keys
+          printf '%s\n' "$KEY_P8" > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+          cp ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8 ~/.private_keys/
+          cat > build/ExportOptions.plist <<PL
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>destination</key><string>upload</string>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PL
+      - name: Archiver (signature automatique)
+        run: |
+          cd build/ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/App.xcarchive" archive \
+            -allowProvisioningUpdates -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER" \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic MARKETING_VERSION=1.0 CURRENT_PROJECT_VERSION="${{ github.run_number }}" | tail -n 30
+      - name: Envoyer à TestFlight
+        run: |
+          cd build/ios/App
+          xcodebuild -exportArchive -archivePath "$PWD/build/App.xcarchive" -exportOptionsPlist ../../ExportOptions.plist -exportPath "$PWD/build/out" \
+            -allowProvisioningUpdates -authenticationKeyPath "$HOME/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8" \
+            -authenticationKeyID "$KEY_ID" -authenticationKeyIssuerID "$ISSUER" | tail -n 30
