@@ -3,7 +3,7 @@
 // Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules).
 //
 // KV : TOKENS
-// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 40), AI_GLOBAL (messages/jour au total sur Cloudflare gratuit, 80), AI_PAID_CAP (messages/jour sur Claude, 1500), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL) pour utiliser Claude (payant, très peu cher), prioritaire sur Cloudflare.
+// Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 40), AI_GLOBAL (messages/jour au total sur Cloudflare gratuit, 80), AI_PAID_CAP (messages/jour sur Claude, 300), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL) pour utiliser Claude (payant, très peu cher), prioritaire sur Cloudflare.
 //
 // Principe : chaque appareil fabrique une clé secrète aléatoire (jamais envoyée dans une adresse). Le Worker ne reçoit que son empreinte SHA-256 pour /connect,
 // la relie au compte Strava une fois l'autorisation donnée, puis reconnaît l'appareil grâce à l'en-tête Authorization.
@@ -72,6 +72,8 @@ export default {
       return page(`<div style="font-size:54px">✅</div><b style="color:#ffd60a">Strava est connecté</b>${r.athlete.firstname ? '<br>' + esc(r.athlete.firstname) : ''}<br><br><span style="color:#aaa;font-size:17px">Reviens dans l'application FitLog : tes sorties arrivent toutes seules.</span>` + (/android/i.test(ua) ? '<br><br><a href="fitlog://strava" style="display:inline-block;background:#ffd60a;color:#000;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:14px">Ouvrir FitLog</a>' : ''));
     }
 
+    // Vérification de la configuration du coach (ne révèle aucun secret) : ouvre /ai dans un navigateur
+    if (u.pathname === '/ai' && req.method === 'GET') return J({ claude: !!env.ANTHROPIC_API_KEY, cloudflare_gratuit: !!env.AI, modele_claude: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', plafond_claude_par_jour: +env.AI_PAID_CAP || 300, plafond_gratuit_par_jour: +env.AI_GLOBAL || 80, par_telephone: +env.AI_DAILY || 40 }, 200, cors);
     // 2 bis) Coach IA : aucun compte requis. Quota par appareil ; plafonds globaux séparés (gratuit Cloudflare / payant Claude).
     // Seuls les messages RÉUSSIS sont comptés.
     if (u.pathname === '/ai' && req.method === 'POST') {
@@ -85,7 +87,7 @@ export default {
       const day = new Date().toISOString().slice(0, 10), dk = `q:${await sha(k)}:${day}`, gf = `g:${day}`, gp = `p:${day}`;
       const [dn, nf, np] = (await Promise.all([env.TOKENS.get(dk), env.TOKENS.get(gf), env.TOKENS.get(gp)])).map(x => +x || 0);
       if (dn >= (+env.AI_DAILY || 40)) return J({ error: 'device' }, 429, cors);
-      const canPaid = !!env.ANTHROPIC_API_KEY && np < (+env.AI_PAID_CAP || 1500), canFree = !!env.AI && nf < (+env.AI_GLOBAL || 80);
+      const canPaid = !!env.ANTHROPIC_API_KEY && np < (+env.AI_PAID_CAP || 300), canFree = !!env.AI && nf < (+env.AI_GLOBAL || 80);
       if (!canPaid && !canFree) return J({ error: 'global' }, 429, cors);
       const msgs = [{ role: 'system', content: SAFE + b.system.slice(0, 14000) }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
       const txt = x => (x == null ? '' : typeof x === 'string' ? x : JSON.stringify(x));
