@@ -47,8 +47,8 @@ Sans ces fichiers, l'app affiche un bouton orange « Se connecter avec Strava »
 ## 5. Toi : te reconnecter une fois
 Le nouveau système identifie les appareils autrement. Dans l'app : Course → **Se connecter avec Strava** → autorise. Tes données reviennent.
 
-## Mise à jour v4.3 (carte et courbes des sorties Strava)
-Recolle le nouveau `worker.js` dans Cloudflare (Workers > fitlog > Edit code > Deploy). Il ajoute la route `/streams` (trace GPS, FC, altitude d'une sortie, chargée à l'ouverture du détail). Rien d'autre à changer : mêmes variables, mêmes autorisations Strava.
+## Mise à jour v4.3 (carte, courbes et chaussures des sorties Strava)
+Recolle le nouveau `worker.js` dans Cloudflare (Workers > fitlog > Edit code > Deploy). Il ajoute la route `/streams` (trace GPS, FC, altitude d'une sortie, chargée à l'ouverture du détail), la paire de chaussures de chaque sortie et la route `/gear` (nom et kilométrage de tes chaussures Strava). Rien d'autre à changer : mêmes variables, mêmes autorisations Strava.
 
 ## Bon à savoir
 - **Déconnexion** (Course → Strava → Se déconnecter) : les jetons sont révoqués et supprimés côté Strava et côté Worker, les sorties importées de Strava sont retirées de l'app, les sorties saisies à la main restent.

@@ -119,7 +119,7 @@ export default {
     }
 
     // Routes protégées : appareil relié à un compte Strava
-    if (!['/me', '/activities', '/efforts', '/streams', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
+    if (!['/me', '/activities', '/efforts', '/streams', '/gear', '/disconnect'].includes(u.pathname)) return new Response('FitLog × Strava : OK', { headers: cors });
     const aid = await who(env, req);
     if (!aid) return J({ error: 'not_connected' }, 409, cors);
 
@@ -157,7 +157,7 @@ export default {
         id: a.id, n: a.name, t: a.sport_type || a.type, d: a.start_date_local,
         km: +(a.distance / 1000).toFixed(2), s: a.moving_time, up: Math.round(a.total_elevation_gain || 0),
         hr: a.average_heartrate ? Math.round(a.average_heartrate) : null,
-        mx: a.max_heartrate ? Math.round(a.max_heartrate) : null, pl: (a.map && a.map.summary_polyline) || ''
+        mx: a.max_heartrate ? Math.round(a.max_heartrate) : null, pl: (a.map && a.map.summary_polyline) || '', g: a.gear_id || null
       })), 200, cors);
     }
 
@@ -176,6 +176,22 @@ export default {
       const ix = Array.from({ length: N }, (_, k) => Math.round(k * (n - 1) / Math.max(1, N - 1)));
       const pick = k => (s[k] && Array.isArray(s[k].data) ? ix.map(i => s[k].data[i]) : null);
       return J({ t: pick('time'), d: pick('distance'), ll: pick('latlng'), el: pick('altitude'), hr: pick('heartrate') }, 200, cors);
+    }
+
+    // 5 ter) Chaussures Strava (nom, kilométrage, retirée) : /gear?ids=g123,g456 (10 max)
+    if (u.pathname === '/gear') {
+      const t = await stravaToken(env, aid);
+      if (t.err) return J({ error: t.err === 409 ? 'not_connected' : 'refresh_failed' }, t.err, cors);
+      const out = {};
+      for (const id of (u.searchParams.get('ids') || '').split(',').filter(x => /^g\d+$/.test(x)).slice(0, 10)) {
+        const r = await fetch(`https://www.strava.com/api/v3/gear/${id}`, { headers: { Authorization: 'Bearer ' + t.at } });
+        if (r.status === 401) { await env.TOKENS.delete('t:' + aid); return J({ error: 'not_connected' }, 409, cors); }
+        if (r.status === 429) return J(out, 200, cors);
+        if (!r.ok) { out[id] = null; continue; }
+        const g = await r.json();
+        out[id] = { n: String(g.name || [g.brand_name, g.model_name].filter(Boolean).join(' ') || '').slice(0, 40), km: Math.round((g.distance || 0) / 1000), ret: !!g.retired };
+      }
+      return J(out, 200, cors);
     }
 
     // 6) Meilleurs efforts (5K, 10K, semi, marathon) : /efforts?ids=1,2,3 (8 max)
