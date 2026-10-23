@@ -5,7 +5,7 @@ PWA perso de suivi course à pied + muscu (FitLog), hébergée sur GitHub Pages.
 - `index.html` : toute l'app (HTML, CSS, JS purs, aucun framework, aucun build).
 - `sw.js` : service worker (hors ligne). `manifest.json`, `privacy.html`, `anat.bin` (modèle 3D), `archivo.woff2` (police), icônes et `splash/`.
 - `config.js` : clés Supabase et adresse du Worker. NE JAMAIS le modifier ni l'écraser.
-- Le Worker Cloudflare (Strava + coach IA) n'est pas dans ce dépôt : il est collé à la main dans Cloudflare.
+- `worker.js` : copie de référence du Worker Cloudflare (Strava + coach IA). Il n'est pas déployé depuis GitHub : il est collé à la main dans Cloudflare, et ses secrets sont des variables Cloudflare (jamais dans le fichier).
 
 ## Qui je suis
 Je ne code pas : je teste sur iPhone. Réponses claires, concises, en français. Contredis-moi si tu vois mieux.
