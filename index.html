@@ -129,7 +129,7 @@ nav svg{width:23px;height:23px;stroke-width:1.8}
 .hero .hv{font-size:28px}
 .hk{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .hb{display:flex;gap:8px}.hb button:first-child{flex:1}.hero .hb button:last-child{flex:none;width:58px;padding-left:0;padding-right:0;font-size:19px}
-#app.hm{padding-bottom:calc(var(--nh,76px) + 8px)}#app.hm .top{margin:8px 0 12px}#app.hm h1{font-size:27px}#app.hm button.item{padding:8px 14px;margin-bottom:6px}#app.hm .ico{width:38px;height:38px}#app.hm .card{padding:12px 16px;margin-bottom:8px}#app.hm .hero{padding:12px 16px}#app.hm .hero .hv{font-size:26px}
+#app.hm{padding-bottom:calc(var(--nh,76px) + 8px)}#app.hm .top{margin:4px 0 8px}#app.hm .hero button:not(.fmp){margin-top:8px;padding:11px}#app.hm h1{font-size:27px}#app.hm button.item{padding:7px 14px;margin-bottom:6px}#app.hm .hero{margin-bottom:8px}#app.hm>button.item:last-child{margin-top:6px!important}#app.hm .ico{width:38px;height:38px}#app.hm .card{padding:12px 16px;margin-bottom:8px}#app.hm .hero{padding:12px 16px}#app.hm .hero .hv{font-size:26px}
 .fmp{background:var(--s2);color:var(--t2);border-radius:20px;padding:5px 11px 5px 9px;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:30px;flex:none}
 .hero button.fmp{width:auto;margin:0;padding:5px 11px 5px 9px;font-size:12.5px}
 .fmp i{width:8px;height:8px;border-radius:50%;background:var(--mut);display:block}.fmp.go i{background:var(--ok)}.fmp.adapt i,.fmp.rp i{background:var(--y)}.fmp.rest i{background:var(--rd)}
@@ -498,7 +498,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.6.1';
+const VER='4.6.2';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
