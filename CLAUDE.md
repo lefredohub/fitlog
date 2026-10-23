@@ -13,9 +13,15 @@ Va au bout sans me demander confirmation, sauf pour une action irréversible.
 
 ## Règles à chaque modification
 1. Incrémenter `VER` dans `index.html` ET le nom du cache `C='fitlog-vX.Y.Z'` dans `sw.js` (même numéro).
-2. Vérifier la syntaxe JS (par ex. `node -e` sur le contenu des balises `<script>`).
-3. Tester en 390 × 844 (iPhone), en mode clair ET sombre : pas de débordement horizontal, aucune erreur JS.
+2. Lancer `node tests/check.js` (option `--shots dossier` pour les captures) : il doit finir sur « 0 échec ».
+   Il vérifie la syntaxe JS, la version (VER = cache sw.js), puis ouvre l'app en 390 × 844 (iPhone), mode clair ET sombre,
+   avec des données de test : aucune erreur JS, pas de débordement horizontal sur tous les écrans, accueil sans défiler
+   (nouvel utilisateur et avec données), parcours d'une séance de muscu, barre du haut sous l'encoche.
+3. Si la modification touche un écran ou un parcours que le script ne couvre pas, ajouter la vérification dans `tests/check.js`.
+   Regarder aussi les captures des écrans modifiés (le script ne juge pas l'esthétique).
 4. L'écran d'accueil doit tenir sans défiler.
+4 bis. Gros changement (refonte, nouvelle fonction sur plusieurs écrans, format des données) : faire relire la PR par un
+   relecteur indépendant (sous-agent) avant de fusionner, et corriger ce qu'il trouve.
 5. Ne jamais mettre de secret (clé API, client secret Strava…) dans l'app ou sur GitHub.
 6. Ne jamais envoyer de données Strava à une IA (règles Strava 2026) : le coach n'utilise que les données de l'utilisateur (comptes rendus, fichiers de montre, archive Strava importée, saisies).
 7. HYROX : usage descriptif seulement, avec la mention de non-affiliation. Pas de marque déposée dans le design.
