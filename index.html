@@ -294,7 +294,8 @@ button.play{width:50px;height:50px;padding:0;border-radius:50%;display:grid;plac
 button.hrow{padding:10px 14px}.hrow.open{border-radius:20px 20px 0 0;margin-bottom:0}.hrow.open .chev{transform:rotate(90deg)}.card.hdet{border-radius:0 0 20px 20px;border-top:0;box-shadow:none}
 
 /* ----- séance en cours ----- */
-.sbar{position:sticky;top:0;z-index:4;margin:calc(-1*(env(safe-area-inset-top) + 10px)) -20px 14px;padding:calc(env(safe-area-inset-top) + 12px) 20px 12px;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--ln)}
+#app.ses{margin-top:env(safe-area-inset-top);padding-top:0}
+.sbar{position:sticky;top:0;z-index:4;margin:0 -20px 14px;padding:12px 20px;background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--ln)}
 .sbt{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.sbt h1{font-size:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sbt .eyb{margin-bottom:4px}
 .chip.tm{flex:none;font-size:15px;font-weight:700;color:var(--tx);background:var(--s2);border-radius:999px;padding:7px 12px}
 .sbp{height:5px;border-radius:3px;background:var(--s3);margin:12px 0 7px;overflow:hidden}.sbp i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yd),var(--y));transition:width .35s}
@@ -385,7 +386,7 @@ $('#app').innerHTML=(LB&&(ed||LB.live&&S.a)?lbView():ed?editor():ge&&view==='goa
 if(view==='tools')tlCalc();
 if(view==='rdet')rdetAfter();else if(LMAP){try{LMAP.remove()}catch(e){}LMAP=null}
 if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
-$('#app').classList.toggle('hm',!ed&&view==='home');
+$('#app').classList.toggle('hm',!ed&&view==='home');$('#app').classList.toggle('ses',view==='train'&&!!S.a&&!ed&&!LB);
 if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0;clearTimeout(aniT);aniT=setTimeout(()=>m.classList.remove('fx','fy'),450)}
 if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0;clearTimeout(aniT);aniT=setTimeout(()=>m.classList.remove('fx','fy'),450)}
 if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
@@ -497,7 +498,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.6.0';
+const VER='4.6.1';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
