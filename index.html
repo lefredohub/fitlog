@@ -420,7 +420,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.5.1';
+const VER='4.5.2';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -1970,6 +1970,14 @@ if(!por){h.style.minHeight='';return}
 if(gap>20&&gap<130)h.style.minHeight=sh+'px';fitNav()}catch(e){}}
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));addEventListener('pageshow',fit);document.addEventListener('visibilitychange',()=>{if(!document.hidden)fit()});
 fit();setTimeout(fit,400)})();
+/* barre d'état blanche : iOS fige le style de la barre d'état à l'installation. Si l'icône date d'une version en « default », la barre reste opaque (blanche en mode sombre) : seule une réinstallation la corrige. */
+(function(){if(!/iphone/i.test(navigator.userAgent||'')||!(navigator.standalone||matchMedia('(display-mode: standalone)').matches))return;
+try{if(localStorage.getItem('fitlog-sb'))return}catch(e){return}
+setTimeout(()=>{if(document.querySelector('.ov,.sheet'))return;const p=document.createElement('div');p.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none';document.body.appendChild(p);const h=p.offsetHeight;p.remove();if(h)return;
+const o=document.createElement('div');o.className='sheet';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Bandeau en haut de l\'écran');
+o.innerHTML=`<div class=sh-bg></div><div class=sh-box><div class=grab></div><h2 style="margin:10px 0 6px">Bandeau clair en haut ?</h2><div class=sub style="line-height:1.45">L'iPhone a gardé le réglage de la barre d'état du jour où tu as installé FitLog. Pour le corriger, réinstalle l'app :<ol style="margin:8px 0;padding-left:20px"><li><b>Sauvegarde d'abord</b> : connecte-toi à ton compte, ou Exporter ci-dessous. Supprimer l'icône efface les données de l'app.</li><li>Supprime FitLog de l'écran d'accueil.</li><li>Rouvre le site dans Safari, puis Partager › Sur l'écran d'accueil.</li></ol></div><button data-a=export>Exporter mes données</button><button data-a=sbok style="color:var(--mut)">Compris</button></div>`;
+o.addEventListener('click',e=>{if(e.target.closest('[data-a=sbok]'))try{localStorage.setItem('fitlog-sb','1')}catch(x){}});
+document.body.appendChild(o)},1500)})();
 
 setTimeout(checkUpdate,4000);
 </script></body></html>
