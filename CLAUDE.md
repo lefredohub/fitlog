@@ -25,6 +25,9 @@ Va au bout sans me demander confirmation, sauf pour une action irréversible.
 Fond ardoise / granit, accent bruyère (#f2609f sombre, #c2236a clair), or pour les records.
 Titres et chiffres en Archivo élargie, texte en police système. Couleurs uniquement via les variables CSS de `:root`.
 Mode Automatique / Clair / Sombre (Réglages > Apparence).
+Depuis la v4.6 (« Lande 2 ») : barre d'onglets en capsule de verre flottante, onglets internes en pastille inversée,
+en-têtes avec surtitre en capitales bruyère, cartes avec relief léger (variables `--csh`, `--hl`, `--glass`, `--glow`),
+cartes « hero » avec courbes de niveau, tuiles de date pour les listes. Pas d'emoji dans l'interface : icônes en SVG.
 
 ## Livraison
 Fais les changements sur une branche et ouvre une pull request avec un résumé court en français de ce qui change et de ce que je dois tester sur l'iPhone. Si le Worker Cloudflare doit changer, dis-le clairement dans la PR.
