@@ -2,13 +2,15 @@
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="FitLog">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0e1416">
+<meta name="color-scheme" content="dark light">
 <meta name="description" content="FitLog : carnet de musculation et de course à pied, plan d'entraînement et records.">
 <link rel="manifest" href="manifest.json">
+<link rel="preload" href="archivo.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1320x2868.png">
 <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1260x2736.png">
@@ -25,249 +27,219 @@
 <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/1242x2208.png">
 <title>FitLog</title>
 <style>
-:root{--bg:#000;--s1:#101113;--s2:#1a1b1e;--s3:#26282c;--ln:rgba(255,255,255,.07);--tx:#f4f4f5;--mut:#8b8d93;--y:#ffd60a;--yr:255,214,10;--on:#000;--t2:#c4c5cb;--yd:#a87400;--yl:#fff6b0;--fh:-apple-system,"SF Pro Display",system-ui,sans-serif;--hw:700;--hu:none;--hl:0;--rad:18px;--ok:#34c759;--rd:#ff5d52;box-sizing:border-box;color-scheme:dark}
+/* ===== FitLog « Lande » : sombre par défaut, clair selon le téléphone ou le réglage ===== */
+@font-face{font-family:"Archivo";src:url(archivo.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+:root{--bg:#0e1416;--s1:#151d20;--s2:#1d272b;--s3:#283439;--ln:rgba(225,240,235,.08);--tx:#edf2f0;--t2:#b8c5c1;--mut:#7e8d89;
+--y:#f2609f;--yr:242,96,159;--on:#22060f;--yd:#a3245e;--yl:#ffc1dc;--au:#f0b94a;--aud:#a8740e;--ok:#3ccb8a;--rd:#ff6b57;--wh:#edf2f0;
+--z0:#3ccb8a;--z1:#f0b94a;--z2:#ff8a3d;--z3:#ff5468;--sh:rgba(0,0,0,.55);
+--fh:"Archivo",-apple-system,system-ui,sans-serif;--fb:-apple-system,"SF Pro Text",system-ui,sans-serif;color-scheme:dark;box-sizing:border-box}
+:root[data-mode=light]{--bg:#edf1ef;--s1:#fff;--s2:#e4eae7;--s3:#d3dcd8;--ln:rgba(18,34,29,.1);--tx:#102019;--t2:#3a4b45;--mut:#66766f;
+--y:#c2236a;--yr:194,35,106;--on:#fff;--yd:#8e1a4e;--yl:#f7c6db;--au:#b07a12;--aud:#7a5307;--ok:#13865a;--rd:#d63b2b;--wh:#102019;
+--z0:#1f9e68;--z1:#c9921c;--z2:#e0661f;--z3:#d63b4b;--sh:rgba(16,32,25,.18);color-scheme:light}
+@media (prefers-color-scheme:light){:root:not([data-mode=dark]){--bg:#edf1ef;--s1:#fff;--s2:#e4eae7;--s3:#d3dcd8;--ln:rgba(18,34,29,.1);--tx:#102019;--t2:#3a4b45;--mut:#66766f;
+--y:#c2236a;--yr:194,35,106;--on:#fff;--yd:#8e1a4e;--yl:#f7c6db;--au:#b07a12;--aud:#7a5307;--ok:#13865a;--rd:#d63b2b;--wh:#102019;
+--z0:#1f9e68;--z1:#c9921c;--z2:#e0661f;--z3:#d63b4b;--sh:rgba(16,32,25,.18);color-scheme:light}}
+
+/* ----- base ----- */
 *{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
-html,body{margin:0;min-height:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%;touch-action:manipulation;background:var(--bg)}
+@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}
+body{position:fixed;inset:0;width:100%;display:flex;flex-direction:column;color:var(--tx);font:16px/1.4 var(--fb);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,select{-webkit-user-select:text;user-select:text}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(60% 28% at 50% -8%,rgba(var(--yr),.08),transparent 70%)}
-main{position:relative;padding:calc(env(safe-area-inset-top) + 10px) 20px calc(var(--nh,90px) + 28px);max-width:560px;margin:0 auto}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 22px}
-h1{font:700 32px/1.05 -apple-system,"SF Pro Display",system-ui,sans-serif;letter-spacing:-1px;margin:0}
+main{position:relative;z-index:1;flex:1;min-height:0;width:100%;max-width:560px;margin:0 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:calc(env(safe-area-inset-top) + 10px) 20px calc(var(--nh,76px) + 16px)}
+:focus-visible{outline:2px solid var(--y);outline-offset:2px}
+input:focus-visible,select:focus-visible{outline:none}
+
+/* ----- typographie : Archivo élargie pour les titres et les chiffres ----- */
+h1{font:800 30px/1.05 var(--fh);font-stretch:116%;letter-spacing:-.01em;margin:0}
 h2{font-size:17px;font-weight:650;letter-spacing:-.3px;margin:0 0 2px}
-.logo{width:38px;height:38px;border-radius:10px;flex:none}.logo.lg{width:104px;height:104px;border-radius:24px;margin-bottom:18px}
-.card{background:var(--s1);border:1px solid var(--ln);border-radius:20px;padding:16px;margin-bottom:12px}
+.hv,.rtm,.gt,.rgn,.big,.hero h2,.hof h2,.fml,.rtb b{font-family:var(--fh);font-stretch:112%}
 .sub{color:var(--mut);font-size:13px;margin-bottom:8px}
+.empty{color:var(--mut);text-align:center;padding:40px 10px 28px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0 22px}
+.top .row h1{font-size:26px;font-stretch:106%}
+.logo{width:38px;height:38px;border-radius:10px;flex:none}.logo.lg{width:104px;height:104px;border-radius:24px;margin-bottom:18px}
+
+/* ----- surfaces ----- */
+.card{background:var(--s1);border:1px solid var(--ln);border-radius:18px;padding:16px;margin-bottom:12px}
 .row{display:flex;gap:8px;align-items:center;margin:8px 0}
 .row>span.n{width:26px;height:26px;border-radius:50%;background:var(--s2);color:var(--mut);font-size:13px;font-weight:600;display:grid;place-items:center;flex:none}
-input,select{background:var(--s2);color:var(--tx);border:1px solid transparent;border-radius:12px;padding:12px 8px;font-size:18px;font-weight:600;width:100%;min-width:0;text-align:center;text-align-last:center;outline:none;-webkit-appearance:none;appearance:none}
-input:focus,select:focus{border-color:rgba(var(--yr),.7)}
-label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
-.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-button{background:var(--s2);color:var(--tx);border:0;border-radius:14px;padding:13px 16px;font:600 15px -apple-system,system-ui,sans-serif;transition:transform .12s,opacity .12s}
-button:active{transform:scale(.97);opacity:.8}
-button.p{background:var(--y);color:var(--on);font-weight:700}
-button.d{background:none;color:var(--rd)}
-button.gh{background:none;color:var(--mut);font-weight:500;padding:10px 8px}button.gh.d{color:var(--rd)}
-button.sm{padding:9px 16px;font-size:14px;border-radius:12px}
-.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}button.mc{padding:14px 4px;font-size:13px;border-radius:14px;background:#1d1e22;color:var(--tx,#fff);border:1.5px solid transparent;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:62px;justify-content:center}button.mc small{font-size:10px;opacity:.85;font-weight:500}button.mc.p{background:var(--y);color:var(--on)}button.mc.s{background:transparent;border-color:var(--y);color:var(--y)}
-button.more{background:none;color:var(--mut);padding:6px 8px;font-size:20px;line-height:1;letter-spacing:1px;border-radius:10px}
-button.more.plus{font-size:30px;font-weight:300;color:var(--tx);letter-spacing:0;padding:2px 10px}
-.more svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
-.bar{display:flex;gap:8px;margin-top:10px}.bar button{flex:1}
-nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:6px 12px calc(6px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--ln);z-index:5}
-nav button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;color:var(--mut);padding:8px 0 6px;border-radius:12px;font-size:10.5px;font-weight:600}
-nav button.on{color:var(--y)}
-nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.pill{display:inline-block;background:var(--s2);color:var(--t2);border-radius:20px;padding:5px 11px;font-size:13px;font-weight:600;margin:0 4px 4px 0}
-#el{color:var(--tx);font-size:15px}
-.pr{border:1px solid rgba(var(--yr),.4);color:var(--y);border-radius:8px;padding:1px 6px;font-size:11px;font-weight:600}
-.big{font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.5px;white-space:nowrap;flex:none}
-.empty{color:var(--mut);text-align:center;padding:40px 10px 28px}
-
-button.item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--s1);border:1px solid var(--ln);border-radius:20px;padding:14px 16px;margin-bottom:10px;font-weight:400}
-.item>div:not(.ico){flex:1;min-width:0}.item b{display:block;font-size:16px;font-weight:650;letter-spacing:-.2px}.item .sub{margin:2px 0 0}
-.ico{width:42px;height:42px;border-radius:13px;background:var(--s2);color:var(--y);display:grid;place-items:center;flex:none}
-.ico svg,.chev{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.chev{width:18px;height:18px;color:var(--mut);flex:none;transition:transform .2s}
-.hero{background:var(--s1);border:1px solid var(--ln);border-radius:26px;padding:22px;margin-bottom:12px}
-.hero .k{font-size:13px;font-weight:600;color:var(--mut)}
-.hero h2{font-size:27px;font-weight:700;letter-spacing:-.8px;margin:4px 0 4px}
-.hero .sub{margin:0}.hero button{width:100%;margin-top:18px;padding:16px;font-size:17px}
-.seg{display:flex;background:var(--s1);border:1px solid var(--ln);border-radius:12px;padding:3px;margin-bottom:18px}
-.seg button{flex:1;background:none;border-radius:9px;padding:9px;font-size:14px;color:var(--mut)}.seg button.on{background:var(--s3);color:var(--tx)}
-.acc{background:var(--s1);border:1px solid var(--ln);border-radius:20px;margin-bottom:10px;overflow:hidden}
+.g,.mg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.acc{background:var(--s1);border:1px solid var(--ln);border-radius:18px;margin-bottom:10px;overflow:hidden}
 .acc>button{display:flex;align-items:center;gap:10px;width:100%;background:none;border-radius:0;padding:15px 16px;text-align:left;font-weight:600;font-size:16px}
 .acc>button>span{flex:1}.acc small{color:var(--mut);font-weight:400;font-size:13px}.acc.open .chev{transform:rotate(90deg)}
 .acc .body{padding:0 16px 16px}.acc .card{background:none;border:0;padding:0;margin:0}.acc .card>h2{display:none}
-.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center}
-.sh-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);animation:fade .2s both}
-.sh-box{position:relative;width:100%;max-width:560px;background:var(--s2);border-radius:24px 24px 0 0;padding:8px 20px calc(14px + env(safe-area-inset-bottom));animation:up .25s ease both}
-.sh-box .grab{width:36px;height:4px;border-radius:2px;background:var(--s3);margin:0 auto 6px}
-.sh-box button{display:block;width:100%;text-align:left;background:none;border-radius:0;border-bottom:1px solid var(--ln);padding:16px 2px;font-size:17px;font-weight:500}
-.sh-box button.d{color:var(--rd)}.sh-box button:last-child{border:0}
-@keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(30px);opacity:0}}@keyframes in{from{opacity:0;transform:translateY(8px)}}
-.fx>*{animation:in .3s ease both}.fy>*:not(.seg):not(.top){animation:in .22s ease both}
-.toast{position:fixed;left:50%;bottom:calc(var(--nh,90px) + 14px);transform:translateX(-50%);max-width:88%;text-align:center;background:var(--s3);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;z-index:60;animation:in .2s ease both}
-.ov{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:32px}
-@media(prefers-reduced-motion:reduce){button{transition:none}.fy>*,.fx>*,.toast,.sh-box,.sh-bg{animation:none}}
-.hstats{display:flex;gap:30px;margin:14px 0 4px}.hstats .sub{margin:6px 0 0}
-.hv{font-size:36px;font-weight:700;letter-spacing:-1.2px;line-height:1}.hv small{font-size:16px;color:var(--mut);font-weight:500;letter-spacing:0}
-.hero{padding:14px 18px;border-radius:22px;margin-bottom:10px}.hero h2{font-size:22px;margin:2px 0}.hero .hstats{gap:24px;margin:8px 0 2px}.hero .hv{font-size:28px}.hero .hstats .sub{margin:4px 0 0}.hero .prog{margin:8px 0 6px}.hero button{margin-top:10px;padding:12px;font-size:15px}
-.prog{height:4px;border-radius:2px;background:var(--s3);margin:18px 0 8px;overflow:hidden}.prog i{display:block;height:100%;background:var(--y);border-radius:2px}
-.prow{display:flex;gap:10px;align-items:flex-start;margin:14px 0}.prow .pill{margin:2px 0 0;min-width:58px;text-align:center}
-button.pbody{flex:1;min-width:0;display:block;background:none;text-align:left;padding:0;border-radius:8px;font-weight:400;font-size:16px}
-.pbody b{display:block;font-weight:650;letter-spacing:-.2px}.pbody .sub{display:block;margin:2px 0 0}
-button.sb{background:none;padding:2px;color:var(--mut);flex:none;border-radius:50%}
-.sb svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}.sb.ok{color:var(--ok)}.sb.ko{color:var(--rd)}
-html,body{height:100%;overflow:hidden;touch-action:manipulation}
-/* iPhone, app installée : WebKit donne parfois une fenêtre plus courte que l'écran (bande en bas). Une page au moins aussi haute que l'écran corrige ça. */
-@media (display-mode:standalone){html{min-height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}
-body{position:fixed;inset:0;width:100%;display:flex;flex-direction:column}
-main{flex:1;min-height:0;width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-bottom:28px}
-nav{position:relative;flex:none;left:auto;right:auto;bottom:auto;background:#000;padding:2px 12px calc(env(safe-area-inset-bottom)*.35)}
-nav button{padding:7px 0 4px}
-#app.hm{padding-bottom:8px}#app.hm .top{margin:8px 0 12px}#app.hm h1{font-size:28px}#app.hm button.item{padding:8px 14px;margin-bottom:6px}#app.hm .ico{width:38px;height:38px}#app.hm .card{padding:12px 16px;margin-bottom:8px}#app.hm .hero{padding:12px 16px}#app.hm .hero .hv{font-size:26px}
-.hof{text-align:center;padding:22px 10px 20px;margin-bottom:12px;border-radius:22px;border:1px solid rgba(var(--yr),.28);background:radial-gradient(120% 90% at 50% 0,rgba(var(--yr),.2),rgba(var(--yr),0) 70%),var(--s1);position:relative;overflow:hidden}
-.hof h2{margin:2px 0 6px;font-size:30px;font-weight:800;letter-spacing:5px;background:linear-gradient(100deg,var(--yd) 0%,var(--y) 30%,var(--yl) 50%,var(--y) 70%,var(--yd) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shn 4s linear infinite}
-.hofs{color:var(--y);letter-spacing:10px;font-size:13px;animation:twk 2.4s ease-in-out infinite}
-@keyframes shn{to{background-position:-250% 0}}@keyframes twk{50%{opacity:.35}}
-button.sm.on{background:var(--y);color:var(--on)}
-h1,h2,.hof h2{font-family:var(--fh);font-weight:var(--hw);text-transform:var(--hu);letter-spacing:var(--hl)}
-.thg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.tht{background:var(--s2);border:1px solid var(--ln);border-radius:14px;padding:10px;text-align:left;color:var(--tx);display:flex;flex-direction:column;gap:4px}
-.tht.on{border-color:var(--y);box-shadow:0 0 0 1px var(--y)}
-.tht .sw{width:28px;height:28px;border-radius:50%;border:2px solid;display:block}
-.tht b{font-size:14px}.tht i{font-style:normal;font-size:10.5px;color:var(--mut)}
-html[data-th=dk] body::before{background:radial-gradient(circle at 80% -10%,rgba(var(--yr),.18),transparent 45%)}
-html[data-th=bb] body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
-html[data-th=bb] h1{text-shadow:0 0 14px rgba(var(--yr),.5)}
-html[data-th=pz] body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;background:radial-gradient(ellipse at center,transparent 70%,rgba(0,0,0,.4))}
-html[data-th=sh] body::before{background:radial-gradient(circle at 50% 0,rgba(var(--yr),.16),transparent 55%);animation:shb 6s ease-in-out infinite}
-@keyframes shb{50%{opacity:.45}}
 
-.rl1{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
-button.rc,div.rc{min-height:0;position:relative;overflow:hidden;animation:rin .5s both;animation-delay:var(--d)}
-@keyframes rin{from{opacity:0;transform:translateY(14px) scale(.97)}}
-div.rc.on{border:1px solid rgba(var(--yr),.55);background:linear-gradient(135deg,rgba(var(--yr),.2),rgba(var(--yr),.02) 55%),var(--s1);box-shadow:0 0 28px rgba(var(--yr),.12)}
-div.rc.on::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-20deg);animation:swp 5s ease-in-out infinite;animation-delay:var(--d)}
-@keyframes swp{0%,60%{left:-60%}100%{left:130%}}
-.rtop{display:flex;gap:14px;align-items:center}.tro{flex:none;filter:drop-shadow(0 0 10px rgba(var(--yr),.55));animation:flt 3s ease-in-out infinite}.tro.lk{font-size:34px;width:44px;text-align:center;filter:grayscale(1) opacity(.5);animation:none}
-@keyframes flt{50%{transform:translateY(-3px)}}
-.rn{font-style:normal;font-weight:600;font-size:10px;letter-spacing:.8px;color:var(--y);opacity:.8;margin-left:8px}
-.rc .rtm{font-size:38px}.rc.on .rtm{background:linear-gradient(180deg,var(--yl),var(--y) 60%,var(--yd));-webkit-background-clip:text;background-clip:text;color:transparent}
-.pr.nw{animation:npl 1.6s ease-in-out infinite;background:rgba(var(--yr),.15)}@keyframes npl{50%{box-shadow:0 0 12px rgba(var(--yr),.7)}}
-.rcm{all:unset;display:block;width:100%;cursor:pointer;box-sizing:border-box}div.rc{background:var(--s1);border:1px solid var(--ln);border-radius:20px;padding:14px 14px 12px}.rc.on .rtm{color:var(--y)}.pod{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--ln)}.pod button{flex:1;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--s2);border-radius:12px;padding:8px 10px;font-weight:400;text-align:left;margin:0;width:auto}.pod b{font-size:15px}.pod em{font-style:normal;color:var(--mut);font-size:11px}
-.gbar{height:5px;border-radius:3px;background:var(--s3);margin-top:7px;overflow:hidden}.gbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--yd),var(--y))}
-@media (prefers-reduced-motion:reduce){.hof h2,.hofs,.tro,.pr.nw,button.rc,div.rc.on::after{animation:none}}
-
-button.rc{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;background:var(--s1);border:1px dashed rgba(255,255,255,.14);border-radius:20px;padding:14px 14px 12px;font-weight:400;min-height:132px}
-div.rc.on{border:1px solid rgba(var(--yr),.3);background:linear-gradient(160deg,rgba(var(--yr),.12),rgba(var(--yr),0) 60%),var(--s1)}
-.rl{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--mut);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
-.rtm{font-size:30px;font-weight:700;letter-spacing:-1.2px;line-height:1;margin-bottom:6px}.rc.on .rtm{color:var(--y)}.rtm.mu{color:#6b6d73;font-size:24px;padding:3px 0}
-.rc .sub{margin:2px 0 0;font-size:12px}.rc .dl{color:var(--ok);font-size:12px;font-weight:600;margin-top:4px}.rc .gl{font-size:12px;color:var(--t2);margin-top:8px;padding-top:7px;border-top:1px solid var(--ln)}
-input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;border:0;padding:0;height:30px;margin:2px 0}
+/* ----- champs ----- */
+input,select{background:var(--s2);color:var(--tx);border:1px solid transparent;border-radius:12px;padding:12px 8px;font-size:18px;font-weight:600;width:100%;min-width:0;text-align:center;text-align-last:center;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{border-color:rgba(var(--yr),.7)}
+label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+input[type=range]{background:transparent;border:0;padding:0;height:30px;margin:2px 0}
 input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--s3);border-radius:2px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--y);border:0;margin-top:-11px}
 input[type=range]::-moz-range-track{height:4px;background:var(--s3);border-radius:2px}input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--y);border:0}
-.sh-box{max-height:85vh;overflow-y:auto}
-#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
-main{z-index:1}
-html{background:var(--bg)}
-nav{position:fixed;left:0;right:0;bottom:0;padding:4px 12px calc(env(safe-area-inset-bottom)*.3 + 2px);background:var(--bg)}
-nav button{padding:7px 0 4px}
-main{padding-bottom:calc(var(--nh,76px) + 16px)}
-#app.hm{padding-bottom:calc(var(--nh,76px) + 8px)}
 
-html:not([data-th=cl]) nav button.on svg{filter:drop-shadow(0 0 6px var(--y))}
-html:not([data-th=cl]) :is(.card,.hero,.acc,button.item,.seg){background:color-mix(in srgb,var(--s1) 70%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-html:not([data-th=cl]) .acc .card{background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
-#app.fxin>*{animation-duration:.7s;animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
-#app.fxin>*:nth-child(2){animation-delay:.07s}#app.fxin>*:nth-child(3){animation-delay:.14s}#app.fxin>*:nth-child(4){animation-delay:.21s}#app.fxin>*:nth-child(5){animation-delay:.28s}#app.fxin>*:nth-child(n+6){animation-delay:.35s}
-/* Veilleur */
-@keyframes in-dk{from{opacity:0;transform:translateX(-34px) skewX(-8deg)}}
-html[data-th=dk] #app.fxin>*{animation-name:in-dk}
-html[data-th=dk] :is(.card,.hero){border-radius:3px;clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));border-left:3px solid var(--y)}
-html[data-th=dk] .top h1::after{content:"";display:block;height:3px;width:54px;margin-top:7px;background:var(--y);box-shadow:0 0 14px var(--y);animation:dkbar 3s ease-in-out infinite}
-@keyframes dkbar{50%{width:110px}}
-html[data-th=dk] nav{border-top:2px solid var(--y)}
-/* Néon */
-@keyframes in-bb{0%{opacity:0;transform:translateX(10px);filter:hue-rotate(90deg)}30%{opacity:.8;transform:translateX(-6px)}50%{opacity:.2}70%{opacity:1;transform:translateX(3px)}to{transform:none}}
-html[data-th=bb] #app.fxin>*{animation-name:in-bb;animation-duration:.55s}
-@keyframes neon{50%{box-shadow:0 0 0 1px rgba(var(--yr),.6),0 0 22px rgba(var(--yr),.28),inset 0 0 18px rgba(var(--yr),.1)}}
-html[data-th=bb] :is(.card,.hero,.acc){border:1px solid rgba(var(--yr),.35);border-radius:4px;box-shadow:0 0 0 1px rgba(var(--yr),.18),0 0 12px rgba(var(--yr),.1),inset 0 0 12px rgba(var(--yr),.04);animation:neon 3.2s ease-in-out infinite}
-@keyframes glt{0%,90%,100%{text-shadow:0 0 14px rgba(var(--yr),.5);transform:none}92%{text-shadow:-3px 0 #19e3ff,3px 0 #ff2a45;transform:translateX(2px)}94%{text-shadow:3px 0 #19e3ff,-3px 0 #ff2a45;transform:translateX(-2px)}96%{text-shadow:0 0 14px rgba(var(--yr),.5);transform:none}}
-html[data-th=bb] h1{animation:glt 6s infinite}
-html[data-th=bb] body::after{animation:scan 8s linear infinite}
-@keyframes scan{to{background-position:0 90px}}
-/* Brume */
-@keyframes in-pz{from{opacity:0;filter:blur(10px) brightness(2);transform:scale(1.04)}}
-html[data-th=pz] #app.fxin>*{animation-name:in-pz;animation-duration:1s}
-@keyframes lamp{0%,88%,100%{opacity:1}89%{opacity:.35}90%{opacity:1}93%{opacity:.5}94%{opacity:1}}
-html[data-th=pz] h1{animation:lamp 7s infinite}
-html[data-th=pz] .top h1::after{content:"";display:block;height:20px;width:110px;margin-top:2px;background:repeating-linear-gradient(90deg,transparent 0 9px,var(--y) 9px 11px,transparent 11px 20px,var(--y) 20px 22px,transparent 22px 36px);-webkit-mask:linear-gradient(#000,transparent);mask:linear-gradient(#000,transparent);transform-origin:top;animation:drip 6s ease-in infinite}
-@keyframes drip{0%{transform:scaleY(.1)}60%,100%{transform:scaleY(1)}}
-html[data-th=pz] :is(.card,.hero,.acc){border-radius:5px 12px 4px 10px;box-shadow:inset 0 0 30px rgba(0,0,0,.65);border-color:rgba(var(--yr),.15)}
-/* Ombre */
-@keyframes in-sh{from{opacity:0;filter:blur(14px);transform:translateY(16px) scale(.97)}}
-html[data-th=sh] #app.fxin>*{animation-name:in-sh;animation-duration:.9s}
-@keyframes breathe{50%{box-shadow:0 0 0 1px rgba(var(--yr),.35),0 0 26px rgba(var(--yr),.16)}}
-html[data-th=sh] :is(.card,.hero,.acc){border:1px solid rgba(var(--yr),.18);animation:breathe 5s ease-in-out infinite}
-html[data-th=sh] h1{animation:shh 6s ease-in-out infinite}
-@keyframes shh{50%{letter-spacing:.14em;opacity:.8}}
-/* Prestige */
-@keyframes in-pr{from{opacity:0;transform:translateY(6px)}}
-html[data-th=pr] #app.fxin>*{animation-name:in-pr;animation-duration:.35s;animation-delay:0s!important}
-html[data-th=pr] :is(.card,.hero,.acc,button.item,.seg){background:linear-gradient(180deg,color-mix(in srgb,var(--s1) 100%,#fff 2.5%),var(--s1));border:1px solid rgba(255,255,255,.075);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px -14px rgba(0,0,0,.75);-webkit-backdrop-filter:none;backdrop-filter:none}
-html[data-th=pr] .acc .card{background:none;border:0;box-shadow:none}
-html[data-th=pr] button.p{background:linear-gradient(180deg,color-mix(in srgb,var(--y) 100%,#fff 14%),var(--y));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px -8px rgba(var(--yr),.55);font-weight:650;letter-spacing:-.01em}
-html[data-th=pr] nav button.on svg{filter:none}
-html[data-th=pr] .top h1::after{content:"";display:block;height:1px;margin-top:12px;background:linear-gradient(90deg,rgba(var(--yr),.6),rgba(var(--yr),.08) 70%,transparent)}
-html[data-th=pr] h1,html[data-th=pr] h2{letter-spacing:-.025em}
-html[data-th=pr] input,html[data-th=pr] select{border:1px solid rgba(255,255,255,.06)}
-@media (prefers-reduced-motion:reduce){#app.fxin>*,html[data-th] :is(.card,.hero,.acc,h1,button.p){animation:none!important}}
+/* ----- boutons ----- */
+button{background:var(--s2);color:var(--tx);border:0;border-radius:14px;padding:13px 16px;font:600 15px var(--fb);transition:transform .12s,opacity .12s}
+button:active{transform:scale(.97);opacity:.8}
+button.p,button.sm.on{background:var(--y);color:var(--on);font-weight:700}
+button.d{background:none;color:var(--rd)}
+button.gh{background:none;color:var(--mut);font-weight:500;padding:10px 8px}button.gh.d{color:var(--rd)}
+button.sm{padding:9px 16px;font-size:14px;border-radius:12px}
+button.sm,button.more,.seg button,.chips button{min-height:44px}
+button.more{background:none;color:var(--mut);padding:6px 8px;font-size:20px;line-height:1;letter-spacing:1px;border-radius:10px;min-width:44px}
+button.more.plus{font-size:30px;font-weight:300;color:var(--tx);letter-spacing:0;padding:2px 10px}
+.more svg,nav svg,.sb svg,.ico svg,.chev{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round;display:block}
+.more svg{width:24px;height:24px;stroke-width:1.7}
+.bar{display:flex;gap:8px;margin-top:10px}.bar button{flex:1}
+button.mc{padding:14px 4px;font-size:13px;background:var(--s2);border:1.5px solid transparent;font-weight:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:62px}
+button.mc small{font-size:10px;opacity:.85;font-weight:500}button.mc.p{background:var(--y);color:var(--on)}button.mc.s{background:transparent;border-color:var(--y);color:var(--y)}
+button.item{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--s1);border:1px solid var(--ln);border-radius:18px;padding:14px 16px;margin-bottom:10px;font-weight:400}
+.item>div:not(.ico){flex:1;min-width:0}.item b{display:block;font-size:16px;font-weight:650;letter-spacing:-.2px}.item .sub{margin:2px 0 0}
+.ico{width:42px;height:42px;border-radius:13px;background:var(--s2);color:var(--y);display:grid;place-items:center;flex:none}
+.ico svg{width:22px;height:22px;stroke-width:1.8}
+.chev{width:18px;height:18px;stroke-width:1.8;color:var(--mut);flex:none;transition:transform .2s}
 
-:focus-visible{outline:2px solid var(--y);outline-offset:2px}
-input:focus-visible,select:focus-visible{outline:none}
-button.sm,button.more,.seg button,.chips button{min-height:44px}button.more{min-width:44px}
-button.sb{min-width:44px;min-height:44px;display:grid;place-items:center}
-.chips{display:flex;gap:6px;overflow-x:auto;margin:0 -20px 8px;padding:0 20px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.chips::-webkit-scrollbar{display:none}
-.chips button{flex:none;padding:8px 14px;font-size:14px;border-radius:20px;background:var(--s2);color:var(--t2)}
-.chips button.on{background:var(--y);color:var(--on)}
-button.lbi{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--s1);border:1px solid var(--ln);border-radius:16px;padding:11px 14px;margin-bottom:8px;font-weight:400}
-.lbi>div{flex:1;min-width:0}.lbi b{display:block;font-size:15px;font-weight:600;letter-spacing:-.2px}.lbi .sub{margin:2px 0 0;font-size:12.5px}
-.lbk{width:28px;height:28px;border-radius:50%;background:var(--s2);color:var(--mut);display:grid;place-items:center;flex:none;font-size:16px;font-weight:700}
-.lbi.on{border-color:var(--y)}.lbi.on .lbk{background:var(--y);color:var(--on)}
-.lbbar{position:sticky;bottom:0;padding:14px 0 6px;margin-top:6px;background:linear-gradient(transparent,var(--bg) 35%)}
-button.sbtn{display:block;width:100%;background:#fc4c02;color:#fff;font-weight:700;border-radius:8px;padding:14px;font-size:16px;margin-top:4px}
-button.sbtn.ok{background:none;padding:0;min-height:48px}
-button.sbtn img{display:block;margin:0 auto;height:48px;width:auto;max-width:100%}
-button.sbtn.ok .fbt{display:none}
-.pwr{text-align:center;margin:14px 0 2px;color:var(--mut);font-size:12px}.pwr img{height:20px;width:auto}
-.hlp p{margin:0 0 10px;color:var(--t2);font-size:15px;line-height:1.5}.hlp p:last-child{margin-bottom:0}
-.hlp dl{margin:0}.hlp dt{font-weight:650;margin-top:12px}.hlp dd{margin:2px 0 0;color:var(--t2);font-size:14.5px;line-height:1.45}
+/* ----- barre d'onglets : la « balise » bicolore marque l'onglet actif ----- */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;padding:4px 12px calc(env(safe-area-inset-bottom)*.3 + 2px);background:var(--bg);border-top:1px solid var(--ln)}
+nav button{position:relative;flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;color:var(--mut);padding:9px 0 4px;border-radius:12px;font-size:10.5px;font-weight:600}
+nav button.on{color:var(--tx)}
+nav button.on::before{content:"";position:absolute;top:0;left:50%;width:22px;height:3px;margin-left:-11px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,var(--y) 50%,var(--wh) 50%)}
+nav svg{width:24px;height:24px;stroke-width:1.7}nav button.on svg{color:var(--y)}
 
-[data-di]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-.dgg{position:relative;z-index:6;box-shadow:0 16px 38px rgba(0,0,0,.65)!important;transition:none!important;opacity:.98}
+/* ----- accueil : carte du jour avec courbes de niveau ----- */
+.hero{position:relative;overflow:hidden;background:var(--s1);border:1px solid var(--ln);border-radius:24px;padding:14px 18px;margin-bottom:10px}
+.hero>*{position:relative}
+.hero>.topo{position:absolute;top:-6px;right:-18px;width:250px;height:156px;fill:none;stroke:var(--y);stroke-width:1;opacity:.3;pointer-events:none}
+:root[data-mode=light] .hero>.topo{opacity:.2}@media (prefers-color-scheme:light){:root:not([data-mode=dark]) .hero>.topo{opacity:.2}}
+.hero .k{font-size:13px;font-weight:600;color:var(--mut)}
+.hero h2{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:2px 0}
+.hero .sub{margin:0}.hero button{width:100%;margin-top:10px;padding:12px;font-size:15px}
+.hstats{display:flex;gap:24px;margin:8px 0 2px}.hstats .sub{margin:4px 0 0}
+.hv{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}.hv small{font-family:var(--fb);font-size:15px;color:var(--mut);font-weight:500;letter-spacing:0}
+.hero .hv{font-size:28px}
+.hk{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hb{display:flex;gap:8px}.hb button:first-child{flex:1}.hero .hb button:last-child{flex:none;width:58px;padding-left:0;padding-right:0;font-size:19px}
+#app.hm{padding-bottom:calc(var(--nh,76px) + 8px)}#app.hm .top{margin:8px 0 12px}#app.hm h1{font-size:27px}#app.hm button.item{padding:8px 14px;margin-bottom:6px}#app.hm .ico{width:38px;height:38px}#app.hm .card{padding:12px 16px;margin-bottom:8px}#app.hm .hero{padding:12px 16px}#app.hm .hero .hv{font-size:26px}
+.fmp{background:var(--s2);color:var(--t2);border-radius:20px;padding:5px 11px 5px 9px;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:30px;flex:none}
+.hero button.fmp{width:auto;margin:0;padding:5px 11px 5px 9px;font-size:12.5px}
+.fmp i{width:8px;height:8px;border-radius:50%;background:var(--mut);display:block}.fmp.go i{background:var(--ok)}.fmp.adapt i,.fmp.rp i{background:var(--y)}.fmp.rest i{background:var(--rd)}
 
+/* ----- éléments communs ----- */
+.pill{display:inline-block;background:var(--s2);color:var(--t2);border-radius:20px;padding:5px 11px;font-size:13px;font-weight:600;margin:0 4px 4px 0}
+button.pill{min-height:36px}
+.pr{border:1px solid rgba(var(--yr),.45);color:var(--y);border-radius:8px;padding:1px 6px;font-size:11px;font-weight:600}.pr.nw{background:rgba(var(--yr),.14)}
+.big{font-size:20px;font-weight:800;color:var(--tx);white-space:nowrap;flex:none}
+#el{color:var(--tx);font-size:15px}
+.prog{height:4px;border-radius:2px;background:var(--s3);margin:8px 0 6px;overflow:hidden}.prog i{display:block;height:100%;background:var(--y);border-radius:2px}
+.seg{display:flex;background:var(--s1);border:1px solid var(--ln);border-radius:12px;padding:3px;margin-bottom:18px}
+.seg button{flex:1;background:none;border-radius:9px;padding:9px;font-size:14px;color:var(--mut)}.seg button.on{background:var(--s3);color:var(--tx)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:0 -20px 8px;padding:0 20px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;padding:8px 14px;font-size:14px;border-radius:20px;background:var(--s2);color:var(--t2)}.chips button.on{background:var(--y);color:var(--on)}
+.toast{position:fixed;left:50%;bottom:calc(var(--nh,76px) + 14px);transform:translateX(-50%);max-width:88%;text-align:center;background:var(--tx);color:var(--bg);padding:11px 18px;border-radius:22px;font-weight:600;font-size:14px;z-index:60;animation:in .2s ease both}
+.ov{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:32px}
+
+/* ----- feuilles (menus du bas) ----- */
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sh-bg{position:absolute;inset:0;background:rgba(5,10,9,.55);animation:fade .2s both}
+.sh-box{position:relative;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;background:var(--s1);border-radius:24px 24px 0 0;padding:8px 20px calc(14px + env(safe-area-inset-bottom));animation:up .25s ease both}
+.sh-box .grab{width:36px;height:4px;border-radius:2px;background:var(--s3);margin:0 auto 6px}
+.sh-box button{display:block;width:100%;text-align:left;background:none;border-radius:0;border-bottom:1px solid var(--ln);padding:16px 2px;font-size:17px;font-weight:500}
+.sh-box button.d{color:var(--rd)}.sh-box button:last-child{border:0}
+
+/* ----- mouvement : seulement en réponse à une action ----- */
+@keyframes fade{from{opacity:0}}@keyframes up{from{transform:translateY(30px);opacity:0}}@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.fx>*{animation:in .3s ease both}.fy>*:not(.seg):not(.top){animation:in .22s ease both}
+@media (prefers-reduced-motion:reduce){button{transition:none}.fy>*,.fx>*,.toast,.sh-box,.sh-bg,.rc{animation:none}}
+
+/* ----- plan ----- */
+.prow{display:flex;gap:10px;align-items:flex-start;margin:14px 0}.prow .pill{margin:2px 0 0;min-width:58px;text-align:center}
+button.pbody{flex:1;min-width:0;display:block;background:none;text-align:left;padding:0;border-radius:8px;font-weight:400;font-size:16px}
+.pbody b{display:block;font-weight:650;letter-spacing:-.2px}.pbody .sub{display:block;margin:2px 0 0}
+button.sb{background:none;padding:2px;color:var(--mut);flex:none;border-radius:50%;min-width:44px;min-height:44px;display:grid;place-items:center}
+.sb svg{width:28px;height:28px;stroke-width:1.7}.sb.ok{color:var(--ok)}.sb.ko{color:var(--rd)}
+.rpt{font-style:normal;color:var(--y)}
+
+/* ----- records ----- */
+.hof{text-align:center;padding:22px 10px 20px;margin-bottom:12px;border-radius:22px;border:1px solid var(--ln);background:var(--s1)}
+.hof h2{margin:2px 0 6px;font-size:28px;font-weight:800;color:var(--au)}
+.hofs{color:var(--au);letter-spacing:6px;font-size:13px}
+.rl1{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+button.rc,div.rc{position:relative;overflow:hidden;min-height:0;animation:in .4s both;animation-delay:var(--d)}
+div.rc{background:var(--s1);border:1px solid var(--ln);border-radius:18px;padding:14px 14px 12px}
+div.rc.on{border-color:rgba(var(--yr),.4)}
+button.rc{display:flex;flex-direction:column;justify-content:flex-start;width:100%;text-align:left;background:var(--s1);border:1px dashed var(--s3);border-radius:18px;padding:14px 14px 12px;font-weight:400;min-height:132px}
+.rcm{all:unset;display:block;width:100%;cursor:pointer;box-sizing:border-box}
+.rtop{display:flex;gap:14px;align-items:center}.tro{flex:none}.tro.lk{font-size:34px;width:44px;text-align:center;filter:grayscale(1) opacity(.5)}
+.rl{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:var(--mut);margin-bottom:8px}
+.rn{font-style:normal;font-weight:600;font-size:11px;color:var(--y);margin-left:8px}
+.rtm{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-bottom:6px}.rc .rtm{font-size:36px}.rc.on .rtm{color:var(--y)}.rtm.mu{color:var(--mut);font-size:24px;padding:3px 0}
+.rc .sub{margin:2px 0 0;font-size:12px}.rc .dl{color:var(--ok);font-size:12px;font-weight:600;margin-top:4px}.rc .gl{font-size:12px;color:var(--t2);margin-top:8px;padding-top:7px;border-top:1px solid var(--ln)}
+.pod{display:flex;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--ln)}.pod button{flex:1;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--s2);border-radius:12px;padding:8px 10px;font-weight:400;text-align:left;margin:0;width:auto}.pod b{font-size:15px}.pod em{font-style:normal;color:var(--mut);font-size:11px}
+.gbar{height:5px;border-radius:3px;background:var(--s3);margin-top:7px;overflow:hidden}.gbar i{display:block;height:100%;border-radius:3px;background:var(--y)}
+
+/* ----- régularité, calendrier ----- */
 button.reg{display:block;width:100%;text-align:left;background:var(--s1);font-weight:400;margin-bottom:12px}
 .rg1{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.rgn{font-size:40px;font-weight:800;line-height:1;letter-spacing:-1px;color:var(--y)}
+.rgn{font-size:40px;font-weight:800;line-height:1;color:var(--y)}
 .rgd{display:flex;gap:6px}
 .wd{display:flex;flex-direction:column;align-items:center;gap:4px}.wd i{width:20px;height:20px;border-radius:50%;background:var(--s2);display:block}.wd small{font-size:10.5px;color:var(--mut);font-weight:600}
+.wd.on i{background:var(--y);opacity:.55}.wd.two i{opacity:1}.wd.now i{box-shadow:0 0 0 2px var(--s1),0 0 0 3.5px var(--y)}.wd.fut i{opacity:.35}
 .cal{display:grid;grid-template-columns:44px repeat(7,1fr);gap:5px;align-items:center}.cal .ch{font-size:11px;color:var(--mut);text-align:center;font-weight:600}.cal .cw{font-size:11px;color:var(--mut);line-height:1.1}
 .cc{aspect-ratio:1;border-radius:9px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;color:var(--mut)}
 .cc.r,.cleg i.r{background:var(--y);color:var(--on)}.cc.m,.cleg i.m{background:var(--t2);color:var(--bg)}.cc.rm,.cleg i.rm{background:linear-gradient(135deg,var(--y) 50%,var(--t2) 50%);color:var(--on)}
 .cc.now{box-shadow:0 0 0 2px var(--s1),0 0 0 3.5px var(--tx)}.cc.fut{opacity:.3}
 .cleg{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--t2)}.cleg span{display:flex;align-items:center;gap:6px}.cleg i{width:14px;height:14px;border-radius:5px;background:var(--s2);display:block}
-.wd.on i{background:var(--y);opacity:.6}.wd.two i{opacity:1}.wd.now i{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--y)}.wd.fut i{opacity:.35}
 .mds{display:flex;gap:8px;flex-wrap:wrap}.md{min-width:42px;height:42px;padding:0 6px;border-radius:21px;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--s2);color:var(--mut);border:1px solid var(--ln)}
 .md.on{background:var(--y);color:var(--on);border-color:var(--y)}
 
-.hk{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.hero .fmp,.fmp{background:var(--s2)!important;color:var(--t2)!important;border-radius:20px!important;padding:5px 11px 5px 9px!important;font-size:12.5px!important;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:30px;width:auto!important;margin:0!important;flex:none}
-.fmp i{width:8px;height:8px;border-radius:50%;background:var(--mut);display:block}.fmp.go i{background:var(--ok)}.fmp.adapt i{background:var(--y)}.fmp.rest i{background:var(--rd)}
-.hb{display:flex;gap:8px}.hb button:first-child{flex:1}.hero .hb button:last-child{flex:none;width:58px!important;padding-left:0!important;padding-right:0!important;font-size:19px!important}
-.ckb{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.ckb button{padding:10px 0;font-size:16px;font-weight:700;background:var(--s2);color:var(--t2);min-height:44px}.ckb button.on{background:var(--y);color:var(--on)}
-.fml{font-size:22px}.fml.go{color:var(--ok)}.fml.adapt{color:var(--y)}.fml.rest{color:var(--rd)}
-.fma{padding:10px 12px;border-radius:12px;background:var(--s2);margin:8px 0 0;font-size:14.5px;line-height:1.4;border-left:3px solid var(--mut)}.fma.o{border-color:var(--ok)}.fma.i{border-color:var(--y)}.fma.w{border-color:var(--rd)}
-.gd{text-align:center}.gd h2{font-size:26px;margin:6px 0}.gt{font-size:76px;font-weight:800;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1.05;margin:4px 0}
-.rtb{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nh,76px) + 12px);z-index:70;display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--ln);border-radius:30px;padding:6px 6px 6px 16px;box-shadow:0 12px 30px rgba(0,0,0,.5);max-width:94%;white-space:nowrap}
-.rtb span{font-size:13px;color:var(--t2);font-weight:600}.rtb b{font-size:22px;font-variant-numeric:tabular-nums;min-width:58px;text-align:center}.rtb button{padding:8px 11px;font-size:14px;min-height:40px;border-radius:20px;background:var(--s2)}.rtb.end{background:var(--y)}.rtb.end span,.rtb.end b{color:var(--on)}
+/* ----- bibliothèque d'exercices ----- */
+button.lbi{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--s1);border:1px solid var(--ln);border-radius:16px;padding:11px 14px;margin-bottom:8px;font-weight:400}
+.lbi>div{flex:1;min-width:0}.lbi b{display:block;font-size:15px;font-weight:600;letter-spacing:-.2px}.lbi .sub{margin:2px 0 0;font-size:12.5px}
+.lbk{width:28px;height:28px;border-radius:50%;background:var(--s2);color:var(--mut);display:grid;place-items:center;flex:none;font-size:16px;font-weight:700}
+.lbi.on{border-color:var(--y)}.lbi.on .lbk{background:var(--y);color:var(--on)}
+.lbbar{position:sticky;bottom:0;padding:14px 0 6px;margin-top:6px;background:linear-gradient(transparent,var(--bg) 35%)}
+[data-di]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.dgg{position:relative;z-index:6;box-shadow:0 16px 38px var(--sh);transition:none;opacity:.98}
 button.exb{background:none;padding:4px 0 4px 6px;display:flex;gap:10px;align-items:center;flex:none;min-height:44px}
 
-.rdg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}
-#rmap{height:260px;position:relative;background:var(--s2)}#rmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85)}.leaflet-container{background:var(--s2);font:inherit}
-.zbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:12px 0 8px;background:var(--s2)}.z0{background:#4cc38a}.z1{background:#ffd60a}.z2{background:#ff9a3c}.z3{background:#ff5d52}.zd{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:middle}
-button.cdl{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:12px 14px;background:var(--s2);border:0;border-radius:14px;font:inherit;font-size:14px;color:inherit;text-align:left}
-.ckb.rp{grid-template-columns:repeat(4,1fr);margin-top:8px}.ckb.rp button{font-size:12.5px;font-weight:600;padding:8px 2px;min-height:40px;line-height:1.15}.rpq{margin:12px 0 4px}.rpt{font-style:normal;color:var(--y)}.cdo{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.45;color:var(--t2)}.cdo li{margin:4px 0}
-.fmp.rp i{background:var(--y)!important}
-button.shrow{display:flex;justify-content:space-between;align-items:center;width:100%;margin:12px 0 0;padding:10px 0 0;background:none;border:0;border-top:1px solid var(--line,rgba(127,127,127,.18));border-radius:0;font:inherit;font-size:14px;color:inherit;text-align:left;min-height:0}
+/* ----- Strava (couleurs imposées par la marque) ----- */
+button.sbtn{display:block;width:100%;background:#fc4c02;color:#fff;font-weight:700;border-radius:8px;padding:14px;font-size:16px;margin-top:4px}
+button.sbtn.ok{background:none;padding:0;min-height:48px}button.sbtn img{display:block;margin:0 auto;height:48px;width:auto;max-width:100%}button.sbtn.ok .fbt{display:none}
+.pwr{text-align:center;margin:14px 0 2px;color:var(--mut);font-size:12px}.pwr img{height:20px;width:auto}
+
+/* ----- aide ----- */
+.hlp p{margin:0 0 10px;color:var(--t2);font-size:15px;line-height:1.5}.hlp p:last-child{margin-bottom:0}
+.hlp dl{margin:0}.hlp dt{font-weight:650;margin-top:12px}.hlp dd{margin:2px 0 0;color:var(--t2);font-size:14.5px;line-height:1.45}
+
+/* ----- forme du jour, comptes rendus ----- */
+.ckb{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.ckb button{padding:10px 0;font-size:16px;font-weight:700;background:var(--s2);color:var(--t2);min-height:44px}.ckb button.on{background:var(--y);color:var(--on)}
+.ckb.rp{grid-template-columns:repeat(4,1fr);margin-top:8px}.ckb.rp button{font-size:12.5px;font-weight:600;padding:8px 2px;min-height:40px;line-height:1.15}.rpq{margin:12px 0 4px}
+.fml{font-size:22px;font-weight:800}.fml.go{color:var(--ok)}.fml.adapt{color:var(--y)}.fml.rest{color:var(--rd)}
+.fma{padding:10px 12px;border-radius:12px;background:var(--s2);margin:8px 0 0;font-size:14.5px;line-height:1.4;border-left:3px solid var(--mut)}.fma.o{border-color:var(--ok)}.fma.i{border-color:var(--y)}.fma.w{border-color:var(--rd)}
+.cleg i.r{background:var(--y)}
+
+/* ----- séance guidée, minuteur ----- */
+.gd{text-align:center}.gd h2{font-size:26px;margin:6px 0}.gt{font-size:76px;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:4px 0}
+.rtb{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nh,76px) + 12px);z-index:70;display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--ln);border-radius:30px;padding:6px 6px 6px 16px;box-shadow:0 12px 30px var(--sh);max-width:94%;white-space:nowrap}
+.rtb span{font-size:13px;color:var(--t2);font-weight:600}.rtb b{font-size:22px;min-width:58px;text-align:center}.rtb button{padding:8px 11px;font-size:14px;min-height:40px;border-radius:20px;background:var(--s2)}.rtb.end{background:var(--y)}.rtb.end span,.rtb.end b{color:var(--on)}
+
+/* ----- sortie : carte, zones ----- */
+.rdg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}.rdg .hv{font-stretch:100%;letter-spacing:-.03em;white-space:nowrap}
+#rmap{height:260px;position:relative;background:var(--s2)}
+:root:not([data-mode=light]) #rmap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85)}
+@media (prefers-color-scheme:light){:root:not([data-mode=dark]) #rmap .leaflet-tile-pane{filter:none}}
+.leaflet-container{background:var(--s2);font:inherit}
+.zbar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:12px 0 8px;background:var(--s2)}.z0{background:var(--z0)}.z1{background:var(--z1)}.z2{background:var(--z2)}.z3{background:var(--z3)}.zd{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:middle}
 button.rcb{background:none;padding:0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex:1;min-width:0;text-align:left;font-weight:400;border-radius:0}
-.hxbig{width:100%;padding:30px 16px!important;font-size:22px!important;margin-bottom:8px}.hxd{margin-top:8px;font-weight:700}.hxd.bad{color:var(--rd)}.hxd.good{color:var(--ok)}
-button.pill{padding:5px 11px;font-size:13px;border-radius:20px;background:var(--s2);color:var(--t2);font-weight:600;min-height:36px}
+button.shrow{display:flex;justify-content:space-between;align-items:center;width:100%;margin:12px 0 0;padding:10px 0 0;background:none;border-top:1px solid var(--ln);border-radius:0;font:inherit;font-size:14px;color:inherit;text-align:left;min-height:0}
+
+/* ----- coach ----- */
+button.cdl{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:12px 14px;background:var(--s2);border-radius:14px;font:inherit;font-size:14px;color:inherit;text-align:left}
+.cdo{margin:8px 0 0;padding-left:18px;font-size:14px;line-height:1.45;color:var(--t2)}.cdo li{margin:4px 0}
+
+/* ----- HYROX ----- */
+.hxbig{width:100%;padding:30px 16px;font-size:22px;margin-bottom:8px}.hxd{margin-top:8px;font-weight:700}.hxd.bad{color:var(--rd)}.hxd.good{color:var(--ok)}
 </style></head><body><main id="app"></main>
 <nav><button data-a="nav" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span class=nl>Accueil</span></button><button data-a="nav" data-v="run"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg><span class=nl>Course</span></button><button data-a="nav" data-v="train"><svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg><span class=nl>Muscu</span></button></nav>
 <script src="config.js"></script>
@@ -324,7 +296,8 @@ A.querySelectorAll('.acc>button').forEach(b=>b.setAttribute('aria-expanded',b.pa
 A.querySelectorAll('.seg').forEach(g=>{const tab=g.querySelector('[data-a=htab],[data-a=rtab]');if(tab)g.setAttribute('role','tablist');g.querySelectorAll('button').forEach(b=>{if(tab){b.setAttribute('role','tab');b.setAttribute('aria-selected',b.classList.contains('on'))}else b.setAttribute('aria-pressed',b.classList.contains('on'))})});
 A.querySelectorAll('svg:not([role])').forEach(v=>{if(!v.closest('button'))v.setAttribute('aria-hidden','true')});
 document.querySelectorAll('nav button').forEach((b,i)=>{b.setAttribute('aria-label',['Accueil','Course à pied','Musculation'][i]);b.title=b.textContent.trim();if(b.classList.contains('on'))b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}catch(e){}}
-function render(){fxKey();if(!FX.ch&&!fxN&&view===lv){const a0=$('#app');a0.classList.remove('fx','fy','fxin')}
+let aniT=0;
+function render(){if(!fxN&&view===lv)$('#app').classList.remove('fx','fy');
 if(S.plan)reconcilePlan();
 if(view==='hist')view='train'
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train',prog:'train',rform:'run',help:'home',ach:'home',tools:'home',legal:'set',forme:'home',guide:'run',rdet:'run',hxrace:'run',hxres:'run',hxform:'run'}[view]||view)));
@@ -333,14 +306,13 @@ if(view==='tools')tlCalc();
 if(view==='rdet')rdetAfter();else if(LMAP){try{LMAP.remove()}catch(e){}LMAP=null}
 if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
 $('#app').classList.toggle('hm',!ed&&view==='home');
-if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0;clearTimeout(FX.t2);FX.t2=setTimeout(()=>m.classList.remove('fx','fy'),450)}
-if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0;clearTimeout(FX.t2);FX.t2=setTimeout(()=>m.classList.remove('fx','fy'),450)}
+if(fxN&&view===lv){fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fy');m.scrollTop=0;clearTimeout(aniT);aniT=setTimeout(()=>m.classList.remove('fx','fy'),450)}
+if(view!==lv){lv=view;fxN=0;const m=$('#app');m.classList.remove('fx','fy');void m.offsetWidth;m.classList.add('fx');m.scrollTop=0;clearTimeout(aniT);aniT=setTimeout(()=>m.classList.remove('fx','fy'),450)}
 if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight}
 if(S.a&&!ed)keep();a11y();
 }
 const WU=()=>(FL.api||S.api||'').replace(/\/$/,'');
 const SC=()=>{const u=WU();return u?{url:u}:null};
-const AISV=0; // 1 = envoyer aussi les sorties Strava à l'IA : à ne mettre qu'avec l'accord écrit de Strava
 const CO=()=>WU()?{url:WU()}:null;
 const hx=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const DK=()=>{try{let k=localStorage.getItem('fitlog-dk');if(!/^[0-9a-f]{32,}$/.test(k||'')){k=hx(crypto.getRandomValues(new Uint8Array(24)));localStorage.setItem('fitlog-dk',k)}return k}catch(e){return''}};
@@ -445,7 +417,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.4.0';
+const VER='4.5.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -513,80 +485,18 @@ draw()}
 const pw=prompt('Nouveau mot de passe (8 caractères min.)');
 if(pw&&pw.length>=8){const r=await sb('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:pw})},h.get('access_token'));toast(r.ok?'Mot de passe changé : connecte-toi':'Échec du changement')}
 history.replaceState(null,'',location.pathname)}})();
-/* ===== THEMES ===== */
-const D_W={home:'Accueil',run:'Course',train:'Muscu',homeT:"Aujourd'hui",runT:'Course',trainT:'Muscu',mus:'Muscles',sess:'Séances',hist:'Historique',rec:'Records',plan:'Plan',outs:'Sorties',hof:'HALL OF FAME'};
-const THEMES={
-cl:{n:'Classique',v:{bg:'#000',s1:'#101113',s2:'#1a1b1e',s3:'#26282c',tx:'#f4f4f5',mut:'#8b8d93',t2:'#c4c5cb',y:'#ffd60a',yr:'255,214,10',on:'#000',yd:'#a87400',yl:'#fff6b0',ok:'#34c759',rd:'#ff5d52',fh:'-apple-system,"SF Pro Display",system-ui,sans-serif',hw:'700',hu:'none',hl:'0',rad:'18px'},w:{}},
-dk:{n:'Veilleur',v:{bg:'#07090c',s1:'#0e1218',s2:'#161d26',s3:'#222c38',tx:'#e8edf2',mut:'#7d8b99',t2:'#b5c0cb',y:'#f2c230',yr:'242,194,48',on:'#07090c',yd:'#8a6a10',yl:'#ffe88a',ok:'#4cc38a',rd:'#ff5d52',fh:'"Avenir Next Condensed","Arial Narrow",-apple-system,sans-serif',hw:'800',hu:'uppercase',hl:'.06em',rad:'12px'},
- w:{home:'Missions',run:'Patrouille',train:'Mode Combat',homeT:'Missions',runT:'Patrouille',trainT:'Mode Combat',mus:'Armure',sess:'Entraînements',hist:'Journal',rec:'Légendes',plan:'Plan',outs:'Rondes',hof:'LÉGENDE DE LA VILLE'}},
-bb:{n:'Néon',v:{bg:'#04050a',s1:'#0a0d17',s2:'#111627',s3:'#1b2238',tx:'#e6f1ff',mut:'#7a8bb0',t2:'#b7c6e6',y:'#ff2a45',yr:'255,42,69',on:'#fff',yd:'#a3101f',yl:'#ff9aa8',ok:'#19e3ff',rd:'#ff9a3c',fh:'Futura,"Avenir Next","Century Gothic",sans-serif',hw:'700',hu:'uppercase',hl:'.12em',rad:'10px'},
- w:{home:'Terminal',run:'Poursuite',train:'Exo-Suit',homeT:'Terminal',runT:'Poursuite',trainT:'Exo-Suit',mus:'Systèmes',sess:'Protocoles',hist:'Logs',rec:'Records',plan:'Plan',outs:'Courses',hof:'NEO HALL'}},
-pz:{n:'Brume',v:{bg:'#06080a',s1:'#0d1114',s2:'#151b1f',s3:'#1f272c',tx:'#d5dde0',mut:'#7a878c',t2:'#aebabd',y:'#e0283c',yr:'224,40,60',on:'#fff',yd:'#8c1020',yl:'#ff8f9c',ok:'#8fd3c8',rd:'#ff7a45',fh:'Baskerville,"Iowan Old Style",Georgia,serif',hw:'600',hu:'none',hl:'.02em',rad:'6px'},
- w:{home:'Sanctuaire',run:'Fuite',train:'Rituel',homeT:'Sanctuaire',runT:'Fuite',trainT:'Rituel',mus:'Chair',sess:'Rites',hist:'Mémoire',rec:'Reliques',plan:'Plan',outs:'Errances',hof:'LES ÂMES'}},
-sh:{n:'Ombre',v:{bg:'#000',s1:'#0b0912',s2:'#131020',s3:'#1e1a30',tx:'#ece8f8',mut:'#8279a3',t2:'#bcb4d8',y:'#a78bfa',yr:'167,139,250',on:'#0a0614',yd:'#5b3fb0',yl:'#d9ccff',ok:'#6ee7b7',rd:'#fb7185',fh:'-apple-system,"SF Pro Display",sans-serif',hw:'300',hu:'none',hl:'.08em',rad:'20px'},
- w:{home:'Repaire',run:'Infiltration',train:'Ombre',homeT:'Repaire',runT:'Infiltration',trainT:'Ombre',mus:'Silhouette',sess:'Séances',hist:'Traces',rec:'Records',plan:'Plan',outs:'Sorties',hof:'LES OMBRES'}},
-pr:{n:'Prestige',v:{bg:'#0a0b0e',s1:'#13151a',s2:'#1b1e25',s3:'#292d36',tx:'#eef0f4',mut:'#8a909c',t2:'#c2c7d0',y:'#86aaf5',yr:'134,170,245',on:'#07101f',yd:'#4468b5',yl:'#c9d9ff',ok:'#5fc9a0',rd:'#f0786e',fh:'-apple-system,"SF Pro Display",system-ui,sans-serif',hw:'650',hu:'none',hl:'-.02em',rad:'16px'},w:{}}
-};
-let themeId='cl';try{let t=localStorage.getItem('fitlog-theme');if(t==='lx')t='pr';if(t&&THEMES[t])themeId=t}catch(e){}
-function TH(){const v=THEMES[themeId].v;return{yr:v.yr,ac:v.yr.split(',').map(n=>n/255)}}
-function TW(k){return THEMES[themeId].w[k]||D_W[k]}
-/* ===== FX (décors animés) ===== */
-const FX={c:null,x:null,w:0,h:0,t:0,P:[],raf:0,lt:0,k:'',fl:0,nf:6};
-const fxR=(a,b)=>a+Math.random()*(b-a);
-function fxSize(){if(!FX.c)return;const d=Math.min(devicePixelRatio||1,1.5);FX.w=innerWidth;FX.h=innerHeight;FX.c.width=FX.w*d;FX.c.height=FX.h*d;FX.x.setTransform(d,0,0,d,0,0)}
-function fxMk(i,n){const w=FX.w||390,h=FX.h||844,id=themeId;
- if(id==='dk')return{x:fxR(0,w),y:fxR(0,h),l:fxR(10,26),v:fxR(11,19)};
- if(id==='bb')return{x:(i+.5)/n*w,y:fxR(-h,h),l:fxR(40,140),v:fxR(1.2,3.6),c:Math.random()<.22?'25,227,255':'255,42,69'};
- if(id==='pz')return{x:fxR(0,w),y:fxR(0,h),r:fxR(90,220),vx:fxR(-.25,.25),vy:fxR(-.12,.05),a:fxR(.025,.06),o:Math.random()<.35,ph:fxR(0,6)};
- if(id==='sh')return{x:fxR(0,w),y:fxR(0,h),r:Math.random()<.2?fxR(110,220):fxR(1,2.6),vy:-fxR(.15,.6),ph:fxR(0,6)};
- return{x:fxR(0,w),y:fxR(0,h),r:fxR(.7,2.2),vy:fxR(.15,.5),ph:fxR(0,6),tw:fxR(1,3)}}
-function fxSet(){const id=themeId;
- if(!FX.c){const c=document.createElement('canvas');c.id='fx';document.body.insertBefore(c,document.body.firstChild);FX.c=c;FX.x=c.getContext('2d');addEventListener('resize',()=>{fxSize()})}
- fxSize();const n={dk:80,bb:38,pz:22,sh:44}[id]||0;FX.P=[];for(let i=0;i<n;i++)FX.P.push(fxMk(i,n));
- cancelAnimationFrame(FX.raf);FX.c.style.display=id==='cl'||id==='pr'?'none':'block';FX.x.clearRect(0,0,FX.w,FX.h);
- if(id!=='cl'&&id!=='pr'){if(matchMedia('(prefers-reduced-motion:reduce)').matches)fxFrame(0);else{FX.lt=0;FX.raf=requestAnimationFrame(fxLoop)}}}
-function fxLoop(t){FX.raf=requestAnimationFrame(fxLoop);if(t-FX.lt<33)return;const dt=Math.min(3,(t-FX.lt)/16.7||1);FX.lt=t;FX.t=t/1000;fxFrame(dt)}
-function fxFrame(dt){const c=FX.x,w=FX.w,h=FX.h,t=FX.t,id=themeId,yr=THEMES[id].v.yr;c.clearRect(0,0,w,h);
- if(id==='dk'){
-  const g=c.createLinearGradient(w*.5,h*.02,w*.5,h*.62);g.addColorStop(0,`rgba(${yr},.15)`);g.addColorStop(1,`rgba(${yr},0)`);
-  c.fillStyle=g;c.beginPath();c.moveTo(w*.5-14,h*.02);c.lineTo(w*.5+14,h*.02);c.lineTo(w*.5+w*.62,h*.66);c.lineTo(w*.5-w*.62,h*.66);c.fill();
-  c.fillStyle=`rgba(${yr},${.1+.04*Math.sin(t*1.3)})`;c.beginPath();c.ellipse(w*.5,h*.2,w*.34,h*.07,0,0,7);c.fill();
-  c.fillStyle='rgba(4,6,8,.9)';c.beginPath();c.arc(w*.5,h*.2+Math.sin(t*.8)*4,w*.045,0,7);c.fill();
-  c.strokeStyle='rgba(190,215,235,.16)';c.lineWidth=1;c.beginPath();FX.P.forEach(p=>{p.y+=p.v*dt;p.x-=p.v*.18*dt;if(p.y>h){p.y=-20;p.x=fxR(0,w+60)}c.moveTo(p.x,p.y);c.lineTo(p.x+p.l*.18,p.y-p.l)});c.stroke();
-  if(Math.random()<.0025)FX.fl=1;if(FX.fl>0){c.fillStyle=`rgba(210,225,255,${FX.fl*.16})`;c.fillRect(0,0,w,h);FX.fl-=.07*dt}}
- else if(id==='bb'){
-  const hz=h*.66;c.lineWidth=1;const gl=c.createLinearGradient(0,hz,0,h);gl.addColorStop(0,`rgba(${yr},.0)`);gl.addColorStop(1,`rgba(${yr},.16)`);c.fillStyle=gl;c.fillRect(0,hz,w,h-hz);
-  c.strokeStyle=`rgba(${yr},.26)`;c.beginPath();for(let i=-12;i<=12;i++){c.moveTo(w/2+i*8,hz);c.lineTo(w/2+i*w*.22,h)}
-  const o=(t*.5)%1;for(let k=0;k<9;k++){const q=Math.pow((k+o)/9,2.2),y=hz+(h-hz)*q;c.moveTo(0,y);c.lineTo(w,y)}c.stroke();
-  c.fillStyle=`rgba(${yr},.55)`;c.fillRect(0,hz-1,w,1.5);
-  FX.P.forEach(p=>{p.y+=p.v*dt;if(p.y-p.l>h*.66){p.y=-20;p.v=fxR(1.2,3.6)}const g=c.createLinearGradient(0,p.y-p.l,0,p.y);g.addColorStop(0,`rgba(${p.c},0)`);g.addColorStop(1,`rgba(${p.c},.5)`);c.fillStyle=g;c.fillRect(p.x,p.y-p.l,1.4,p.l);c.fillStyle=`rgba(${p.c},.9)`;c.fillRect(p.x-.5,p.y,2.4,2.4)});
-  const gy=(t*60)%(h+80)-40;c.fillStyle='rgba(25,227,255,.035)';c.fillRect(0,gy,w,34)}
- else if(id==='pz'){
-  FX.P.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.x<-p.r)p.x=w+p.r;if(p.x>w+p.r)p.x=-p.r;if(p.y<-p.r)p.y=h+p.r;if(p.y>h+p.r)p.y=-p.r;
-   const a=p.a*(.7+.3*Math.sin(t*.6+p.ph)),g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);const col=p.o?'143,211,200':'170,190,195';g.addColorStop(0,`rgba(${col},${a})`);g.addColorStop(1,`rgba(${col},0)`);c.fillStyle=g;c.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2);
-   if(p.o){const ox=p.x+Math.sin(t*.5+p.ph)*30,oy=p.y+Math.cos(t*.4+p.ph)*20,og=c.createRadialGradient(ox,oy,0,ox,oy,9);og.addColorStop(0,`rgba(143,211,200,${.5+.3*Math.sin(t*2+p.ph)})`);og.addColorStop(1,'rgba(143,211,200,0)');c.fillStyle=og;c.fillRect(ox-9,oy-9,18,18)}});
-  const fl=Math.random()<.004?.12:0;if(fl){c.fillStyle=`rgba(0,0,0,${fl*3})`;c.fillRect(0,0,w,h)}
-  if(Math.random()<.0012)FX.fl=1;if(FX.fl>0){c.fillStyle=`rgba(255,255,255,${FX.fl*.22})`;c.fillRect(0,0,w,h);c.fillStyle=`rgba(${yr},${FX.fl*.12})`;c.fillRect(0,0,w,h);FX.fl-=.06*dt}}
- else if(id==='sh'){
-  FX.P.forEach(p=>{if(p.r>50){p.y+=p.vy*.4*dt;p.x+=Math.sin(t*.2+p.ph)*.25;if(p.y<-p.r)p.y=h+p.r;const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);g.addColorStop(0,`rgba(${yr},${.07+.03*Math.sin(t*.5+p.ph)})`);g.addColorStop(1,`rgba(${yr},0)`);c.fillStyle=g;c.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2)}
-   else{p.y+=p.vy*dt;p.x+=Math.sin(t+p.ph)*.35;if(p.y<-6){p.y=h+6;p.x=fxR(0,w)}c.fillStyle=`rgba(${yr},${.35+.35*Math.sin(t*2+p.ph)})`;c.beginPath();c.arc(p.x,p.y,p.r,0,7);c.fill()}});
-  const e=Math.max(0,Math.sin(t*.35)*1.6-.9);if(e>0){c.fillStyle=`rgba(${yr},${Math.min(1,e*1.4)})`;c.shadowColor=`rgb(${yr})`;c.shadowBlur=14;c.beginPath();c.ellipse(w*.8,h*.3,6,2.2,-.2,0,7);c.ellipse(w*.8+22,h*.3-2,6,2.2,.2,0,7);c.fill();c.shadowBlur=0}}}
-function fxKey(){try{const k=view+'|'+(typeof runTab!=='undefined'?runTab:'')+'|'+(typeof histTab!=='undefined'?histTab:'');if(k===FX.k){FX.ch=0;return}FX.ch=1;FX.k=k;const a=document.getElementById('app');if(!a||themeId==='cl')return;a.classList.remove('fxin');void a.offsetWidth;a.classList.add('fxin');clearTimeout(FX.tm);FX.tm=setTimeout(()=>a.classList.remove('fxin'),1300)}catch(e){}}
-
-function applyTheme(id,noRender){
- if(!THEMES[id])id='cl';themeId=id;const v=THEMES[id].v,r=document.documentElement;
- const m={bg:'--bg',s1:'--s1',s2:'--s2',s3:'--s3',tx:'--tx',mut:'--mut',t2:'--t2',y:'--y',yr:'--yr',on:'--on',yd:'--yd',yl:'--yl',ok:'--ok',rd:'--rd',fh:'--fh',hw:'--hw',hu:'--hu',hl:'--hl',rad:'--rad'};
- for(const k in m)r.style.setProperty(m[k],v[k]);
- r.style.setProperty('--ln','rgba(255,255,255,.07)');
- r.dataset.th=id;
- const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=v.bg;
- document.querySelectorAll('nav .nl').forEach((e,i)=>{e.textContent=TW(['home','run','train'][i])});
- try{localStorage.setItem('fitlog-theme',id)}catch(e){}
- fxSet();FX.k='';try{fitNav()}catch(e){}
- if(!noRender&&typeof render==='function')render();
-}
-function themePicker(){return '<div class=thg>'+Object.keys(THEMES).map(k=>{const v=THEMES[k].v;return `<button class="tht${k===themeId?' on':''}" data-a=theme data-v=${k}><span class=sw style="background:linear-gradient(135deg,${v.bg} 50%,${v.y} 50%);border-color:${v.s3}"></span><b style="font-family:${v.fh};text-transform:${v.hu}">${THEMES[k].n}</b><i>${THEMES[k].w.home||'Accueil'} · ${THEMES[k].w.run||'Course'} · ${THEMES[k].w.train||'Muscu'}</i></button>`}).join('')+'</div>'}
-applyTheme(themeId,true);
+/* ===== Apparence : automatique (comme le téléphone), clair ou sombre ===== */
+let uiMode='auto';try{const m=localStorage.getItem('fitlog-mode');if(m==='light'||m==='dark')uiMode=m;localStorage.removeItem('fitlog-theme')}catch(e){}
+const MQL=matchMedia('(prefers-color-scheme: light)');
+function applyMode(m,noRender){uiMode=m;const r=document.documentElement;if(m==='auto')delete r.dataset.mode;else r.dataset.mode=m;
+try{m==='auto'?localStorage.removeItem('fitlog-mode'):localStorage.setItem('fitlog-mode',m)}catch(e){}
+const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=getComputedStyle(r).getPropertyValue('--bg').trim()||'#0e1416';
+if(!noRender&&typeof render==='function')render()}
+if(MQL.addEventListener)MQL.addEventListener('change',()=>{if(uiMode==='auto')applyMode('auto')});
+const TH=()=>{const yr=getComputedStyle(document.documentElement).getPropertyValue('--yr').trim()||'242,96,159';return{yr,ac:yr.split(',').map(n=>n/255)}};
+const MODES=[['auto','Automatique'],['light','Clair'],['dark','Sombre']];
+const modePicker=()=>`<div class=seg style="margin:0" role=group aria-label="Apparence">${MODES.map(([k,l])=>`<button class="${uiMode===k?'on':''}" data-a=mode data-v=${k} aria-pressed=${uiMode===k}>${l}</button>`).join('')}</div>`;
+applyMode(uiMode,true);
 
 const IC={t:'<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>',m:'<svg viewBox="0 0 24 24"><path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12"/></svg>',r:'<svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/></svg>'};
 IC.q='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.8M12 17h.01"/></svg>';
@@ -634,7 +544,7 @@ S.h.forEach((h,hi)=>h.ex.forEach((e,ei)=>{const ok=e.sets.filter(s=>s.done&&+s.w
 const m=Math.max(...ok.map(s=>+s.w));(ser[e.name]=ser[e.name]||[]).push(m);
 if(e.name in best&&m>best[e.name])pr[hi+'.'+ei]=1;if(!(e.name in best)||m>best[e.name])best[e.name]=m;
 e1[e.name]=Math.max(e1[e.name]||0,...ok.map(s=>s.w*(1+s.r/30)))}));
-const seg=`<div class=seg>${[['m',TW('mus')],['t',TW('sess')],['s',TW('hist')],['r',TW('rec')]].map(([v,l])=>`<button class="${histTab===v?'on':''}" data-a=htab data-v=${v}>${l}</button>`).join('')}</div>`,top=`<div class=top><h1>${TW('trainT')}</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>${seg}`;
+const seg=`<div class=seg>${[['m','Muscles'],['t','Séances'],['s','Historique'],['r','Records']].map(([v,l])=>`<button class="${histTab===v?'on':''}" data-a=htab data-v=${v}>${l}</button>`).join('')}</div>`,top=`<div class=top><h1>Muscu</h1><button class="more plus" data-a=menu data-k=add aria-label="Ajouter">+</button></div>${seg}`;
 if(histTab==='t')return top+trainList();
 if(histTab==='m')return top+muscleView();
 if(histTab==='r'){const rc=Object.entries(best);
@@ -648,7 +558,7 @@ const runStart=()=>`<div class=card><h2>Ajoute tes sorties de course</h2><div cl
 const runCard=r=>`<div class=card style="display:flex;align-items:center;justify-content:space-between;gap:10px"><button class=rcb data-a=rdet data-id="${r.id}" aria-label="Détail de la sortie ${esc(r.n)}"><div style="min-width:0"><h2>${esc(r.n)}</h2><div class=sub style="margin:0">${new Date(r.d.slice(0,10)+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})} · ${hms(r.s)} · ${pace(r)} /km${r.up?' · D+ '+r.up+' m':''}${r.hr?' · '+r.hr+' bpm':''}</div></div><div class=big>${r.km.toFixed(1)}<span class=sub style="margin:0"> km</span>${trGet(r.id)||r.pl?' <span aria-hidden=true style="font-size:13px">🗺</span>':''}</div></button>${r.man?MORE('run','data-id='+r.id):''}</div>`;
 function runs(){
 const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
-const seg=`<div class=seg role=tablist aria-label="Sections de Course"><button role=tab aria-selected=${runTab==='p'} class="${runTab==='p'?'on':''}" data-a=rtab data-v=p>${TW('plan')}</button><button role=tab aria-selected=${runTab==='r'} class="${runTab==='r'?'on':''}" data-a=rtab data-v=r>${TW('outs')}</button><button role=tab aria-selected=${runTab==='rec'} class="${runTab==='rec'?'on':''}" data-a=rtab data-v=rec>${TW('rec')}</button><button role=tab aria-selected=${runTab==='hx'} class="${runTab==='hx'?'on':''}" data-a=rtab data-v=hx>HYROX</button></div>`,head=`<div class=top><h1>${TW('runT')}</h1><button class="more plus" data-a=radd aria-label="Ajouter une sortie à la main">+</button></div>${seg}`;
+const seg=`<div class=seg role=tablist aria-label="Sections de Course"><button role=tab aria-selected=${runTab==='p'} class="${runTab==='p'?'on':''}" data-a=rtab data-v=p>Plan</button><button role=tab aria-selected=${runTab==='r'} class="${runTab==='r'?'on':''}" data-a=rtab data-v=r>Sorties</button><button role=tab aria-selected=${runTab==='rec'} class="${runTab==='rec'?'on':''}" data-a=rtab data-v=rec>Records</button><button role=tab aria-selected=${runTab==='hx'} class="${runTab==='hx'?'on':''}" data-a=rtab data-v=hx>HYROX</button></div>`,head=`<div class=top><h1>Course</h1><button class="more plus" data-a=radd aria-label="Ajouter une sortie à la main">+</button></div>${seg}`;
 if(runTab==='rec')return head+recView()+PWR();
 if(runTab==='hx')return head+hyroxView();
 if(runTab==='p')return head+(R.length||S.sv?'':runStart())+coachItem()+planBlock();
@@ -669,7 +579,7 @@ function acc(k,t,sub,body){const o=accOpen[k];return`<div class="acc${o?' open':
 function helpView(){if(accOpen.h0===undefined)accOpen.h0=true;
 const H=h=>`<div class=hlp>${h}</div>`;
 return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','home')}<h1>Aide</h1></div></div><div class=sub style="margin:-8px 4px 14px">Le mode d'emploi, simplement. Touche un titre pour le déplier.</div>`
-+acc('h0','Par où commencer ?','',H(`<p><b>FitLog</b> est ton carnet d'entraînement. Il a trois écrans, en bas :</p><p>• <b>${TW('home')}</b> : ce qu'il y a à faire aujourd'hui et ton score de la semaine.<br>• <b>${TW('run')}</b> : tes sorties à pied, ton plan d'entraînement et tes records.<br>• <b>${TW('train')}</b> : tes séances de musculation, tes muscles et tes records de charge.</p><p>Rien à régler avant de commencer : choisis un programme dans Muscu, ou ajoute une sortie dans Course.</p>`))
++acc('h0','Par où commencer ?','',H(`<p><b>FitLog</b> est ton carnet d'entraînement. Il a trois écrans, en bas :</p><p>• <b>Accueil</b> : ce qu'il y a à faire aujourd'hui et ton score de la semaine.<br>• <b>Course</b> : tes sorties à pied, ton plan d'entraînement et tes records.<br>• <b>Muscu</b> : tes séances de musculation, tes muscles et tes records de charge.</p><p>Rien à régler avant de commencer : choisis un programme dans Muscu, ou ajoute une sortie dans Course.</p>`))
 +acc('h1','Muscu : faire une séance','',H(`<p><b>1. Créer.</b> Dans Muscu > Séances, touche « + » : crée une séance ou choisis un <b>programme type</b> (poids du corps, salle, coureur…). « + Ajouter un exercice » ouvre une bibliothèque de plus de 150 exercices avec les muscles travaillés, ou te laisse créer le tien. Pour changer l'ordre, appuie longuement sur un exercice puis glisse-le.</p><p><b>2. Démarrer.</b> Touche « Démarrer » : FitLog pré-remplit la charge et les répétitions à viser, d'après ta dernière séance.</p><p><b>3. Noter.</b> Corrige les chiffres si tu as fait autre chose, ajoute une série avec « + Série » (ou retire-en une avec « − Série »). Il manque un exercice ? « + Ajouter un exercice » marche aussi en pleine séance. Puis « Terminer la séance ».</p><p><b>4. Progresser.</b> À la séance suivante, la cible est recalculée toute seule (voir « Double progression » dans le glossaire).</p><p>Première fois ? Choisis une charge légère : celle avec laquelle tu pourrais faire encore 2 ou 3 répétitions.</p>`))
 +acc('h2','Muscu : muscles et records','',H(`<p><b>Muscles.</b> Un corps en 3D s'allume selon les séries des derniers jours (7, 14 ou 30). Vert = peu travaillé, rouge = beaucoup. Touche un muscle pour voir quels exercices le sollicitent. Un exercice n'est pas reconnu ? Touche-le dans « Exercices et muscles » pour l'associer à un muscle.</p><p><b>Records.</b> Ta meilleure charge par exercice et ton 1RM estimé (voir le glossaire).</p>`))
 +acc('h3','Course : sorties, plan et records','',H(`<p><b>Sorties.</b> Importe-les avec Strava (bouton « Se connecter avec Strava » dans Course) ou ajoute-les à la main avec « + » : date, distance, durée. Strava est facultatif.</p><p><b>Plan.</b> Dans Plan, « Définir un objectif » : ta course, la distance, la date et le temps visé. FitLog construit un plan semaine par semaine. Touche le rond à droite d'une séance pour la marquer faite ou manquée, ou la séance elle-même pour la déplacer.</p><p><b>Records.</b> 5 km, 10 km, semi, marathon : tes meilleurs temps (touche une carte pour en saisir un à la main). Les temps « prévus » sont des estimations d'après tes meilleures performances.</p>`))
@@ -678,8 +588,8 @@ return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@'
 +acc('h4','Le score de la semaine','',H(`<p>Un anneau qui se remplit au fil de la semaine.</p><p><b>Course (65 %)</b> : kilomètres du plan réalisés. Sans plan, on compare à ta moyenne des 4 dernières semaines.<br><b>Muscu (35 %)</b> : séances faites sur l'objectif de la semaine (modifiable dans le menu « ··· » du score).<br>Un malus jusqu'à −15 points apparaît si tu dépasses le plan de plus de 15 % : c'est un risque de blessure.</p>`))
 +acc('h5','Glossaire','Les mots techniques',H(`<dl><dt>Série</dt><dd>Un bloc de répétitions d'affilée, suivi d'un repos.</dd><dt>Répétition (rep)</dt><dd>Un mouvement complet de l'exercice.</dd><dt>Charge</dt><dd>Le poids soulevé, en kg.</dd><dt>Pas</dt><dd>L'écart dont la charge augmente quand tu progresses (par exemple 2,5 kg).</dd><dt>Double progression</dt><dd>Tu vises un nombre de répétitions entre un minimum et un maximum. Quand tu atteins le maximum sur toutes les séries, la charge augmente et tu repars du minimum.</dd><dt>1RM estimé</dt><dd>La charge maximale théorique pour une seule répétition, calculée d'après tes séries. C'est une estimation, pas un test.</dd><dt>Gainage</dt><dd>Exercice où l'on tient une position (planche…). On compte en secondes.</dd><dt>Smith machine</dt><dd>Barre guidée sur rails verticaux, présente en salle.</dd><dt>Allure</dt><dd>Minutes par kilomètre (par exemple 5:30 /km).</dd><dt>D+</dt><dd>Dénivelé positif : les mètres gagnés en montée pendant la sortie.</dd><dt>FC et zones cardiaques</dt><dd>FC = fréquence cardiaque, en battements par minute. Les zones (endurance, tempo, fractionné) donnent la FC cible de chaque type de sortie. Tu peux les ajuster dans Réglages.</dd><dt>Semi</dt><dd>Semi-marathon : 21,1 km.</dd><dt>Sortie longue</dt><dd>La sortie la plus longue de la semaine, à allure tranquille.</dd></dl>`))
 +acc('h6','Mes données et ma vie privée','',H(`<p>• Tes séances, sorties et réglages sont enregistrés <b>sur ton téléphone</b>.</p><p>• Un <b>compte FitLog</b> (facultatif) sauvegarde une copie dans le cloud : tu retrouves tout après un changement de téléphone ou une réinstallation. Cette copie est stockée sur le serveur de l'app.</p><p>• <b>Strava</b> (facultatif) : FitLog lit tes courses en lecture seule, rien n'est publié. « Déconnecter » dans l'onglet Course révoque l'accès chez Strava et retire les sorties importées.</p><p>• Le <b>coach IA</b> (facultatif) envoie un résumé de tes séances et sorties saisies à la main à un service d'IA hébergé par Cloudflare, qui ne s'en sert pas pour s'entraîner. Tes sorties Strava ne sont jamais envoyées.</p><p>• Réglages > Données : exporter une copie, importer, ou tout supprimer. Réglages > Compte : supprimer ton compte.</p><button class=gh style="width:100%" data-a=nav data-v=legal>Lire la politique de confidentialité</button>`))
-+acc('h7','Un souci ?','',H(`<p><b>Mes données ont disparu.</b> Sans compte, elles vivent dans l'app : la désinstaller ou effacer ses données les supprime. Exporte une sauvegarde de temps en temps, ou crée un compte.</p><p><b>Strava ne se synchronise pas.</b> Onglet Course > Strava > Synchroniser. Si ça échoue encore, déconnecte puis reconnecte Strava.</p><p><b>Je change de téléphone.</b> Connecte-toi au même compte, ou utilise Exporter puis Importer.</p><p><b>Sans réseau ?</b> L'app fonctionne après sa première ouverture, sauf Strava, le compte et le coach.</p><p><b>Les noms des onglets ont changé.</b> C'est le thème choisi dans Réglages > Thème. « Classique » remet les noms d'origine.</p><p><b>Revoir la présentation.</b> Réglages > À propos > Introduction.</p>`))}
-const LEG=[["Qui édite FitLog", ["FitLog est un projet personnel, gratuit et sans but commercial, édité par un particulier. Aucune publicité, aucun suivi statistique, aucune revente de données.", "Contact (questions, demandes sur tes données) : <b class=ct>le contact indiqué par l'éditeur de l'app</b>."]], ["Ce qui est enregistré", ["<b>Sur ton téléphone</b> : tes séances, sorties, objectifs, réglages et ton ressenti du jour (sommeil, énergie, jambes) (stockage local de l'app, aucun cookie de suivi).", "<b>Si tu crées un compte</b> (facultatif) : ton e-mail, ton mot de passe (conservé chiffré par le service d'authentification, jamais lisible) et une copie de tes données FitLog.", "<b>Si tu connectes Strava</b> (facultatif) : l'accès à tes activités en lecture seule, et les sorties importées (date, distance, durée, allure, fréquence cardiaque, parcours simplifié). Rien n'est publié sur ton compte Strava.", "<b>Si tu importes des fichiers de montre</b> : la trace GPS et les courbes (fréquence cardiaque, allure, altitude) restent sur ton téléphone ; elles ne sont pas copiées dans la sauvegarde du compte, mais sont incluses quand tu exportes tes données.", "<b>Coach IA</b> (facultatif) : quand tu poses une question, un résumé de tes séances de renfo, de tes comptes rendus et des sorties qui viennent de toi (fichiers de ta montre, archive Strava que tu importes, saisies) est envoyé à un service d'IA (Cloudflare Workers AI ou, si l'éditeur l'a activé, Claude d'Anthropic en offre payante) qui renvoie la réponse. Tu parles à une IA : ses conseils ne remplacent pas un avis médical. Les sorties synchronisées depuis Strava ne sont jamais envoyées. Tu es prévenu avant le premier envoi. Pas de compte requis : ton téléphone est reconnu par une clé aléatoire, utilisée seulement pour limiter les messages par jour."]], ["Pourquoi et combien de temps", ["Ces données servent uniquement à faire fonctionner l'app (stats, plan de course, sauvegarde). Base : ton consentement et l'exécution du service que tu demandes.", "Elles sont gardées tant que tu les gardes : tu les effaces quand tu veux (voir plus bas). Un compte inactif n'est pas utilisé pour autre chose."]], ["Qui les reçoit", ["<b>Supabase</b> : hébergement du compte et de la sauvegarde.", "<b>Cloudflare</b> : serveur qui relaie Strava (il garde ton jeton Strava chiffré côté serveur) et fait tourner le coach IA (Workers AI) : selon ses conditions, il ne s'en sert pas pour entraîner ses modèles et ne garde pas le contenu une fois la réponse donnée. <b>Anthropic (Claude)</b> : seulement si l'éditeur a activé son offre payante pour l'API ; selon ses conditions commerciales, le contenu envoyé par l'API n'est pas utilisé pour entraîner ses modèles.", "<b>Cartes</b> : quand tu ouvres la carte d'une sortie, ton téléphone télécharge le fond de carte depuis OpenStreetMap et l'outil d'affichage Leaflet depuis cdnjs (Cloudflare). Ces serveurs voient ton adresse IP, jamais tes données d'entraînement.", "<b>Strava</b> : si tu le connectes. Les données Strava ne servent qu'à toi, ne sont montrées à personne d'autre et ne servent jamais à entraîner une IA.",  "Certains de ces services sont situés hors de l'Union européenne ; ils appliquent des garanties reconnues (clauses contractuelles types)."]], ["Tes droits", ["Tu peux accéder à tes données, les corriger, les exporter (Réglages > Données > Exporter), les effacer (Réglages > Données > Supprimer, et Réglages > Compte > Supprimer mon compte) ou t'opposer à leur usage, à tout moment et gratuitement.", "Déconnecter Strava (onglet Course) révoque l'accès chez Strava et retire les sorties importées. Tu peux aussi le faire sur strava.com > Réglages > Mes applications.", "Pour toute demande, écris au contact ci-dessus. Tu peux aussi saisir la CNIL (cnil.fr) si tu estimes que tes droits ne sont pas respectés."]], ["Âge", ["FitLog est destiné aux personnes de 15 ans et plus."]], ["Santé et sécurité", ["FitLog est un carnet d'entraînement, pas un dispositif médical. Les plans, charges, allures, zones cardiaques et conseils sont indicatifs et ne remplacent pas l'avis d'un médecin.", "Avant de reprendre ou d'intensifier le sport (surtout après une pause, une blessure ou en cas de problème de santé), demande conseil à un professionnel de santé. Arrête si tu ressens une douleur, un malaise ou un essoufflement anormal."]], ["Licences et marques", ["Modèle 3D du corps : BodyParts3D © The Database Center for Life Science, licence CC BY-SA 2.1 JP (dbcls.rois.ac.jp), adapté pour FitLog.", "« Strava » et « Propulsé par Strava » sont des marques de Strava, Inc. FitLog n'est ni affilié ni approuvé par Strava.", "Cartes : données © les contributeurs d'OpenStreetMap (licence ODbL), affichées avec Leaflet (licence BSD-2). HYROX est une marque de son propriétaire ; FitLog n'est ni affilié ni approuvé par HYROX. Cloudflare est une marque de Cloudflare, Inc. Claude et Anthropic sont des marques d'Anthropic PBC. Le modèle d'IA du coach (Mistral Small) est publié sous licence Apache 2.0. Les autres noms cités appartiennent à leurs propriétaires."]]];
++acc('h7','Un souci ?','',H(`<p><b>Mes données ont disparu.</b> Sans compte, elles vivent dans l'app : la désinstaller ou effacer ses données les supprime. Exporte une sauvegarde de temps en temps, ou crée un compte.</p><p><b>Strava ne se synchronise pas.</b> Onglet Course > Strava > Synchroniser. Si ça échoue encore, déconnecte puis reconnecte Strava.</p><p><b>Je change de téléphone.</b> Connecte-toi au même compte, ou utilise Exporter puis Importer.</p><p><b>Sans réseau ?</b> L'app fonctionne après sa première ouverture, sauf Strava, le compte et le coach.</p><p><b>L'app est trop claire ou trop sombre.</b> Réglages > Apparence : automatique, clair ou sombre.</p><p><b>Revoir la présentation.</b> Réglages > À propos > Introduction.</p>`))}
+const LEG=[["Qui édite FitLog", ["FitLog est un projet personnel, gratuit et sans but commercial, édité par un particulier. Aucune publicité, aucun suivi statistique, aucune revente de données.", "Contact (questions, demandes sur tes données) : <b class=ct>le contact indiqué par l'éditeur de l'app</b>."]], ["Ce qui est enregistré", ["<b>Sur ton téléphone</b> : tes séances, sorties, objectifs, réglages et ton ressenti du jour (sommeil, énergie, jambes) (stockage local de l'app, aucun cookie de suivi).", "<b>Si tu crées un compte</b> (facultatif) : ton e-mail, ton mot de passe (conservé chiffré par le service d'authentification, jamais lisible) et une copie de tes données FitLog.", "<b>Si tu connectes Strava</b> (facultatif) : l'accès à tes activités en lecture seule, et les sorties importées (date, distance, durée, allure, fréquence cardiaque, parcours simplifié). Rien n'est publié sur ton compte Strava.", "<b>Si tu importes des fichiers de montre</b> : la trace GPS et les courbes (fréquence cardiaque, allure, altitude) restent sur ton téléphone ; elles ne sont pas copiées dans la sauvegarde du compte, mais sont incluses quand tu exportes tes données.", "<b>Coach IA</b> (facultatif) : quand tu poses une question, un résumé de tes séances de renfo, de tes comptes rendus et des sorties qui viennent de toi (fichiers de ta montre, archive Strava que tu importes, saisies) est envoyé à un service d'IA (Cloudflare Workers AI ou, si l'éditeur l'a activé, Claude d'Anthropic en offre payante) qui renvoie la réponse. Tu parles à une IA : ses conseils ne remplacent pas un avis médical. Les sorties synchronisées depuis Strava ne sont jamais envoyées. Tu es prévenu avant le premier envoi. Pas de compte requis : ton téléphone est reconnu par une clé aléatoire, utilisée seulement pour limiter les messages par jour."]], ["Pourquoi et combien de temps", ["Ces données servent uniquement à faire fonctionner l'app (stats, plan de course, sauvegarde). Base : ton consentement et l'exécution du service que tu demandes.", "Elles sont gardées tant que tu les gardes : tu les effaces quand tu veux (voir plus bas). Un compte inactif n'est pas utilisé pour autre chose."]], ["Qui les reçoit", ["<b>Supabase</b> : hébergement du compte et de la sauvegarde.", "<b>Cloudflare</b> : serveur qui relaie Strava (il garde ton jeton Strava chiffré côté serveur) et fait tourner le coach IA (Workers AI) : selon ses conditions, il ne s'en sert pas pour entraîner ses modèles et ne garde pas le contenu une fois la réponse donnée. <b>Anthropic (Claude)</b> : seulement si l'éditeur a activé son offre payante pour l'API ; selon ses conditions commerciales, le contenu envoyé par l'API n'est pas utilisé pour entraîner ses modèles.", "<b>Cartes</b> : quand tu ouvres la carte d'une sortie, ton téléphone télécharge le fond de carte depuis OpenStreetMap et l'outil d'affichage Leaflet depuis cdnjs (Cloudflare). Ces serveurs voient ton adresse IP, jamais tes données d'entraînement.", "<b>Strava</b> : si tu le connectes. Les données Strava ne servent qu'à toi, ne sont montrées à personne d'autre et ne servent jamais à entraîner une IA.",  "Certains de ces services sont situés hors de l'Union européenne ; ils appliquent des garanties reconnues (clauses contractuelles types)."]], ["Tes droits", ["Tu peux accéder à tes données, les corriger, les exporter (Réglages > Données > Exporter), les effacer (Réglages > Données > Supprimer, et Réglages > Compte > Supprimer mon compte) ou t'opposer à leur usage, à tout moment et gratuitement.", "Déconnecter Strava (onglet Course) révoque l'accès chez Strava et retire les sorties importées. Tu peux aussi le faire sur strava.com > Réglages > Mes applications.", "Pour toute demande, écris au contact ci-dessus. Tu peux aussi saisir la CNIL (cnil.fr) si tu estimes que tes droits ne sont pas respectés."]], ["Âge", ["FitLog est destiné aux personnes de 15 ans et plus."]], ["Santé et sécurité", ["FitLog est un carnet d'entraînement, pas un dispositif médical. Les plans, charges, allures, zones cardiaques et conseils sont indicatifs et ne remplacent pas l'avis d'un médecin.", "Avant de reprendre ou d'intensifier le sport (surtout après une pause, une blessure ou en cas de problème de santé), demande conseil à un professionnel de santé. Arrête si tu ressens une douleur, un malaise ou un essoufflement anormal."]], ["Licences et marques", ["Modèle 3D du corps : BodyParts3D © The Database Center for Life Science, licence CC BY-SA 2.1 JP (dbcls.rois.ac.jp), adapté pour FitLog.", "« Strava » et « Propulsé par Strava » sont des marques de Strava, Inc. FitLog n'est ni affilié ni approuvé par Strava.", "Cartes : données © les contributeurs d'OpenStreetMap (licence ODbL), affichées avec Leaflet (licence BSD-2). HYROX est une marque de son propriétaire ; FitLog n'est ni affilié ni approuvé par HYROX. Cloudflare est une marque de Cloudflare, Inc. Claude et Anthropic sont des marques d'Anthropic PBC. Le modèle d'IA du coach (Mistral Small) est publié sous licence Apache 2.0. Police Archivo : licence SIL Open Font License 1.1. Les autres noms cités appartiennent à leurs propriétaires."]]];
 const LCT=()=>FL.contact?esc(FL.contact):"l'éditeur de l'app";
 function legalView(){return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','set')}<h1>Confidentialité</h1></div></div><div class=sub style="margin:-8px 4px 14px">Ce que FitLog fait de tes données, en clair. Dernière mise à jour : octobre 2026.</div>`+LEG.map(([t,p])=>`<div class=card><h2>${t}</h2>${p.map(x=>`<div class=sub style="margin:0 0 8px">${x.replace(/<b class=ct>[^<]*<\/b>/,'<b>'+LCT()+'</b>')}</div>`).join('')}</div>`).join('')+`<div class=sub style="margin:0 4px 20px"><a href="privacy.html" target=_blank rel=noopener style="color:var(--y)">Ouvrir la version web de cette page</a></div>`}
 function settings(){const a=AU();
@@ -687,7 +597,7 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 +item('help','q',"Aide et mode d'emploi","Comprendre l'app pas à pas")
 +(SBU?acc('cp','Compte et sauvegarde',a?esc(a.email):'Non connecté',accountCard()):'')
 +acc('zn','Zones cardiaques','Pour ton plan de course',zonesCard())
-+acc('th','Thème',THEMES[themeId].n,themePicker()+`<div class=sub style="margin:10px 0 0">Les thèmes changent les couleurs, les animations et le nom des onglets. « Classique » garde les noms d'origine.</div>`)
++acc('th','Apparence',MODES.find(x=>x[0]===uiMode)[1],modePicker()+`<div class=sub style="margin:10px 0 0">« Automatique » suit le réglage clair ou sombre de ton téléphone.</div>`)
 +acc('dt','Données et vie privée',`${S.h.length} séance${S.h.length>1?'s':''}`,`<div class=sub style="margin:0 0 10px">Tout est enregistré sur ton téléphone. Exporte un fichier pour garder une copie ou changer d'appareil.</div><div class=bar style="margin-top:0"><button data-a=export>Exporter</button><button data-a=import>Importer</button></div><button style="width:100%;margin-top:6px" data-a=impx>Importer : archive Strava (.zip), montre (FIT, GPX, TCX), Strong, Hevy</button><button style="width:100%;margin-top:6px" data-a=nav data-v=cdata>Données du coach IA</button><button class="gh d" style="width:100%;margin-top:6px" data-a=wipe>Supprimer toutes mes données</button>`)
 +item('legal','l','Confidentialité et mentions','Données, droits, santé, licences')
 +acc('ab','À propos','FitLog v'+VER,`<div class=sub>FitLog v${VER}. Modèle 3D : BodyParts3D © DBCLS, CC BY-SA 2.1 JP (adapté). Les sorties importées viennent de Strava, dont FitLog n'est ni affilié ni approuvé.</div><div class=bar style="margin-top:0"><button data-a=tour>Introduction</button><button data-a=upd>Mise à jour</button></div>`)}
@@ -715,14 +625,15 @@ function nextRun(){if(!S.plan)return null;const tk=iso(new Date());
 for(const W of S.plan.weeks){const res=matchWeek(W);for(let i=0;i<W.s.length;i++){const s=W.s[i],k=iso(sd(W.w,s.d));if(k<tk||sStatus(W,s,res[i],tk)==='ok')continue;return{W,s,i,k}}}return null}
 const zoneTxt=(s,g)=>{const Z=zones();if(s.t==='HYROX')return[hms(g.time),'objectif'];if(s.hx)return[pf(hxPace(g))+'/km','allure course'];return['ef','tp','iv'].includes(s.z)?[`${Z[s.z][0]}–${Z[s.z][1]} bpm`,'FC cible']:s.t==='Course'?[hms(g.time),'objectif']:s.z==='ob'?[pf(g.time/g.dist)+'/km','allure cible']:['','']};
 const welcome=()=>(S.t.length||S.h.length||(S.runs||[]).length||S.goal||localStorage.getItem('fitlog-wel'))?'':`<div class=card><h2>Bienvenue sur FitLog</h2><div class=sub style="margin-bottom:10px">Par quoi veux-tu commencer ?</div><button class=item data-a=prog style="margin-bottom:8px"><div class=ico>${IC.m}</div><div><b>Muscu</b><div class=sub>Choisis un programme tout prêt</div></div>${CH}</button><button class=item data-a=nav data-v=run style="margin-bottom:8px"><div class=ico>${IC.r}</div><div><b>Course</b><div class=sub>Connecte Strava ou ajoute une sortie</div></div>${CH}</button><button class=item data-a=nav data-v=help style="margin-bottom:8px"><div class=ico>${IC.q}</div><div><b>Comprendre l'app</b><div class=sub>Le mode d'emploi, simplement</div></div>${CH}</button><button class=gh style="width:100%" data-a=hidewel>Masquer ce message</button></div>`;
+const TOPO='<svg class=topo viewBox="0 0 240 150" aria-hidden=true><path d="M203 38 205 42 205 46 202 49 198 52 194 54 189 56 184 57 179 58 174 59 169 58 165 57 161 57 157 56 153 55 148 55 143 55 138 53 134 51 132 48 132 44 132 41 133 38 134 35 134 32 134 29 135 25 137 22 140 19 144 17 149 16 155 15 160 15 165 15 170 16 174 17 178 19 181 22 182 25 184 27 186 29 190 31 195 32 199 35ZM228 38 230 44 228 50 223 55 217 60 209 63 201 66 194 68 187 69 179 70 172 70 165 69 158 68 152 68 144 68 136 67 128 66 120 64 113 60 110 54 110 49 112 43 114 38 116 33 117 29 117 24 118 18 121 13 126 9 133 5 141 3 149 2 157 1 165 1 173 2 180 4 186 7 191 11 195 16 198 19 202 23 208 25 215 28 222 33ZM252 38 254 46 251 55 244 62 234 67 224 71 214 75 204 78 194 80 184 81 175 82 165 81 156 81 146 80 136 80 124 80 112 78 101 74 92 69 88 61 89 53 92 45 95 38 98 32 99 25 100 19 102 11 106 4 112 -2 121 -6 132 -10 143 -12 154 -13 165 -13 176 -12 186 -10 195 -5 202 1 207 6 212 12 218 16 226 20 236 24 245 30ZM277 38 279 49 274 59 264 68 251 74 238 80 226 84 214 88 202 91 190 93 177 94 165 93 153 93 140 93 127 93 111 93 96 90 82 85 71 77 67 67 68 57 72 47 77 38 80 30 82 22 83 13 85 4 90 -4 99 -12 110 -18 123 -22 137 -25 151 -27 165 -28 179 -26 192 -23 204 -17 212 -10 219 -3 226 4 234 9 244 14 257 20 269 28ZM301 38 303 51 296 63 284 73 268 81 252 87 237 93 223 97 209 101 195 104 180 106 165 106 150 106 134 106 117 106 98 106 79 103 62 96 51 86 46 73 48 60 53 48 59 38 63 28 65 19 66 8 68 -3 74 -13 85 -23 98 -30 114 -35 131 -39 148 -41 165 -42 182 -41 198 -36 212 -29 223 -21 231 -12 240 -4 250 2 263 9 278 16 292 26ZM325 38 326 53 318 67 303 79 284 88 266 95 249 101 233 107 217 112 200 116 183 118 165 119 147 119 128 120 108 120 85 119 63 115 43 107 30 95 26 80 28 64 35 50 42 38 47 27 48 16 49 3 51 -10 58 -22 70 -33 87 -42 105 -48 124 -52 145 -55 165 -56 185 -55 204 -50 221 -42 233 -32 244 -21 254 -12 266 -5 282 3 300 12 316 24ZM350 38 349 55 339 71 321 85 300 95 280 103 261 110 243 117 225 123 205 128 185 131 165 132 144 133 122 134 98 134 72 133 46 128 25 118 11 103 6 85 10 68 18 52 26 38 30 25 31 12 31 -2 34 -17 42 -32 56 -44 75 -54 96 -61 118 -66 141 -69 165 -71 188 -69 210 -63 229 -54 244 -42 256 -31 268 -20 283 -11 301 -3 322 8 339 22ZM374 38 372 57 360 75 339 90 316 101 293 111 272 119 253 127 232 135 211 140 188 144 165 146 141 147 116 148 88 148 58 146 30 140 6 128 -9 111 -13 91 -8 71 1 53 10 38 14 24 14 9 14 -7 16 -24 26 -41 41 -55 63 -66 87 -74 112 -80 138 -84 165 -85 192 -83 216 -76 237 -66 254 -53 268 -40 282 -28 299 -18 321 -8 343 4 363 19ZM397 38 395 60 380 79 357 95 331 108 306 118 284 128 262 137 240 146 217 153 191 157 165 160 138 161 109 162 78 163 45 160 13 152 -12 138 -28 119 -31 97 -25 75 -15 55 -6 38 -3 22 -3 6 -4 -13 -1 -32 9 -51 27 -66 50 -79 77 -88 106 -94 135 -98 165 -100 195 -97 222 -89 246 -77 264 -63 280 -49 296 -36 316 -25 340 -14 365 -0 387 17Z"/></svg>';
 function dash(){
 const now=new Date(),R=S.runs||[],tk=iso(now),tm1=iso(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)),g=S.goal;
 let d=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});d=d[0].toUpperCase()+d.slice(1);
 const nr=nextRun();let hero;
 if(nr){const{W,s,k}=nr,when=k===tk?"Aujourd'hui":k===tm1?'Demain':DF[s.d]+' '+sd(W.w,s.d).getDate(),[zv,zl]=zoneTxt(s,g);
 const W0=S.plan.weeks.find(x=>x.w===wk(Date.now())),r0=W0?matchWeek(W0):[],tot=W0?W0.s.reduce((a,x)=>a+x.km,0):0,dn=W0?W0.s.reduce((a,x,i)=>a+(r0[i]?r0[i].km:(x.st==='ok'?x.km:0)),0):0;
-hero=`<div class=hero><div class="k hk"><span>${when}</span>${fmPill()}</div><h2>${s.t}</h2><div class=hstats><div><div class=hv>${s.km}<small> km</small></div><div class=sub>distance</div></div>${zv?`<div><div class=hv style="font-size:20px;padding-top:5px">${zv}</div><div class=sub>${zl}</div></div>`:''}</div>${tot?`<div class=prog><i style="width:${Math.min(100,Math.round(dn/tot*100))}%"></i></div><div class=sub style="margin:0">${Math.round(dn)} / ${Math.round(tot)} km cette semaine</div>`:''}<div class=hb><button class=p data-a=nav data-v=run>Voir le plan</button><button class=p data-a=guide data-w=${W.w} data-i=${nr.i} aria-label="Lancer la séance guidée à la voix">▶</button></div></div>`}
-else hero=`<div class=hero><div class="k hk"><span>Course</span>${fmPill()}</div><h2>Fixe ton objectif</h2><div class=sub>Ton plan d'entraînement se construit automatiquement.</div><button class=p data-a=nav data-v=run>Définir mon objectif</button></div>`;
+hero=`<div class=hero>${TOPO}<div class="k hk"><span>${when}</span>${fmPill()}</div><h2>${s.t}</h2><div class=hstats><div><div class=hv>${s.km}<small> km</small></div><div class=sub>distance</div></div>${zv?`<div><div class=hv style="font-size:20px;padding-top:5px">${zv}</div><div class=sub>${zl}</div></div>`:''}</div>${tot?`<div class=prog><i style="width:${Math.min(100,Math.round(dn/tot*100))}%"></i></div><div class=sub style="margin:0">${Math.round(dn)} / ${Math.round(tot)} km cette semaine</div>`:''}<div class=hb><button class=p data-a=nav data-v=run>Voir le plan</button><button class=p data-a=guide data-w=${W.w} data-i=${nr.i} aria-label="Lancer la séance guidée à la voix">▶</button></div></div>`}
+else hero=`<div class=hero>${TOPO}<div class="k hk"><span>Course</span>${fmPill()}</div><h2>Fixe ton objectif</h2><div class=sub>Ton plan d'entraînement se construit automatiquement.</div><button class=p data-a=nav data-v=run>Définir mon objectif</button></div>`;
 let ren='';
 if(S.a)ren=`<div class=card style="display:flex;align-items:center;gap:10px"><div style="flex:1;min-width:0"><div class=sub style="margin:0">Séance en cours</div><h2>${esc(S.a.name)}</h2></div><button class="p sm" data-a=nav data-v=train>Reprendre</button></div>`;
 else if(S.t.length){const c=S.t.map(t=>({t,d:lastDone(t)})).sort((a,b)=>a.d-b.d)[0];
@@ -734,7 +645,7 @@ const lh=S.h.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0],lr=R.slic
 if(lr)last+=item('run','r',esc(lr.n),`${ago(lr.d.slice(0,10)+'T12:00:00')} · ${lr.km.toFixed(1)} km · ${pace(lr)} /km`);
 if(lh){const vol=lh.ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=lh.ex.filter(x=>!x.skip).length;
 last+=item('hist','m',esc(lh.name),`${ago(lh.date)} · ${n} exo${n>1?'s':''}${lh.dur?' · '+lh.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}`)}
-return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>${TW('homeT')}</h1></div><div style="display:flex;align-items:center;gap:2px"><button class=more data-a=nav data-v=tools aria-label="Outils : disques, charge maximale, allures">${IC.t}</button><button class=more data-a=nav data-v=help aria-label="Aide et mode d'emploi" style="font-size:22px;font-weight:700;letter-spacing:0;padding:6px 12px">?</button><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div></div>${installCard()}${backupHint()}${welcome()}${S.a?ren:''}${hero}${S.a?'':ren}${regCard()}`
+return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>Aujourd'hui</h1></div><div style="display:flex;align-items:center;gap:2px"><button class=more data-a=nav data-v=tools aria-label="Outils : disques, charge maximale, allures">${IC.t}</button><button class=more data-a=nav data-v=help aria-label="Aide et mode d'emploi" style="font-size:22px;font-weight:700;letter-spacing:0;padding:6px 12px">?</button><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div></div>${installCard()}${backupHint()}${welcome()}${S.a?ren:''}${hero}${S.a?'':ren}${regCard()}`
 +(last?`<div style="margin-top:4px">${last}</div>`:'')+scoreRow(wl)}
 
 /* ===== Régularité, activité et succès ===== */
@@ -813,12 +724,12 @@ function tlCalc(){const g=id=>document.getElementById(id);if(!g('tools'))return;
 {const sel=+g('cd').value;g('ck').style.display=sel?'none':'';const d=sel||+g('ck').value,t=tpn('th')*3600+tpn('tm')*60+tpn('ts'),o=g('to3');if(!d||!t)o.innerHTML='';else{const pa=t/d,pm=Math.floor(pa/60),ps=Math.round(pa%60);let h=tlH('Allure',(ps===60?pm+1+':00':pm+':'+String(ps).padStart(2,'0'))+' /km')+tlH('Vitesse',tn(3600/pa)+' km/h');
 [[5,'5 km'],[10,'10 km'],[21.0975,'Semi'],[42.195,'Marathon']].filter(x=>Math.abs(x[0]-d)>.05).forEach(([k,n])=>{const tt=Math.round(t*Math.pow(k/d,1.06));h+=tlH(n+' (estimé)',hms(tt))});o.innerHTML=h}}}
 
-/* ===== v4.2 : forme du jour hybride ===== */
+/* ===== forme du jour hybride ===== */
 const LEGS=['qua','isc','fes','mol','add','abu'];
 function dayLoads(own){const o={},Z=zones(),g=k=>o[k]=o[k]||{r:0,m:0};
 (own?ownRuns():(S.runs||[])).forEach(r=>{const f=r.hr?(r.hr<=Z.ef[1]?1:r.hr<=Z.tp[1]?1.5:2):1.2;g(r.d.slice(0,10)).r+=r.s/60*f});
 S.h.forEach(h=>{const n=h.ex.reduce((a,e)=>a+(e.skip||e.t==='cardio'?0:e.sets.length),0);g(iso(new Date(h.date))).m+=(h.dur||Math.max(20,n*3))*1.1});return o}
-/* ===== v4.4 : données à toi (utilisables par le coach IA) ===== */
+/* ===== données à toi (utilisables par le coach IA) ===== */
 const isOwn=r=>!!(r&&(r.man||r.trk||r.arc));
 const sameRun=(a,b)=>a.d.slice(0,10)===b.d.slice(0,10)&&Math.abs(a.km-b.km)<Math.max(.3,a.km*.03);
 const ownSrc=r=>r.src||(r.trk?'montre':r.arc?'archive':'saisie');
@@ -904,13 +815,13 @@ ${rpPend()?rpCard():''}<div class=card><div class=row style="gap:16px;margin:0">
 <div class=card><h2>Conseils du jour</h2>${formeAdvice(f).map(([t,x])=>`<div class="fma ${t}">${esc(x)}</div>`).join('')}${tr&&!done&&f.lv!=='go'&&!tr.s.lt?`<button class=p style="width:100%;margin-top:10px" data-a=fadapt>Alléger la séance du jour (${tr.s.t} ${tr.s.km} km)</button>`:''}${tr&&tr.s.lt?'<div class=sub style="margin:8px 0 0">Séance du jour déjà allégée.</div>':''}</div>
 <div class=card><h2>Charge course + muscu</h2><div class=sub>Minutes d'effort pondérées par l'intensité, sur 8 semaines.${f.acwr!=null?` Rapport 7 jours / 4 semaines : <b>${f.acwr.toFixed(2).replace('.',',')}</b> (zone habituelle 0,8 à 1,3).`:''}</div><svg viewBox="0 0 320 108" width="100%" role=img aria-label="Charge hebdomadaire course et muscu sur 8 semaines">${bars}</svg><div class=cleg><span><i class=r></i>Course</span><span><i class=m></i>Muscu</span></div></div>
 ${rpPend()?'':rpCard()}<div class=sub style="margin:0 4px 16px">Indicatif, calculé sur ton téléphone. Ce n'est pas un avis médical : en cas de douleur ou de malaise, consulte.</div>`}
-/* ===== v4.2 : allures d'entraînement (méthode VDOT de J. Daniels) ===== */
+/* ===== allures d'entraînement (méthode VDOT de J. Daniels) ===== */
 const vdotOf=(km,sec)=>{const t=sec/60,v=km*1000/t,vo2=-4.6+.182258*v+.000104*v*v,pc=.8+.1894393*Math.exp(-.012778*t)+.2989558*Math.exp(-.1932605*t);return vo2/pc};
 const paceAt=(V,p)=>{const a=.000104,b=.182258,c=-(4.6+V*p),v=(-b+Math.sqrt(b*b-4*a*c))/(2*a);return 60000/v};
 function vdotPaces(){const C=recCands();let V=0,src='';C.forEach((a,i)=>{if(a.length){const v=vdotOf(RD[i][1],a[0].s);if(v>V){V=v;src=RD[i][0]}}});if(V<20)return null;return{V,src,E:paceAt(V,.7),M:paceAt(V,.8),T:paceAt(V,.885),I:paceAt(V,1)}}
 function pacesCard(){const P=vdotPaces();if(!P)return'';const r=(l,d,v,v2)=>`<div class=row style="justify-content:space-between;margin:8px 0"><div style="min-width:0"><b>${l}</b><div class=sub style="margin:0">${d}</div></div><span class=big>${pf(v)}${v2?'–'+pf(v2):''}<small class=sub> /km</small></span></div>`;
 return`<div class=card><h2>Tes allures d'entraînement</h2><div class=sub>Niveau estimé (indice VDOT) : <b>${P.V.toFixed(1).replace('.',',')}</b>, d'après ton record ${P.src}.</div>${r('Endurance','Footings et sortie longue',paceAt(P.V,.74),paceAt(P.V,.65))}${r('Marathon','Allure longue soutenue',P.M)}${r('Seuil (tempo)','Confortablement difficile, 20 à 40 min',P.T)}${r('Fractionné','Répétitions de 3 à 5 min',P.I)}<div class=sub style="margin:6px 0 0">Méthode de Jack Daniels. Plus fiable avec un record récent. Les séances guidées utilisent ces allures.</div></div>`}
-/* ===== v4.2 : séance guidée à la voix ===== */
+/* ===== séance guidée à la voix ===== */
 let GD=null,AC=null,WL=null;
 const ac=()=>{try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}return AC};
 const beep=(f=880,d=.16,v=.3)=>{const c=ac();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(v,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d+.02)}catch(e){}};
@@ -945,7 +856,7 @@ const left=Math.ceil(p.a+G.st[p.i].sec-p.el);if(left<=3&&left>0&&G.lb!==left){G.
 if(view!=='guide')return;const tot=G.st.reduce((a,x)=>a+x.sec,0),cur=G.st[p.i],nx=G.st[p.i+1],$$=id=>document.getElementById(id);
 if($$('gt'))$$('gt').textContent=pf(left);if($$('gb'))$$('gb').style.width=Math.min(100,p.el/tot*100)+'%';
 if($$('gn')&&$$('gn').textContent!==cur.n){$$('gn').textContent=cur.n;$$('gs').textContent='Étape '+(p.i+1)+' sur '+G.st.length;$$('gp').textContent=(cur.p?'Allure '+pf(cur.p)+' /km · ':'')+cur.c;$$('gx').textContent=nx?'Ensuite : '+nx.n+' · '+pf(nx.sec):''}}
-/* ===== v4.2 : minuteur de repos ===== */
+/* ===== minuteur de repos ===== */
 let RT=null;
 const restDef=e=>e.t==='cardio'?60:e.eq==='c'||e.m==='reps'||e.m==='sec'?60:((e.sets[0]&&+e.sets[0].r)||8)<=6?150:90;
 function rtDraw(){let b=document.getElementById('rtb');if(!RT){if(b)b.remove();return}if(!b){b=document.createElement('div');b.id='rtb';b.className='rtb';b.setAttribute('role','timer');document.body.appendChild(b)}
@@ -955,14 +866,14 @@ if(l<=0&&!RT.fired){RT.fired=1;beep(1046,.3);setTimeout(()=>beep(1046,.3),350);v
 const wuTxt=e=>{if(e.t==='cardio'||e.skip)return'';const w=+(e.sets[0]&&e.sets[0].w)||0,bar=e.eq==='b'||(!e.eq&&/squat|développé|soulevé|rowing barre|hip thrust/i.test(e.name));if(!bar||w<40)return'';
 const r=x=>Math.round(x/2.5)*2.5,L=[[20,10],[r(w*.5),5],[r(w*.7),3],[r(w*.85),2]].filter((x,i,a)=>x[0]>=20&&x[0]<w&&(!i||x[0]>a[i-1][0]));
 return`<div class=sub style="margin-top:-4px">Échauffement : ${L.map(([k,n])=>(k===20&&e.eq==='b'?'barre':String(k).replace('.',','))+' × '+n).join(' · ')}</div>`};
-/* ===== v4.2 : courbe de progression ===== */
+/* ===== courbe de progression ===== */
 let exOpen=null;
 function exChart(n){const P=[];S.h.forEach(h=>h.ex.forEach(e=>{if(e.name!==n||e.skip)return;const ok=e.sets.filter(s=>s.done!==false&&+s.w>0&&+s.r>0);if(!ok.length)return;P.push([new Date(h.date).getTime(),Math.max(...ok.map(s=>s.w*(1+s.r/30)))])}));
 P.sort((a,b)=>a[0]-b[0]);if(P.length<2)return`<div class=sub style="margin:6px 0 12px">Il faut au moins 2 séances avec charge pour tracer ta progression.</div>`;
 const W=320,H=120,x0=P[0][0],x1=P[P.length-1][0]||x0+1,v=P.map(p=>p[1]),mn=Math.min(...v)*.97,mx=Math.max(...v)*1.03,X=t=>8+(t-x0)/(x1-x0||1)*(W-16),Y=y=>H-18-(y-mn)/(mx-mn||1)*(H-34);
 const d0=new Date(x0).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}),d1=new Date(x1).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}),g=Math.round((v[v.length-1]/v[0]-1)*100);
 return`<div style="margin:4px 0 12px"><svg viewBox="0 0 ${W} ${H}" width="100%" role=img aria-label="1RM estimé de ${Math.round(v[0])} à ${Math.round(v[v.length-1])} kg entre le ${d0} et le ${d1}"><polyline fill=none stroke="var(--y)" stroke-width=2.5 stroke-linejoin=round points="${P.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}"/>${P.map(p=>`<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r=3 style="fill:var(--y)"/>`).join('')}<text x=8 y=${H-2} font-size=10 style="fill:var(--mut)">${d0}</text><text x=${W-8} y=${H-2} font-size=10 text-anchor=end style="fill:var(--mut)">${d1}</text></svg><div class=sub style="margin:0">1RM estimé : ${Math.round(v[0])} → ${Math.round(v[v.length-1])} kg (${g>=0?'+':''}${g} %) sur ${P.length} séances.</div></div>`}
-/* ===== v4.2 : chaussures ===== */
+/* ===== chaussures ===== */
 const TRAILRX=/trail|speedgoat|peregrine|cascadia|mafate|speedcross|ultra ?glide|wildhorse|hierro|catamount|torrent|sense ride|xa pro|vectiv|tecton|agility peak|terraventure|lone peak|kinabalu|evadict|zinal|mutant|bushido|jackal|xodus/i;
 const isTrailRun=r=>/Trail/.test(r.t||'')||(r.km>0&&(r.up||0)/r.km>=25);
 const shOn=(x,d)=>d>=x.since&&(!x.end||d<=x.end);
@@ -987,7 +898,7 @@ const ex=L.find(x=>!x.sg&&x.n.toLowerCase()===nm.toLowerCase());if(ex){ex.sg=id;
 const loc=R.reduce((a,x)=>a+x.km,0),ty=TRAILRX.test(nm)||R.filter(isTrailRun).length*2>R.length?'t':'r',o={id:uid(),n:nm,since:R[0].d.slice(0,10),max:ty==='t'?800:700,ty,sg:id,k0:g&&g.km>loc?Math.round(g.km-loc):0};
 if(g&&g.ret)o.end=R[R.length-1].d.slice(0,10);if(!o.end&&!L.some(x=>!x.end&&x.ty===ty&&x.def))o.def=1;L.push(o);n++}
 if(n){save();toast(n+' paire'+(n>1?'s':'')+' récupérée'+(n>1?'s':'')+' depuis Strava');if(view==='run'||view==='rdet')render()}else if(!auto)toast('Aucune nouvelle paire sur Strava')}catch(e){if(!auto)toast('Échec ('+e.message+')')}}
-/* ===== v4.2 : import depuis Strong, Hevy, GPX, TCX ===== */
+/* ===== import depuis Strong, Hevy, GPX, TCX ===== */
 const EXTR=[[/incline.*bench.*dumbbell|incline.*dumbbell.*press/,'Développé incliné haltères'],[/incline.*bench/,'Développé incliné barre'],[/decline.*bench/,'Développé décliné barre'],[/close.?grip.*bench/,'Développé couché prise serrée'],[/bench press.*dumbbell|dumbbell bench/,'Développé couché haltères'],[/bench press.*smith/,'Développé couché Smith machine'],[/chest press|bench press.*machine/,'Développé couché machine (chest press)'],[/bench press/,'Développé couché barre'],
 [/front squat/,'Squat avant (front squat)'],[/goblet squat/,'Squat gobelet (goblet)'],[/bulgarian|split squat/,'Squat bulgare haltères'],[/hack squat/,'Hack squat'],[/squat.*smith/,'Squat Smith machine'],[/squat/,'Squat barre'],[/romanian deadlift.*dumbbell/,'Soulevé de terre roumain haltères'],[/romanian deadlift|\brdl\b|stiff.?leg/,'Soulevé de terre roumain barre'],[/sumo deadlift/,'Soulevé de terre sumo'],[/trap bar|hex bar/,'Soulevé de terre barre hexagonale'],[/deadlift/,'Soulevé de terre'],
 [/arnold/,'Développé Arnold'],[/shoulder press.*machine/,'Développé épaules machine'],[/(overhead|shoulder) press.*dumbbell|seated.*shoulder press/,'Développé épaules haltères'],[/overhead press|military press|shoulder press/,'Développé militaire barre'],[/lateral raise.*cable/,'Élévations latérales poulie'],[/lateral raise.*machine/,'Élévations latérales machine'],[/lateral raise/,'Élévations latérales haltères'],[/front raise/,'Élévations frontales haltères'],[/reverse fly|rear delt/,'Oiseau haltères (buste penché)'],[/face pull/,'Face pull'],
@@ -1026,7 +937,7 @@ const locT=(el,n)=>{const x=[...el.getElementsByTagName('*')].find(e=>e.localNam
 const hav=(a,b)=>{const R=6371e3,r=Math.PI/180,dl=(b.la-a.la)*r,dn=(b.lo-a.lo)*r,s=Math.sin(dl/2)**2+Math.cos(a.la*r)*Math.cos(b.la*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(s))};
 const lociso=d=>iso(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':00Z';
 
-/* ===== v4.3 : données de montre (FIT, GPX, TCX, flux Strava) : carte, courbes, km par km ===== */
+/* ===== données de montre (FIT, GPX, TCX, flux Strava) : carte, courbes, km par km ===== */
 const plEnc=pts=>{let o='',la0=0,lo0=0;const e=v=>{v=v<0?~(v<<1):v<<1;let s='';while(v>=0x20){s+=String.fromCharCode((0x20|(v&0x1f))+63);v>>=5}return s+String.fromCharCode(v+63)};
 for(const[la,lo]of pts){const a=Math.round(la*1e5),b=Math.round(lo*1e5);o+=e(a-la0)+e(b-lo0);la0=a;lo0=b}return o};
 const plDec=s=>{const o=[];let i=0,la=0,lo=0;while(i<s.length){for(const k of[0,1]){let b,sh=0,r=0;do{b=s.charCodeAt(i++)-63;r|=(b&0x1f)<<sh;sh+=5}while(b>=0x20&&i<=s.length);const d=r&1?~(r>>1):r>>1;if(k)lo+=d;else la+=d}o.push([la/1e5,lo/1e5])}return o};
@@ -1109,7 +1020,7 @@ L.circleMarker(pts[0],{radius:6,color:'#fff',weight:2,fillColor:'#34c759',fillOp
 async function rdetLoad(){const r=(S.runs||[]).find(x=>String(x.id)===String(RDI));if(!r||trGet(r.id)||typeof r.id!=='number'||!S.sv)return;RDS='Chargement des données détaillées depuis Strava…';render();
 try{const tr=await trStrava(r);RDS=tr?'':'Strava ne fournit pas de données détaillées pour cette sortie.'}catch(e){RDS=e.message==='429'?'Limite Strava atteinte : réessaie dans 15 minutes.':'Données détaillées indisponibles ('+e.message+').'}if(view==='rdet'&&String(RDI)===String(r.id))render()}
 
-/* ===== v4.3 : HYROX ===== */
+/* ===== HYROX ===== */
 // Format officiel : 8 × (1 km de course + 1 station). Poids par division (saison 2025/26).
 const HXS=[['SkiErg','1000 m'],['Sled push','4 × 12,5 m'],['Sled pull','4 × 12,5 m'],['Burpee broad jumps','80 m'],['Rameur','1000 m'],['Farmers carry','200 m'],['Fentes sandbag','100 m'],['Wall balls','100 répétitions']];
 const HXD={of:['Open femmes',[,'102 kg (traîneau compris)','78 kg (traîneau compris)',,,'2 × 16 kg','10 kg','4 kg']],om:['Open hommes',[,'152 kg (traîneau compris)','103 kg (traîneau compris)',,,'2 × 24 kg','20 kg','6 kg']],
@@ -1186,7 +1097,7 @@ function impx(){const inp=document.createElement('input');inp.type='file';inp.mu
 inp.onchange=async()=>{const ok=[],ko=[];let sk=0;for(const f of inp.files){try{if(/\.zip$/i.test(f.name)){toast('Lecture de l\'archive…');const E=await zipFind(f,/(^|\/)activities\.csv$/i);if(!E.length)throw new Error("pas de fichier activities.csv : est-ce bien l'archive Strava ?");const r=importStravaCSV(await zipRead(f,E[0]));if(r[0])ok.push(r[0]);sk+=r[1];continue}
 if(/\.fit$/i.test(f.name)){const r=importFIT(await f.arrayBuffer());if(r[0])ok.push(r[0]);sk+=r[1];continue}const t=await f.text(),r=/\.(gpx|tcx)$/i.test(f.name)||/^\s*<\?xml|<gpx|<TrainingCenterDatabase/i.test(t.slice(0,300))?importTrack(t):/^\uFEFF?"?(activity id|id de l)/i.test(t.slice(0,40))?importStravaCSV(t):importCSV(t);if(r[0])ok.push(r[0]);sk+=r[1]}catch(e){ko.push(f.name+' ('+e.message+')')}}
 save();render();alert((ok.length?'Importé : '+ok.join(', ')+'.':"Rien d'importé.")+(sk?'\n'+sk+' déjà présent'+(sk>1?'s':'')+', ignoré'+(sk>1?'s':'')+'.':'')+(ko.length?'\nNon reconnu : '+ko.join(', '):''))};inp.click()}
-/* ===== v4.2 : plan dans le calendrier ===== */
+/* ===== plan dans le calendrier ===== */
 const icsE=t=>String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
 const TE=new TextEncoder(),icsF=l=>{const o=[];let c='',n=0;for(const ch of l){const b=TE.encode(ch).length;if(n+b>73){o.push(c);c=' ';n=1}c+=ch;n+=b}o.push(c);return o.join('\r\n')};
 async function icsPlan(){if(!S.plan){toast("Définis d'abord un objectif");return}const hm=(prompt('Heure habituelle de tes sorties (HH:MM)',S.icsH||'18:30')||'').trim(),m=hm.match(/^(\d{1,2})[:h](\d{2})$/);if(!m){if(hm)alert('Format attendu : 18:30');return}S.icsH=hm;
@@ -1213,7 +1124,7 @@ function sedit(){const q=sx,T=['Endurance','Sortie longue','Tempo','Fractionné'
 return`<div class=top><h1>${q.i>=0?'Modifier la séance':'Nouvelle séance'}</h1></div><div class=card><label style="margin-top:0">Type</label><select data-q=t>${T.map(t=>`<option${q.t===t?' selected':''}>${t}`).join('')}</select><label>Date</label><input type=date data-q=date value="${q.date}"><label>Distance (km)</label><input type=number inputmode=decimal step=any data-q=km value="${q.km}"><label>Détails (facultatif)</label><input style="text-align:left" data-q=custom placeholder="Ex. 40' tranquille, terrain plat" value="${esc(q.custom)}"></div>`
 +(q.i>=0?`<button style="width:100%;margin-bottom:8px" data-a=guide data-w=${q.w} data-i=${q.i}>▶ Lancer la séance guidée</button>`:'')+`<button class=p style="width:100%;padding:16px" data-a=ssave>Enregistrer</button><div class=bar style="margin-top:4px"><button class=gh data-a=scancel>Annuler</button>${q.i>=0?'<button class="gh d" data-a=sdel>Supprimer</button>':''}</div>`}
 function spark(v){if(v.length<2)return'';const mx=Math.max(...v),mn=Math.min(...v),R=mx-mn||1,W=90,H=26;
-return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none stroke="#c9cacf" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
+return`<svg width=${W} height=${H} viewBox="0 0 ${W} ${H}"><polyline fill=none style="stroke:var(--t2)" stroke-width=2 stroke-linejoin=round points="${v.map((y,i)=>`${(i/(v.length-1)*(W-4)+2).toFixed(1)},${(H-3-(y-mn)/R*(H-6)).toFixed(1)}`).join(' ')}"/></svg>`}
 const COACH_SYS=`Tu es le coach de course à pied de l'utilisateur dans l'app FitLog. Sa priorité : l'objectif de course. Les DONNÉES JSON (en fin de consigne) contiennent : plan à venir par date (j = jour, st = fait/manqué/à faire), sorties récentes, renfo récent, zones FC en bpm, forme du jour (score, ressenti, rapport de charge 7 j / 28 j, séries de jambes récentes), mémoire.
 Tu discutes comme un vrai coach sympa, en français, en tutoyant, de façon naturelle et chaleureuse, comme dans une conversation avec ChatGPT. Réponds d'abord précisément à ce qui est demandé, explique le pourquoi, rebondis, et pose au maximum UNE question quand elle aide vraiment. Ne répète jamais une phrase ou une idée déjà dite plus haut dans la conversation, varie tes formulations et la façon de commencer. Longueur adaptée : une ou deux phrases pour une question simple, 100 à 180 mots quand une analyse le demande. Pas de titres, pas de listes à puces sauf si elles aident vraiment, pas de formules creuses ni de compliments automatiques. Appuie-toi sur les DONNÉES et cite des chiffres concrets ; n'invente jamais une donnée absente. Si la question sort du sport, réponds brièvement et ramène doucement vers l'entraînement.
 Modifier le plan : seulement si l'utilisateur le demande ou accepte ta proposition. Décris alors le changement en une phrase dans ta réponse, puis ajoute tout à la fin, sur une ligne séparée, un bloc : <fitlog>{"changes":[...],"mem":"..."}</fitlog>
@@ -1332,7 +1243,7 @@ if(yr)o.forEach((a,i)=>{o[i]=a.filter(x=>(x.date||'').slice(0,4)===yr)});o.forEa
 function predAt(D,C){C=C||recCands();let b=null;
 C.forEach((a,i)=>{if(!a.length)return;const g=Math.abs(Math.log(D/RD[i][1]));if(!b||g<b.g)b={g,i,s:a[0].s}});
 return b?{t:rieg(b.s,RD[b.i][1],D),from:RD[b.i][0]}:null}
-const TRO='<svg viewBox="0 0 48 48" width=44 height=44 class=tro><defs><linearGradient id=gg x1=0 y1=0 x2=1 y2=1><stop offset=0 style="stop-color:var(--yl)"/><stop offset=.45 style="stop-color:var(--y)"/><stop offset=1 style="stop-color:var(--yd)"/></linearGradient></defs><path d="M14 5h20v11a10 10 0 0 1-20 0z" fill="url(#gg)"/><path d="M14 8H7v3a7 7 0 0 0 7 7M34 8h7v3a7 7 0 0 1-7 7" fill="none" style="stroke:var(--y)" stroke-width="2.4"/><rect x="21" y="26" width="6" height="9" fill="url(#gg)"/><rect x="14" y="35" width="20" height="6" rx="2.5" fill="url(#gg)"/><path d="M19.5 9v7" stroke="rgba(255,255,255,.6)" stroke-width="2.2" stroke-linecap="round"/></svg>',
+const TRO='<svg viewBox="0 0 48 48" width=44 height=44 class=tro><defs><linearGradient id=gg x1=0 y1=0 x2=1 y2=1><stop offset=0 style="stop-color:var(--au)"/><stop offset=.45 style="stop-color:var(--au)"/><stop offset=1 style="stop-color:var(--aud)"/></linearGradient></defs><path d="M14 5h20v11a10 10 0 0 1-20 0z" fill="url(#gg)"/><path d="M14 8H7v3a7 7 0 0 0 7 7M34 8h7v3a7 7 0 0 1-7 7" fill="none" style="stroke:var(--au)" stroke-width="2.4"/><rect x="21" y="26" width="6" height="9" fill="url(#gg)"/><rect x="14" y="35" width="20" height="6" rx="2.5" fill="url(#gg)"/><path d="M19.5 9v7" stroke="rgba(255,255,255,.6)" stroke-width="2.2" stroke-linecap="round"/></svg>',
 RN=['La vitesse','La puissance',"L'endurance",'La légende'],MD=['🥇','🥈','🥉'];
 function recView(){const C=recCands(recYr),CA=recCands(),g=S.goal,now=Date.now(),yrs=[...new Set(CA.flat().map(x=>(x.date||'').slice(0,4)).filter(Boolean))].sort().reverse(),nb=C.filter(a=>a.length).length;
 const cards=RD.map(([n,D],i)=>{const b=C[i][0],gl=g&&!isHx(g)&&Math.abs(g.dist/D-1)<.06?g:null;let h;
@@ -1346,7 +1257,7 @@ h=`<div class=rtop><div class="tro lk">🔒</div><div style="flex:1"><div class=
 if(gl&&b){const pc=Math.max(0,Math.min(100,Math.round(gl.time/b.s*100)));h+=`<div class=gl><div style="display:flex;justify-content:space-between"><span>Objectif ${hms(gl.time)}</span><span>${b.s>gl.time?'−'+hms(Math.round(b.s-gl.time))+' à gagner':'atteint ✓'}</span></div><div class=gbar><i style="width:${pc}%"></i></div></div>`}
 else if(gl)h+=`<div class=gl>Objectif ${hms(gl.time)}</div>`;
 return b?`<div class="rc on" style="--d:${i*.12}s">${h}</div>`:`<button class=rc style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
-return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>${TW('hof')}</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}${recYr?' · '+recYr:''}</div></div><div class=rl1>${cards}</div>${pacesCard()}${yrs.length?acc('ryr','Filtrer par année',recYr||'Toutes',`<div class=bar style="flex-wrap:wrap">${['',...yrs].map(y=>`<button class="sm${(recYr||'')===y?' on':''}" data-a=ryr data-v="${y}" style="flex:none">${y||'Toutes'}</button>`).join('')}</div>`):''}${S.sv&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
+return`<div class=hof><div class=hofs>✦ ✧ ✦</div><h2>Hall of Fame</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}${recYr?' · '+recYr:''}</div></div><div class=rl1>${cards}</div>${pacesCard()}${yrs.length?acc('ryr','Filtrer par année',recYr||'Toutes',`<div class=bar style="flex-wrap:wrap">${['',...yrs].map(y=>`<button class="sm${(recYr||'')===y?' on':''}" data-a=ryr data-v="${y}" style="flex:none">${y||'Toutes'}</button>`).join('')}</div>`):''}${S.sv&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Meilleures sorties Strava sur ces distances, ou records saisis à la main (touche une carte). Les chronos « prévus » viennent de ta meilleure performance (formule de Riegel).</div>`}
 const SCW={c:.65,r:.35};
 function weekScore(w){const td=new Date(),cur=w===wk(td.getTime()),f0=Math.min(Infinity,...(S.runs||[]).map(r=>+rdate(r)),...S.h.map(h=>+new Date(h.date)));if(w+7*864e5<=f0)return{t:null,P:{},X:{},km:0,cur,left:null};
 const tk=iso(td),R=(S.runs||[]).filter(r=>wk(rdate(r))===w),km=R.reduce((a,r)=>a+r.km,0),W=S.plan&&S.plan.weeks.find(x=>x.w===w),P={},X={},T=S.rt||2,nh=S.h.filter(h=>wk(new Date(h.date))===w).length,ren=!!(S.h.length||S.t.length);let nr=0;
@@ -1963,7 +1874,7 @@ else if(a==='htab'){histTab=b.dataset.v;hOpen=-1;fxN=1}
 else if(a==='hopen')hOpen=hOpen===i?-1:i;
 else if(a==='rtab'){runTab=b.dataset.v;fxN=1;if(runTab==='rec'&&S.sv)setTimeout(async()=>{if(!S.hist)await syncRuns(true);else fetchEfforts()},50)}
 else if(a==='ryr'){recYr=b.dataset.v}
-else if(a==='theme'){applyTheme(b.dataset.v)}
+else if(a==='mode'){applyMode(b.dataset.v);return}
 else if(a==='effgo'){effSt='';fetchEfforts()}
 else if(a==='rall')runAll=!runAll;
 else if(a==='acc')accOpen[b.dataset.k]=!accOpen[b.dataset.k];

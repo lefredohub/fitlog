@@ -7,10 +7,13 @@
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
- "display_override": ["fullscreen", "standalone"],
+ "display_override": [
+  "fullscreen",
+  "standalone"
+ ],
  "orientation": "portrait",
- "background_color": "#000000",
- "theme_color": "#000000",
+ "background_color": "#0e1416",
+ "theme_color": "#0e1416",
  "categories": [
   "health",
   "fitness",
