@@ -83,6 +83,15 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     check(`[${M}] Séance : revenir à l'exercice prévu`, st.back);
     check(`[${M}] Séance : enregistrement sans le champ d'affichage « ok »`, st.fin);
 
+    // plan : chaque sortie va à la séance la plus proche (cas réel : sorties lundi 6,3 km et samedi 7 km, séances mardi et dimanche)
+    const mw = await p.evaluate(() => { const keep = S.runs, w = wk(Date.now()) - 7 * 864e5, at = d => { const x = new Date(w); x.setDate(x.getDate() + d); return iso(x) + 'T08:00:00Z' };
+      S.runs = [{ id: 'a', d: at(0), km: 6.3, s: 2100 }, { id: 'b', d: at(5), km: 7, s: 2400 }];
+      const W = { w, s: [{ d: 1, t: 'Endurance', km: 6 }, { d: 6, t: 'Sortie longue', km: 8 }] }, r = matchWeek(W);
+      const W2 = { w, s: [{ d: 0, t: 'Endurance', km: 6 }, { d: 5, t: 'Endurance', km: 7 }] }, r2 = matchWeek(W2);
+      S.runs = keep; return [r.map(x => x && x.id).join(), r2.map(x => x && x.id).join()] });
+    check(`[${M}] Plan : sortie du lundi → séance du mardi, sortie du samedi → séance du dimanche`, mw[0] === 'a,b', mw[0]);
+    check(`[${M}] Plan : sorties faites le jour prévu`, mw[1] === 'a,b', mw[1]);
+
     // encoche simulée (59 px) : la barre du haut ne cache pas le premier exercice
     await p.addStyleTag({ content: '#app.ses{margin-top:59px!important}' }); await p.evaluate("view='train';start(S.t[0].id);render()"); await p.waitForTimeout(400);
     const nb = await p.evaluate(() => { const s = document.querySelector('.sbar').getBoundingClientRect(), h = document.querySelector('.exc h2').getBoundingClientRect(); return { s: s.bottom, h: h.top, t: s.top } });

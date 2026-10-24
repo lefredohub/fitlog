@@ -498,7 +498,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.6.2';
+const VER='4.6.3';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -715,11 +715,16 @@ return`<div class=top><div class=row style="margin:0;gap:4px"><button class=more
 const SI={todo:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',ok:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.5"/></svg>',ko:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg>'};
 const TP={Endurance:{z:'ef'},'Sortie longue':{z:'ef',x:0},Tempo:{z:'tp',m:20},'Fractionné':{z:'iv',r:6},'Allure objectif':{z:'ob',m:20},Course:{},Libre:{},Stations:{hx:1,n:3},'Course compromise':{hx:1},'Simulation HYROX':{hx:1},HYROX:{hx:1}};
 const rdate=r=>new Date(r.d.slice(0,10)+'T12:00:00'),rday=r=>(rdate(r).getDay()+6)%7;
+// Associe chaque sortie de la semaine à une séance du plan : même jour d'abord, sinon la séance la plus proche en jours
+// (un peu en retard plutôt qu'en avance), à distance comparable. Avant : les séances prenaient la première sortie trouvée
+// plus tard dans la semaine, ce qui pouvait croiser les séances (sortie du lundi comptée pour le dimanche).
 function matchWeek(W){
-const R=(S.runs||[]).filter(r=>wk(rdate(r))===W.w),used=new Set(),res=W.s.map(()=>null);
-W.s.forEach((s,i)=>{const c=R.filter(r=>!used.has(r.id)&&rday(r)===s.d).sort((a,b)=>b.km-a.km)[0];if(c){res[i]=c;used.add(c.id)}});
-W.s.forEach((s,i)=>{if(res[i]||s.st)return;const c=R.filter(r=>!used.has(r.id)&&rday(r)>s.d&&r.km>=.5*s.km).sort((a,b)=>rday(a)-rday(b))[0];if(c){res[i]=c;used.add(c.id)}});
-W.s.forEach((s,i)=>{if(res[i]||s.st||s.t==='Course'||s.t==='HYROX')return;const c=R.filter(r=>!used.has(r.id)&&rday(r)<s.d&&r.km>=.6*s.km&&r.km<=1.6*s.km).sort((a,b)=>rday(b)-rday(a))[0];if(c){res[i]=c;used.add(c.id)}});
+const R=(S.runs||[]).filter(r=>wk(rdate(r))===W.w),res=W.s.map(()=>null),P=[],used=new Set();
+W.s.forEach((s,i)=>R.forEach(r=>{const d=rday(r)-s.d,k=r.km/(s.km||r.km||1);
+if(!d)return P.push([-1-r.km/1e3,i,r]);if(s.st)return;
+if(d>0){if(k<.5)return;P.push([d+Math.min(1,Math.abs(1-k))*.4,i,r])}
+else{if(s.t==='Course'||s.t==='HYROX'||k<.6||k>1.6)return;P.push([-d+.25+Math.abs(1-k)*.4,i,r])}}));
+P.sort((a,b)=>a[0]-b[0]).forEach(([,i,r])=>{if(!res[i]&&!used.has(r.id)){res[i]=r;used.add(r.id)}});
 return res}
 const sStatus=(W,s,run,today)=>s.st==='ok'?'ok':s.st==='ko'?'ko':run?'ok':s.hx&&hxDone(iso(sd(W.w,s.d)))?'ok':iso(sd(W.w,s.d))<today?'ko':'todo';
 function reconcilePlan(){const p=S.plan,today=iso(new Date());if(!p||p.rec===today)return;p.rec=today;
