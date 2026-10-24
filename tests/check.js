@@ -106,31 +106,44 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       f.forEach(k => localStorage.setItem(k, '1')); window.confirm = () => true; const D = 864e5, now = Date.now(), at = j => new Date(now - j * D);
       const W = [{ id: 'A1', workoutType: 'running', startDate: at(2).toISOString(), endDate: new Date(at(2).getTime() + 2100e3).toISOString(), duration: 2100, distance: 6300, sourceName: 'Apple Watch' },
         { id: 'B2', workoutType: 'running', startDate: at(5).toISOString(), endDate: new Date(at(5).getTime() + 2500e3).toISOString(), duration: 2500, distance: 7000, sourceName: 'Garmin Connect' },
-        { id: 'C3', workoutType: 'walking', startDate: at(1).toISOString(), duration: 1800, distance: 2000 }];
+        { id: 'C3', workoutType: 'walking', startDate: at(1).toISOString(), duration: 1800, distance: 2000 },
+        { id: 'D4', workoutType: 'running', startDate: new Date(at(3).setHours(7, 30, 0, 0)).toISOString(), duration: 1900, distance: 6000, sourceName: 'Garmin' },
+        { id: 'E5', workoutType: 'running', startDate: new Date(at(3).setHours(18, 10, 0, 0)).toISOString(), duration: 1950, distance: 6000, sourceName: 'Garmin' },
+        { id: 'F6', workoutType: 'running', startDate: at(4).toISOString(), duration: 3000, distance: 9000, sourceName: 'Strava', sourceBundleId: 'com.strava.stravaride' }];
+      window.__perm = 0;
       window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'ios', Plugins: { HealthPlugin: {
-        requestHealthPermissions: async () => ({ permissions: [] }),
+        requestHealthPermissions: async () => { window.__perm++; return { permissions: [] } },
         queryWorkouts: async q => { const a = Date.parse(q.startDate), z = Date.parse(q.endDate);
           return { workouts: W.filter(w => { const t = Date.parse(w.startDate); return t >= a && t < z }).map(w => ({ ...w,
             heartRate: q.includeHeartRate ? Array.from({ length: 20 }, (_, i) => ({ timestamp: new Date(Date.parse(w.startDate) + i * 100e3).toISOString(), bpm: 140 + i })) : [],
             route: q.includeRoute ? Array.from({ length: 60 }, (_, i) => ({ timestamp: new Date(Date.parse(w.startDate) + i * 35e3).toISOString(), lat: 47.65 + i * .0009, lng: -2.76, alt: 20 + (i % 10) })) : [] })) } } } } };
       localStorage.setItem('fitlog', JSON.stringify({ t: [], h: [], a: null, runs: [
         { id: 9001, n: 'Sortie Strava', d: lociso0(at(5)), km: 7.02, s: 2490 }, { id: 9002, n: 'Vieille sortie Strava', d: lociso0(at(400)), km: 10, s: 3000 },
-        { id: 'm1', man: 1, n: 'Saisie', d: lociso0(at(9)), km: 5, s: 1600 }] }));
-      function lociso0(d) { return d.toISOString().slice(0, 16) + ':00Z' }
+        { id: 'm1', man: 1, n: 'Saisie', d: lociso0(at(9)), km: 5, s: 1600 },
+        { id: 9003, n: 'Aller', d: lociso0(new Date(at(3).setHours(7, 31, 0, 0))), km: 6.01, s: 1900 }, { id: 9004, n: 'Retour', d: lociso0(new Date(at(3).setHours(18, 11, 0, 0))), km: 5.98, s: 1950 }] }));
+      function lociso0(d) { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':00Z' }
     }, FLAGS);
     await p.goto(URL); await p.waitForTimeout(800);
     const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)); view = 'run'; runTab = 'r'; render(); await w(100);
       const btn = document.querySelector('[data-a=hksync]'); const o = { card: !!btn }; btn.click(); await w(600);
       const R = S.runs; o.added = R.some(x => x.id === 'hkA1' && x.hr > 0); o.replaced = R.some(x => x.id === 'hkB2') && !R.some(x => x.id === 9001); o.walk = !R.some(x => x.id === 'hkC3');
       o.manual = R.some(x => x.id === 'm1'); o.left = stLeft() === 1; o.own = ownRuns().some(x => x.id === 'hkA1');
+      o.twice = R.some(x => x.id === 'hkD4') && R.some(x => x.id === 'hkE5') && !R.some(x => x.id === 9003 || x.id === 9004);
+      o.nostrava = !R.some(x => x.id === 'hkF6'); o.local = !('hk' in S) && !!JSON.parse(localStorage.getItem('fitlog-hk')).last;
+      const m0 = S._mod; await hkSync(true); o.nosave = S._mod === m0; const p0 = window.__perm; document.querySelector('[data-a=hksync]').click(); await w(300); o.perm = window.__perm === p0 + 1;
       RDI = 'hkA1'; view = 'rdet'; render(); await rdetLoad(); await w(200); o.track = !!trGet('hkA1');
       view = 'run'; runTab = 'r'; render(); await w(100); const st = document.querySelector('[data-a=stoff]'); o.stbtn = !!st; if (st) st.click(); await w(300);
-      o.off = S.stravaOff === 1 && stLeft() === 0 && S.runs.length === 3 && !document.querySelector('[data-a=stoff]') && !document.querySelector('.sbtn');
+      o.off = S.stravaOff === 1 && stLeft() === 0 && S.runs.length === 5 && !document.querySelector('[data-a=stoff]') && !document.querySelector('.sbtn');
       return o });
     check('[Apple Santé] carte « Connecter Apple Santé » dans Course > Sorties', r.card);
     check('[Apple Santé] course importée avec la fréquence cardiaque (marche ignorée)', r.added && r.walk);
     check('[Apple Santé] sortie Strava remplacée par sa version Apple Santé', r.replaced);
     check('[Apple Santé] sortie saisie à la main conservée', r.manual);
+    check('[Apple Santé] deux courses le même jour : aucune perdue', r.twice, JSON.stringify(r));
+    check("[Apple Santé] séances écrites par l'app Strava ignorées (pas de données Strava au coach)", r.nostrava);
+    check("[Apple Santé] état gardé sur l'appareil (pas dans la sauvegarde du compte)", r.local);
+    check('[Apple Santé] relecture sans nouveauté : rien n\'est réenregistré (pas d\'écrasement du compte)', r.nosave);
+    check("[Apple Santé] autorisation redemandée à chaque lecture manuelle", r.perm);
     check('[Apple Santé] données visibles par le coach (données à toi)', r.own);
     check('[Apple Santé] tracé GPS chargé dans le détail de la sortie', r.track);
     check('[Apple Santé] « Retirer Strava » enlève Strava et ses sorties restantes', r.left && r.stbtn && r.off, JSON.stringify(r));

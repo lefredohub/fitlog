@@ -23,7 +23,7 @@ jobs:
           node-version: 22
       - name: Choisir Xcode (le plus récent installé)
         run: |
-          X=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1); echo "Xcode : $X"; sudo xcode-select -s "$X"; xcodebuild -version
+          X=$(ls -d /Applications/Xcode_*.app | grep -viE "beta|release_candidate|_rc" | sort -V | tail -1); echo "Xcode : $X"; sudo xcode-select -s "$X"; xcodebuild -version
       - name: Préparer le projet Capacitor iOS
         run: |
           mkdir -p build/www && cd build

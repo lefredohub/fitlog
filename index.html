@@ -404,12 +404,12 @@ try{localStorage.removeItem('fitlog-sync');const o=JSON.parse(localStorage.getIt
 let stS='',stWait=0;const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
 async function syncRuns(auto){if(S.stravaOff)return;const c=SC(),H=c&&await SH();if(!c||!H){if(!auto)setSv("Strava n'est pas disponible dans cette version.");return}
 try{setSv('Synchronisation…');S.runs=S.runs||[];
-const last=S.runs.filter(r=>!r.man).reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist||!!S.gneed;
+const last=S.runs.filter(r=>!isOwn(r)).reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist||!!S.gneed;
 const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,base=c.url+'/activities?after='+after;
 let a=[];for(let p=1;p<=60;p+=5){const r=await fetch(base+'&p='+p,{headers:H});
 if(r.status===409){const was=S.sv;delete S.sv;if(was)save();setSv(auto?'':'Strava n\'est pas encore connecté : touche « Se connecter avec Strava ».');if(was&&(view==='set'||view==='run'))render();return}
 if(!r.ok)throw new Error(r.status);const x=await r.json();a.push(...x);if(!full||x.length<500)break;setSv('Historique complet… '+a.length+' sorties')}
-a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);if(i<0&&S.runs.some(y=>y.hk&&sameRun(y,x)))return;if(i<0){const j=S.runs.findIndex(y=>isOwn(y)&&(y.id==='a'+x.id||sameRun(y,x)));if(j>=0){const o=S.runs.splice(j,1)[0];xrPush(o);const tr=trGet(o.id);if(tr&&!trGet(x.id))trSave(x.id,tr);if(o.sh&&!x.sh)x.sh=o.sh}S.runs.push(x)}else{if(S.runs[i].sh)x.sh=S.runs[i].sh;S.runs[i]=x}});if(full)S.hist=1;{const hg=a.some(x=>x.g!==undefined);if(full&&hg){S.gfull=1;S.gneed=0}else if(hg&&!S.gfull){S.gneed=1;save();return syncRuns(auto)}}
+a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);if(i<0&&S.runs.some(y=>y.hk&&sameRunT(y,x)))return;if(i<0){const j=S.runs.findIndex(y=>isOwn(y)&&(y.id==='a'+x.id||sameRun(y,x)));if(j>=0){const o=S.runs.splice(j,1)[0];xrPush(o);const tr=trGet(o.id);if(tr&&!trGet(x.id))trSave(x.id,tr);if(o.sh&&!x.sh)x.sh=o.sh}S.runs.push(x)}else{if(S.runs[i].sh)x.sh=S.runs[i].sh;S.runs[i]=x}});if(full)S.hist=1;{const hg=a.some(x=>x.g!==undefined);if(full&&hg){S.gfull=1;S.gneed=0}else if(hg&&!S.gfull){S.gneed=1;save();return syncRuns(auto)}}
 S.sv=1;S.syncAt=Date.now();stWait=0;try{localStorage.removeItem('fitlog-stw')}catch(e){}save();setSv(a.length?a.length+' sortie'+(a.length>1?'s':'')+' récupérée'+(a.length>1?'s':''):'À jour.');
 if(!S.svn)try{const m=await fetch(c.url+'/me',{headers:H});if(m.ok){const j=await m.json();S.svn=j.n||'';save()}}catch(e){}
 if((view==='run'||view==='set')&&!ed)render();await shSync(1);await fetchEfforts()
@@ -425,7 +425,7 @@ if(r.status===409){effSt='Strava pas connecté.';up();return}
 if(!r.ok&&r.status!==429){effSt='Erreur Strava ('+r.status+').';up();return}
 const d=await r.json();Object.assign(S.be,d.done||d);save();up();if(r.status===429){effSt='Limite Strava atteinte : réessaie dans 15 min.';up();return}}
 const left=all.filter(r=>S.be[r.id]===undefined).length;effSt=left?left+' sorties restantes : touche pour continuer.':'Records à jour sur '+all.length+' sorties.';up()}catch(e){effSt='Échec : '+e.message;up()}}
-const autoSync=()=>{hkAuto();if(S.stravaOff)return;if(SC()&&S.sv&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
+const autoSync=()=>{if(S.stravaOff)return;if(SC()&&S.sv&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
 const pace=r=>{const t=Math.round(r.s/r.km);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
@@ -660,7 +660,7 @@ return top+S.h.map((h,hi)=>[h,hi]).reverse().map(([h,hi])=>{
 const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=h.ex.filter(e=>!e.skip).length,o=hOpen===hi;
 return`<button class="item hrow${o?' open':''}" data-a=hopen data-i=${hi} aria-expanded=${o}>${dtile(h.date)}<div><b>${esc(h.name)}</b><div class=sub>${n} exo${n>1?'s':''}${h.dur?' · '+h.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}</div></div><svg class=chev viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`
 +(o?`<div class="card hdet">${h.ex.map((e,ei)=>`<div style="margin:6px 0"><b>${esc(e.name)}</b>${pr[hi+'.'+ei]?' <span class=pr>record</span>':''}<div class=sub style="margin:0">${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</div>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}<div class=row style="margin:4px 0 0"><button class=gh data-a=editlog data-i=${hi} style="padding-left:0">Modifier cette séance</button><button class=gh data-a=shimg data-k=m data-i=${hi}>Partager en image</button></div></div>`:'')}).join('')}
-const runStart=()=>HKP()?`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>Connecte Apple Santé : les courses de ta montre arrivent toutes seules. Tu peux aussi les saisir à la main.</div><button class=p style="width:100%" data-a=hksync>Connecter Apple Santé</button><button style="width:100%;margin-top:8px" data-a=radd>Ajouter une sortie à la main</button></div>`:`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>Deux façons de remplir ton suivi : les importer depuis Strava, ou les saisir toi-même (date, distance, durée).</div>${WU()&&!S.stravaOff?SBTN()+'<div class=sub style="text-align:center;margin:10px 0">ou</div>':''}<button${WU()&&!S.stravaOff?'':' class=p'} style="width:100%" data-a=radd>Ajouter une sortie à la main</button></div>`;
+const runStart=()=>HKP()?hkCard()+`<button class=gh style="width:100%;margin:-4px 0 10px" data-a=radd>Ou ajoute une sortie à la main</button>`:`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>Deux façons de remplir ton suivi : les importer depuis Strava, ou les saisir toi-même (date, distance, durée).</div>${WU()&&!S.stravaOff?SBTN()+'<div class=sub style="text-align:center;margin:10px 0">ou</div>':''}<button${WU()&&!S.stravaOff?'':' class=p'} style="width:100%" data-a=radd>Ajouter une sortie à la main</button></div>`;
 const dtile=d=>{const x=new Date(String(d).length<=10?d+'T12:00:00':d);return`<span class=dtile><b>${x.getDate()}</b><small>${x.toLocaleDateString('fr-FR',{month:'short'}).replace('.','')}</small></span>`};
 const km1=v=>v.toFixed(1).replace('.',',');
 const runCard=r=>`<div class=rrow><button class=rcb data-a=rdet data-id="${r.id}" aria-label="Détail de la sortie ${esc(r.n)}">${dtile(r.d.slice(0,10))}<span class=rri><b>${esc(r.n)}</b><span class=sub>${hms(r.s)} · ${pace(r)} /km${r.hr?' · '+r.hr+' bpm':''}${r.up?' · D+ '+r.up+' m':''}</span></span><span class=rrk><b>${km1(r.km)}</b><small>km${trGet(r.id)||r.pl?' · carte':''}</small></span></button>${r.man?MORE('run','data-id='+r.id):''}</div>`;
@@ -848,6 +848,8 @@ S.h.forEach(h=>{const n=h.ex.reduce((a,e)=>a+(e.skip||e.t==='cardio'?0:e.sets.le
 /* ===== données à toi (utilisables par le coach IA) ===== */
 const isOwn=r=>!!(r&&(r.man||r.trk||r.arc||r.hk));
 const sameRun=(a,b)=>a.d.slice(0,10)===b.d.slice(0,10)&&Math.abs(a.km-b.km)<Math.max(.3,a.km*.03);
+// pour Apple Santé : en plus, départ à moins de 10 min quand les deux sorties ont une vraie heure (pas une saisie à la main)
+const sameRunT=(a,b)=>{if(!sameRun(a,b))return false;const t=r=>r.man&&!r.trk?NaN:Date.parse(r.d),x=t(a),y=t(b);return isNaN(x)||isNaN(y)||Math.abs(x-y)<6e5};
 const ownSrc=r=>r.src||(r.hk?'santé':r.trk?'montre':r.arc?'archive':'saisie');
 function ownRuns(){const L=(S.runs||[]).filter(isOwn).map(r=>({id:r.id,d:r.d,km:r.km,s:r.s,hr:r.hr,mx:r.mx,up:r.up,t:r.t,src:ownSrc(r)}));
 (S.xr||[]).forEach(x=>{if(!L.some(y=>sameRun(y,x)))L.push({...x,src:ownSrc(x)})});return L.sort((a,b)=>a.d<b.d?-1:1)}
@@ -1112,6 +1114,7 @@ function importFIT(buf){const f=parseFIT(buf);if(f.sport!=null&&![1,11].includes
 /* ===== Apple Santé (app iPhone) : les courses de la montre arrivent par Apple Santé ===== */
 // Module natif « capacitor-health » (nom JS HealthPlugin), présent seulement dans l'app iPhone. Dans Safari, HKP() vaut null et rien ne change.
 let HKX,hkS='',hkBusy=0;
+const HKL=()=>{try{return JSON.parse(localStorage.getItem('fitlog-hk')||'null')}catch(e){return null}},hkSet=o=>{try{localStorage.setItem('fitlog-hk',JSON.stringify(o))}catch(e){}};
 const HKP=()=>{if(HKX!==undefined)return HKX;try{const C=window.Capacitor;HKX=C&&C.isNativePlatform&&C.isNativePlatform()&&C.getPlatform()==='ios'?(C.Plugins&&C.Plugins.HealthPlugin)||(C.registerPlugin&&C.registerPlugin('HealthPlugin'))||null:null}catch(e){HKX=null}return HKX};
 const setHk=t=>{hkS=t;const e=$('#hks');if(e)e.textContent=t};
 const hkD=v=>typeof v==='number'?new Date(v<1e11?v*1000:v):new Date(v);
@@ -1122,27 +1125,30 @@ return{id:'hk'+(w.id||t0.getTime()),n:'Course '+(h<11?'du matin':h<14?'du midi':
 // Lit Apple Santé par tranches de 90 jours (tout l'historique la première fois, puis les 7 derniers jours). Une course déjà importée de Strava
 // est remplacée par sa version Apple Santé ; une sortie saisie à la main ou importée d'un fichier est gardée telle quelle.
 async function hkSync(auto){const P=HKP();if(!P||hkBusy)return;hkBusy=1;
-try{if(!S.hk){setHk('Autorisation…');await P.requestHealthPermissions({permissions:['READ_WORKOUTS','READ_HEART_RATE','READ_ROUTE']});S.hk={on:Date.now()}}
-const now=Date.now(),W=90*864e5;let n=0,rep=0,found=0;S.runs=S.runs||[];
-for(let a=S.hk.last?S.hk.last-7*864e5:Date.parse('2015-01-01T00:00:00Z');a<now;a+=W){if(!auto)setHk("Lecture d'Apple Santé… "+new Date(a).getFullYear());
+try{let L=HKL();
+// l'autorisation est redemandée à chaque lecture manuelle : iOS n'affiche la feuille que si c'est nécessaire (il ne dit jamais si la lecture est refusée)
+if(!auto||!L){setHk('Autorisation…');await P.requestHealthPermissions({permissions:['READ_WORKOUTS','READ_HEART_RATE','READ_ROUTE']});L=L||{on:Date.now()}}
+const now=Date.now(),W=90*864e5,full=!L.last||!(S.runs||[]).some(r=>r.hk);let n=0,rep=0,found=0,ch=0;S.runs=S.runs||[];
+for(let a=full?Date.parse('2015-01-01T00:00:00Z'):L.last-30*864e5;a<now;a+=W){if(!auto)setHk("Lecture d'Apple Santé… "+new Date(a).getFullYear());
 const r=await P.queryWorkouts({startDate:new Date(a).toISOString(),endDate:new Date(Math.min(now,a+W)).toISOString(),includeHeartRate:true,includeRoute:false,includeSteps:false});
-(r&&r.workouts||[]).forEach(w=>{const o=hkRun(w);if(!o)return;found++;const k=S.runs.findIndex(x=>x.id===o.id);if(k>=0){S.runs[k]={...S.runs[k],...o,n:S.runs[k].n,up:S.runs[k].up||0};return}
-const m=S.runs.findIndex(x=>sameRun(x,o));if(m>=0){const x=S.runs[m];if(isOwn(x))return;if(x.sh)o.sh=x.sh;S.runs[m]=o;rep++;return}S.runs.push(o);n++})}
-S.hk.last=now;save();
+(r&&r.workouts||[]).filter(w=>!/^com\.strava/i.test(w.sourceBundleId||'')).sort((x,y)=>String(x.startDate).localeCompare(String(y.startDate))).forEach(w=>{const o=hkRun(w);if(!o)return;found++;
+const k=S.runs.findIndex(x=>x.id===o.id);if(k>=0){const x=S.runs[k];if(x.km!==o.km||x.s!==o.s||x.hr!==o.hr){S.runs[k]={...x,...o,n:x.n,up:x.up||0,sh:x.sh};ch=1}return}
+const m=S.runs.findIndex(x=>sameRunT(x,o));if(m>=0){const x=S.runs[m];if(isOwn(x))return;if(x.sh)o.sh=x.sh;else{const z=shoeOf(x);if(z)o.sh=z.id}S.runs[m]=o;rep++;return}S.runs.push(o);n++})}
+if(found)L.last=now;hkSet(L);if(n||rep||ch)save()
 setHk(n||rep?`${n} sortie${n>1?'s':''} ajoutée${n>1?'s':''}${rep?', '+rep+' remplacée'+(rep>1?'s':'')+' (Strava → Apple Santé)':''}.`:found?'À jour.':"Aucune course trouvée. Vérifie l'accès : Réglages de l'iPhone > Santé > Accès aux données et appareils > FitLog.");
-if(n||rep)render()}catch(e){setHk('Apple Santé indisponible ('+(e&&e.message||e)+').')}finally{hkBusy=0}}
-const hkAuto=()=>{if(S.hk&&HKP()&&(!S.hk.last||Date.now()-S.hk.last>6e5))hkSync(true)};
+if(n||rep)render()}catch(e){setHk('Apple Santé indisponible ('+(e&&e.message||e)+').');if(!auto)toast('Apple Santé indisponible')}finally{hkBusy=0}}
+const hkAuto=()=>{const L=HKL();if(L&&HKP()&&(!L.last||Date.now()-L.last>6e5))hkSync(true)};
 // tracé GPS et fréquence cardiaque d'une course, lus à la demande (écran détail)
 async function hkTrack(r){const P=HKP();if(!P||!r.t0)return null;
 const x=await P.queryWorkouts({startDate:new Date(r.t0-6e4).toISOString(),endDate:new Date(r.t0+(r.s+900)*1000).toISOString(),includeHeartRate:true,includeRoute:true,includeSteps:false});
 const w=(x&&x.workouts||[]).find(w=>'hk'+w.id===r.id);if(!w||!w.route||w.route.length<2)return null;
 const H=(w.heartRate||[]).map(q=>({t:hkD(q.timestamp).getTime(),b:+q.bpm})).sort((p,q)=>p.t-q.t);let j=0;
-const Pt=w.route.map(p=>{const t=hkD(p.timestamp).getTime();while(j+1<H.length&&Math.abs(H[j+1].t-t)<=Math.abs(H[j].t-t))j++;return{t,la:+p.lat,lo:+p.lng,e:p.alt==null?NaN:+p.alt,hr:H.length&&Math.abs(H[j].t-t)<3e4?H[j].b:NaN,dm:NaN}});
+const Pt=w.route.slice().sort((p,q)=>hkD(p.timestamp)-hkD(q.timestamp)).map(p=>{const t=hkD(p.timestamp).getTime();while(j+1<H.length&&Math.abs(H[j+1].t-t)<=Math.abs(H[j].t-t))j++;return{t,la:+p.lat,lo:+p.lng,e:p.alt==null?NaN:+p.alt,hr:H.length&&Math.abs(H[j].t-t)<3e4?H[j].b:NaN,dm:NaN}});
 const b=trBuild(Pt);trSave(r.id,b.tr);if(b.up&&!r.up)r.up=b.up;if(b.mx&&!r.mx)r.mx=b.mx;save();return b.tr}
-function hkCard(){const L=stLeft();
-return`<div class=card><h2>Apple Santé</h2><div class=sub id=hks aria-live=polite>${esc(hkS||(S.hk?(S.hk.last?'Dernière lecture : '+new Date(S.hk.last).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Connecté.'):'Récupère les courses de ta montre (Apple Watch, Garmin, Coros…) enregistrées dans Apple Santé : distance, durée, fréquence cardiaque et tracé.'))}</div>`
-+(S.hk?'<button style="width:100%" data-a=hksync>Relire Apple Santé</button>':'<button class=p style="width:100%" data-a=hksync>Connecter Apple Santé</button>')
-+(S.hk&&!S.stravaOff&&(S.sv||L)?`<div class=sub style="margin:14px 0 8px">${L?L+' sortie'+(L>1?'s':'')+(L>1?' viennent':' vient')+" encore de Strava (absente"+(L>1?'s':'')+" d'Apple Santé).":"Toutes tes sorties viennent maintenant d'Apple Santé."}</div><button class="gh d" style="width:100%" data-a=stoff>Retirer Strava</button>`:'')+`</div>`}
+function hkCard(){const L=stLeft(),K=HKL();
+return`<div class=card><h2>Apple Santé</h2><div class=sub id=hks aria-live=polite>${esc(hkS||(K?(K.last?'Dernière lecture : '+new Date(K.last).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Connecté.'):'Récupère les courses de ta montre (Apple Watch, Garmin, Coros…) enregistrées dans Apple Santé : distance, durée, fréquence cardiaque et tracé.'))}</div>`
++(K?'<button style="width:100%" data-a=hksync>Relire Apple Santé</button>':'<button class=p style="width:100%" data-a=hksync>Connecter Apple Santé</button>')
++(K&&!S.stravaOff&&(S.sv||L)?`<div class=sub style="margin:14px 0 8px">${L?L+' sortie'+(L>1?'s':'')+(L>1?' viennent':' vient')+" encore de Strava (absente"+(L>1?'s':'')+" d'Apple Santé).":"Toutes tes sorties viennent maintenant d'Apple Santé."}</div><button class="gh d" style="width:100%" data-a=stoff>Retirer Strava</button>`:'')+`</div>`}
 // --- flux Strava (sur demande, une sortie à la fois) ---
 async function trStrava(r){const c=SC(),H=c&&S.sv&&await SH();if(!H)return null;const x=await fetch(c.url+'/streams?id='+r.id,{headers:H});if(!x.ok)throw new Error(x.status);const j=await x.json();
 if(!j||!j.t||!j.t.length)return null;const P=j.t.map((t,i)=>({t:(Date.parse(r.d.slice(0,19)+'Z')||0)+t*1000,la:j.ll&&j.ll[i]?j.ll[i][0]:NaN,lo:j.ll&&j.ll[i]?j.ll[i][1]:NaN,e:j.el?j.el[i]:NaN,hr:j.hr?j.hr[i]:NaN,dm:j.d?j.d[i]:NaN}));
@@ -2090,7 +2096,7 @@ const h=DKHV||await DKH(),u=WU()+'/connect?h='+h;stWait=Date.now();try{localStor
 const Br=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;if(Br)Br.open({url:u});else window.open(u,'_blank');setSv('Termine la connexion dans Strava, puis reviens ici.')}
 else if(a==='disconnect'){if(!confirm("Déconnecter Strava ?\n\nLes sorties importées depuis Strava seront retirées de l'app (celles que tu as ajoutées à la main restent). Tu pourras te reconnecter quand tu veux."))return;
 try{const H=await SH(1);if(H&&WU())await fetch(WU()+'/disconnect',{method:'POST',headers:H})}catch(e){}
-S.runs=(S.runs||[]).filter(isOwn);S.be={};delete S.sv;delete S.svn;delete S.syncAt;delete S.hist;effSt='';stS='';save();toast('Strava déconnecté')}
+S.runs=(S.runs||[]).filter(isOwn);S.be={};try{const o=trAll();Object.keys(o).forEach(k=>{if(/^\d+$/.test(k))delete o[k]});localStorage.setItem(TRK,JSON.stringify(o))}catch(e){}delete S.sv;delete S.svn;delete S.syncAt;delete S.hist;effSt='';stS='';save();toast('Strava déconnecté')}
 else if(a==='radd'){RX={id:'',date:iso(new Date()),km:'',h:'',m:'',s:'',n:'',hr:'',up:''};view='rform'}
 else if(a==='redit'){const r=(S.runs||[]).find(x=>String(x.id)===b.dataset.id);if(!r)return;const t=r.s||0;RX={id:String(r.id),date:r.d.slice(0,10),km:r.km,h:Math.floor(t/3600)||'',m:Math.floor(t%3600/60)||'',s:t%60||'',n:r.n||'',hr:r.hr||'',up:r.up||''};view='rform'}
 else if(a==='rcancel'){RX=null;view='run';runTab='r'}
@@ -2101,9 +2107,9 @@ if(km>300||sec>172800){alert('Ces valeurs semblent trop grandes : vérifie la di
 const o={id:q.id||'m'+uid(),n:(q.n||'').trim()||'Sortie du '+d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}),t:'Run',d:q.date+'T12:00:00Z',km:Math.round(km*100)/100,s:Math.round(sec),up:Math.round(+q.up)||0,hr:Math.round(+q.hr)||null,man:1};
 S.runs=S.runs||[];const k=S.runs.findIndex(r=>String(r.id)===o.id);k<0?S.runs.push(o):S.runs[k]=o;save();RX=null;view='run';runTab='r';toast('Sortie enregistrée')}
 else if(a==='syncnow')await syncRuns();
-else if(a==='hksync'){await hkSync(false);return}
-else if(a==='stoff'){const L=stLeft();if(!confirm(`Retirer Strava ?\n\nLa connexion Strava est coupée${L?` et les ${L} sorties qui ne viennent que de Strava sont retirées de FitLog`:''}. Tes sorties d'Apple Santé, de ta montre et celles saisies à la main restent.`))return;
-try{if(S.sv&&WU()){const H=await SH(1);if(H)await fetch(WU()+'/disconnect',{method:'POST',headers:H})}}catch(e){}
+else if(a==='hksync'){await hkSync(false)}
+else if(a==='stoff'){const L=stLeft();if(!confirm(`Retirer Strava ?\n\nLa connexion Strava est coupée${L?` et les ${L} sorties qui ne viennent que de Strava sont retirées de FitLog`:''}. Les records 5 km / 10 km pris à l'intérieur d'une sortie plus longue (calculés par Strava) disparaissent aussi. Tes sorties d'Apple Santé, de ta montre et celles saisies à la main restent.`))return;
+if(S.sv&&WU()){let ok=false;try{const H=await SH(1);if(H)ok=(await fetch(WU()+'/disconnect',{method:'POST',headers:H})).ok}catch(e){}if(!ok){toast('Strava injoignable : réessaie avec du réseau');return}}
 S.runs=(S.runs||[]).filter(isOwn);S.be={};['sv','svn','syncAt','hist','gfull','gneed'].forEach(k=>delete S[k]);S.stravaOff=1;
 try{const o=trAll();Object.keys(o).forEach(k=>{if(/^\d+$/.test(k))delete o[k]});localStorage.setItem(TRK,JSON.stringify(o))}catch(e){}effSt='';stS='';save();toast('Strava retiré')}
 else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed&&tm){if(tm.i===i)tm.i=j;else if(tm.i===j)tm.i=i}if(!ed)save();else ed.open=j}}
@@ -2137,7 +2143,7 @@ else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]
 if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){if(stWait&&Date.now()-stWait>9e5)stWait=0;if(stWait)syncRuns();else autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true)}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){if(stWait&&Date.now()-stWait>9e5)stWait=0;if(stWait)syncRuns();else autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true).then(hkAuto,hkAuto);else if(!AU())hkAuto()}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){const sh=document.querySelector('.sheet');if(sh)sh.remove()}if(ev.key==='Enter'&&ev.target.id==='chq'){ev.preventDefault();chatSend(ev.target.dataset.c,ev.target.value)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
@@ -2148,7 +2154,8 @@ if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
 render();
 autoSync();
 try{const w=+localStorage.getItem('fitlog-stw');if(w&&Date.now()-w<9e5){stWait=w;syncRuns()}else localStorage.removeItem('fitlog-stw')}catch(e){}
-if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true);
+if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true).then(hkAuto,hkAuto);
+if(localStorage.getItem('fitlog-onb')&&!needLogin()&&!AU())hkAuto();
 const fitNav=()=>{try{const n=document.querySelector('nav');document.documentElement.style.setProperty('--nh',Math.round(innerHeight-n.getBoundingClientRect().top)+'px')}catch(e){}};
 fitNav();addEventListener('resize',fitNav);addEventListener('orientationchange',fitNav);
 /* plein écran iPhone : si la fenêtre est plus courte que l'écran (bug WebKit), on force une page aussi haute que l'écran */
