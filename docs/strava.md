@@ -6,10 +6,10 @@ Résultat : tes amis touchent **« Se connecter avec Strava »** dans l'onglet C
 - Tu crées **une seule** application Strava (la tienne) et **un seul** Worker Cloudflare (gratuit).
 - Chaque ami se connecte avec **son propre** compte Strava : ses données ne sont visibles que de lui.
 - Le Worker garde les jetons Strava de chacun. L'app, elle, ne connaît qu'une clé secrète aléatoire fabriquée sur le téléphone.
-- Le compte FitLog (e-mail + mot de passe, voir `cloud-setup.md`) est **indépendant** : Strava est facultatif et ne remplace pas le compte.
+- Le compte Menhir (e-mail + mot de passe, voir `compte-cloud.md`) est **indépendant** : Strava est facultatif et ne remplace pas le compte.
 
 ## 1. Créer l'application Strava
-1. **strava.com/settings/api** → crée une application (nom `FitLog`, site web = l'adresse de ton app, catégorie au choix, icône libre).
+1. **strava.com/settings/api** → crée une application (nom `Menhir`, site web = l'adresse de ton app, catégorie au choix, icône libre).
 2. **Authorization Callback Domain** : le domaine du Worker **sans** `https://` ni chemin, ex. `fitlog-strava.ton-pseudo.workers.dev` (à remplir après l'étape 2 : tu peux revenir le modifier).
 3. Note le **Client ID** et le **Client Secret**.
 4. **Capacité** : Strava limite chaque application à **10 athlètes** (toi compris) tant qu'elle n'est pas validée. Pour dépasser, il faut déposer une demande d'augmentation depuis la même page.
@@ -67,6 +67,6 @@ Limites (modifiables en variables du Worker) : `AI_DAILY` = messages par jour et
 ### Option : Claude (Anthropic), meilleure qualité, payant mais moins cher que Gemini
 Ajoute dans le Worker (Settings → Variables and Secrets) un **secret** `ANTHROPIC_API_KEY` (console.anthropic.com → API keys, avec quelques euros de crédit). Il passe alors en premier ; Cloudflare reste en secours.
 - Modèle par défaut : `claude-haiku-5-5` (0,10 $ / million de tokens en entrée, 0,50 $ en sortie) : environ 0,05 centime par message, soit 0,5 € pour 1 000 messages. Variable `ANTHROPIC_MODEL` pour en changer. Pose une limite de dépense dans la console.
-- Anthropic autorise les mineurs sur son API si l'app met des garde-fous : FitLog indique que c'est une IA, ajoute une consigne de prudence aux réponses (pas de régime restrictif, pas d'avis médical, prudence pour un mineur) et le dit dans la page Confidentialité. Garde-les.
+- Anthropic autorise les mineurs sur son API si l'app met des garde-fous : Menhir indique que c'est une IA, ajoute une consigne de prudence aux réponses (pas de régime restrictif, pas d'avis médical, prudence pour un mineur) et le dit dans la page Confidentialité. Garde-les.
 - Monte `AI_GLOBAL` (messages par jour au total) selon ton budget.
 - Ton abonnement Claude personnel ne peut pas servir de moteur pour l'app : il faut une clé API de la console.

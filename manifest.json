@@ -1,7 +1,7 @@
 {
  "id": "./",
- "name": "FitLog",
- "short_name": "FitLog",
+ "name": "Menhir",
+ "short_name": "Menhir",
  "description": "Muscu, course à pied et plan d'entraînement",
  "lang": "fr",
  "start_url": "./",
