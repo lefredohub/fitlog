@@ -65,6 +65,9 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       if (SHOTS) await p.screenshot({ path: path.join(SHOTS, `${M}-${n.replace(/[^\wÀ-ÿ]+/g, '_')}.png`) });
     }
     check(`[${M}] Écrans sans erreur JS`, !p.errs.length, p.errs.join(' | '));
+    const ck = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)); view = 'forme'; render(); await w(100); document.querySelector('[data-a=ck]').click(); await w(150);
+      const asked = !!document.querySelector('.sheet [data-a=csok]') && !S.ck; document.querySelector('.sheet [data-a=csok]').click(); await w(150); const r = asked && !!S.ck && Object.keys(S.ck).length === 1; delete S.cs; delete S.ck; save(); view = 'train'; render(); return r });
+    check(`[${M}] Forme du jour : accord santé demandé avant d'enregistrer le ressenti`, ck);
 
     // parcours d'une séance : coche → repos, réglage du repos, remplacement, fin
     const st = await p.evaluate(async () => {
@@ -125,7 +128,8 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     }, FLAGS);
     await p.goto(URL); await p.waitForTimeout(800);
     const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)); view = 'run'; runTab = 'r'; render(); await w(100);
-      const btn = document.querySelector('[data-a=hksync]'); const o = { card: !!btn }; btn.click(); await w(600);
+      const btn = document.querySelector('[data-a=hksync]'); const o = { card: !!btn }; btn.click(); await w(200);
+      o.ask = !!document.querySelector('.sheet [data-a=csok]') && !S.runs.some(x => x.hk); document.querySelector('.sheet [data-a=csok]').click(); await w(600); o.cs = !!(S.cs && S.cs.sante);
       const R = S.runs; o.added = R.some(x => x.id === 'hkA1' && x.hr > 0); o.replaced = R.some(x => x.id === 'hkB2') && !R.some(x => x.id === 9001); o.walk = !R.some(x => x.id === 'hkC3');
       o.manual = R.some(x => x.id === 'm1'); o.left = stLeft() === 1; o.own = ownRuns().some(x => x.id === 'hkA1');
       o.twice = R.some(x => x.id === 'hkD4') && R.some(x => x.id === 'hkE5') && !R.some(x => x.id === 9003 || x.id === 9004);
@@ -134,8 +138,12 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       RDI = 'hkA1'; view = 'rdet'; render(); await rdetLoad(); await w(200); o.track = !!trGet('hkA1');
       view = 'run'; runTab = 'r'; render(); await w(100); const st = document.querySelector('[data-a=stoff]'); o.stbtn = !!st; if (st) st.click(); await w(300);
       o.off = S.stravaOff === 1 && stLeft() === 0 && S.runs.length === 5 && !document.querySelector('[data-a=stoff]') && !document.querySelector('.sbtn');
+      document.querySelector('[data-a=nav][data-v=home]'); view = 'set'; accOpen.dt = true; render(); await w(100); const cn = document.querySelector('[data-a=csno]'); o.csbtn = !!cn; if (cn) cn.click(); await w(200);
+      o.wd = !S.cs && !S.ck && !S.runs.some(x => x.hr) && !localStorage.getItem('fitlog-hk'); const t = trGet('hkA1'); o.wdtr = !t || t.hr.every(x => !x);
       return o });
+    check("[Apple Santé] retrait de l'accord : fréquence cardiaque et ressenti effacés", r.csbtn && r.wd && r.wdtr, JSON.stringify(r));
     check('[Apple Santé] carte « Connecter Apple Santé » dans Course > Sorties', r.card);
+    check("[Apple Santé] accord santé demandé avant toute lecture, puis enregistré", r.ask && r.cs);
     check('[Apple Santé] course importée avec la fréquence cardiaque (marche ignorée)', r.added && r.walk);
     check('[Apple Santé] sortie Strava remplacée par sa version Apple Santé', r.replaced);
     check('[Apple Santé] sortie saisie à la main conservée', r.manual);

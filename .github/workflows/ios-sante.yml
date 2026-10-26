@@ -49,6 +49,7 @@ jobs:
           d['NSHealthShareUsageDescription']="FitLog lit tes séances de course enregistrées dans Apple Santé (distance, durée, fréquence cardiaque, tracé GPS) pour ton suivi, ton plan et tes records."
           d['NSHealthUpdateUsageDescription']="FitLog n'écrit rien dans Apple Santé ; cette autorisation est demandée par le module de lecture."
           d['ITSAppUsesNonExemptEncryption']=False
+          d['CFBundleDisplayName']='FitLog'
           plistlib.dump(d,open(p,'wb'))
           e={'com.apple.developer.healthkit':True,'com.apple.developer.healthkit.access':[]}
           plistlib.dump(e,open('build/ios/App/App/App.entitlements','wb'))
