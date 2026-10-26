@@ -16,6 +16,7 @@ const tok = async (env, body) => (await fetch('https://www.strava.com/oauth/toke
   method: 'POST', headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_id: env.STRAVA_CLIENT_ID, client_secret: env.STRAVA_CLIENT_SECRET, ...body })
 })).json();
+const EFF = env => ['low', 'medium', 'high'].includes(env.AI_EFFORT) ? env.AI_EFFORT : 'medium';
 const bearer = req => (req.headers.get('Authorization') || '').replace(/^Bearer /, '');
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const page = (body, s = 200) => new Response('<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>FitLog</title><body style="font:20px -apple-system,system-ui,sans-serif;padding:48px 28px;background:#000;color:#fff;text-align:center;line-height:1.4">' + body, { status: s, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
@@ -73,7 +74,7 @@ export default {
     }
 
     // Vérification de la configuration du coach (ne révèle aucun secret) : ouvre /ai dans un navigateur
-    if (u.pathname === '/ai' && req.method === 'GET') return J({ claude: !!env.ANTHROPIC_API_KEY, cloudflare_gratuit: !!env.AI, modele_claude: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', effort: env.AI_EFFORT || 'medium', plafond_claude_par_jour: +env.AI_PAID_CAP || 300, plafond_gratuit_par_jour: +env.AI_GLOBAL || 80, par_telephone: +env.AI_DAILY || 40 }, 200, cors);
+    if (u.pathname === '/ai' && req.method === 'GET') return J({ derniere_erreur: (await env.TOKENS.get('ai:last')) || null, claude: !!env.ANTHROPIC_API_KEY, cloudflare_gratuit: !!env.AI, modele_claude: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', effort: EFF(env), plafond_claude_par_jour: +env.AI_PAID_CAP || 300, plafond_gratuit_par_jour: +env.AI_GLOBAL || 80, par_telephone: +env.AI_DAILY || 40 }, 200, cors);
     // 2 bis) Coach IA : aucun compte requis. Quota par appareil ; plafonds globaux séparés (gratuit Cloudflare / payant Claude).
     // Seuls les messages RÉUSSIS sont comptés.
     if (u.pathname === '/ai' && req.method === 'POST') {
@@ -91,7 +92,7 @@ export default {
       if (!canPaid && !canFree) return J({ error: 'global' }, 429, cors);
       const sys = SAFE + b.system.slice(0, 30000), msgs = [{ role: 'system', content: sys }, ...b.messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, 12000) }))];
       const txt = x => (x == null ? '' : typeof x === 'string' ? x : JSON.stringify(x));
-      let out = '', used = '', why = '';
+      let out = '', used = '', why = '', paid = false;
       // a) Claude (Anthropic) : prioritaire si ANTHROPIC_API_KEY est définie. Modèle par défaut Claude Haiku 5.5 (le moins cher, 0,10 $ / 0,50 $ par
       //    million de jetons). Version d'API 2026-10-21 : plus de « temperature » (Haiku 5.5 refusait déjà toute valeur autre que celle par défaut).
       //    Les consignes (fixes) sont mises en cache : les messages suivants de la conversation les relisent ~10 fois moins cher.
@@ -101,12 +102,14 @@ export default {
           const system = [{ type: 'text', text: head, cache_control: { type: 'ephemeral' } }, ...(data ? [{ type: 'text', text: data }] : [])];
           const r = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST', headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2026-10-21', 'content-type': 'application/json' },
-            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 4000, output_config: { effort: env.AI_EFFORT || 'medium' }, system, messages: msgs.slice(1) })
+            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 4000, output_config: { effort: EFF(env) }, system, messages: msgs.slice(1).filter(m => m.content.trim()) })
           });
           if (r.ok) {
             const d = await r.json();
             // refus du filtre de sécurité, ou réponse coupée sans texte : on passe au secours
-            if (d.stop_reason === 'refusal') why = 'claude refus ' + ((d.stop_details && d.stop_details.category) || '');
+            paid = true; // appel facturé : compté dans les quotas, même sans texte (pas d'appels payants sans limite)
+            // refus du filtre de sécurité : réponse fixe, jamais de repli sur un modèle moins encadré
+            if (d.stop_reason === 'refusal') { out = "Je ne peux pas répondre à cette question. Pour tout ce qui touche à ta santé, parles-en à un professionnel (médecin, kiné, diététicien)."; used = 'p'; }
             else { out = (d.content || []).filter(x => x.type === 'text').map(x => x.text).join('').trim(); if (out) used = 'p'; else why = 'claude vide (' + d.stop_reason + ')'; }
           } else why = 'claude ' + r.status + ' ' + (await r.text()).slice(0, 160);
         } catch (e) { why = 'claude ' + String(e).slice(0, 100); }
@@ -121,8 +124,9 @@ export default {
           } catch (e) { why += ' | cf ' + String(e).slice(0, 160); }
         }
       }
+      if (why) await env.TOKENS.put('ai:last', why.trim().slice(0, 300), { expirationTtl: 604800 });
+      if (paid || out) await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), paid ? env.TOKENS.put(gp, String(np + 1), { expirationTtl: 172800 }) : null, used === 'f' ? env.TOKENS.put(gf, String(nf + 1), { expirationTtl: 172800 }) : null]);
       if (!out) return J({ error: 'ai_fail', detail: why.trim().slice(0, 300) }, 502, cors);
-      await Promise.all([env.TOKENS.put(dk, String(dn + 1), { expirationTtl: 172800 }), used === 'p' ? env.TOKENS.put(gp, String(np + 1), { expirationTtl: 172800 }) : env.TOKENS.put(gf, String(nf + 1), { expirationTtl: 172800 })]);
       return J({ text: out, src: used === 'p' ? 'claude' : 'cloudflare' }, 200, cors);
     }
 

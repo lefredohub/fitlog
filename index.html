@@ -1104,7 +1104,7 @@ for(let n=0;n<40;n++){try{localStorage.setItem(TRK,JSON.stringify(o));return tru
 const trGet=id=>trAll()[id]||null;
 function runFromTrack(P,name,sum){const b=trBuild(P),st=new Date(b.t0),id='g'+b.t0;
 const run={id,n:(name||'Sortie importée').slice(0,60),d:lociso(st),km:sum&&sum.km>0?+sum.km.toFixed(2):b.km,s:sum&&sum.s>0?sum.s:b.s,up:sum&&sum.up!=null?sum.up:b.up,hr:sum&&sum.hr||b.hr,mx:sum&&sum.mx||b.mx,man:1,trk:1};
-if(run.km<.3)throw new Error('trace trop courte');S.runs=S.runs||[];{const m=S.runs.find(r=>sameRun(r,run));if(m){if(isOwn(m))return['',1];const nw=xrPush(run);if(!trGet(m.id))trSave(m.id,b.tr);return[nw?'1 sortie reliée à Strava (visible par le coach)':'',nw?0:1]}}
+if(run.km<.3)throw new Error('trace trop courte');S.runs=S.runs||[];{const m=S.runs.find(r=>sameRun(r,run));if(m){if(isOwn(m))return['',1];const nw=xrPush(run);if(!trGet(m.id))trSave(m.id,b.tr);trSave(run.id,b.tr);return[nw?'1 sortie reliée à Strava (visible par le coach)':'',nw?0:1]}}
 S.runs.push(run);trSave(id,b.tr);return['1 sortie de course',0]}
 function importTrack(t){const X=new DOMParser().parseFromString(t,'application/xml');if(X.getElementsByTagName('parsererror').length)throw new Error('fichier illisible');
 let P=[...X.getElementsByTagName('trkpt')].map(p=>({la:+p.getAttribute('lat'),lo:+p.getAttribute('lon'),t:Date.parse(tagT(p,'time')),e:parseFloat(tagT(p,'ele')),hr:parseFloat(locT(p,'hr')),dm:NaN}));
@@ -1320,14 +1320,14 @@ return c.op==='del'?d+' : '+a+' supprimée':d+' : '+(a?a+' → ':'')+c.t+' '+(+c
 // Données du coach : uniquement ce qui vient de l'utilisateur (règle 6 : jamais de sortie Strava). Allure, FC, zone et allure par km
 // (quand le tracé est sur le téléphone) pour les dernières sorties ; statut de chaque séance du plan rapproché de la sortie qui la valide.
 function coachCtx(){const g=S.goal,tk=iso(new Date()),now=wk(Date.now()),O=ownRuns(),ZL=['endurance','tempo','seuil/fractionné','au-delà du fractionné'];
-const ri=r=>{const t=trGet(r.id),o={d:r.d.slice(0,10),km:r.km,duree:hms(r.s),allure:pace(r),fc:r.hr||null,fc_max:r.mx||null,zone:r.hr?ZL[zoneOf(r.hr)]:null,dplus:r.up||0,source:r.src};
+const ok=v=>Number.isFinite(v)&&v>0,ri=r=>{const t=trGet(r.id),o={d:r.d.slice(0,10),km:r.km,duree:ok(r.s)?hms(r.s):null,allure:ok(r.s)&&ok(r.km)?pace(r):null,fc:r.hr||null,fc_max:r.mx||null,zone:r.hr?ZL[zoneOf(r.hr)]:null,dplus:r.up||0,source:r.src};
 if(t&&t.sp&&t.sp.length>1)o.km_par_km=t.sp.filter(x=>x[1]>=900).slice(0,30).map(x=>pf(x[0]*1000/x[1])+(x[2]?' '+x[2]:'')).join(', ');return o};
-const st=(W,s,i,res)=>{const k=iso(sd(W.w,s.d)),r=(S.rp||{})[k],run=res[i];if(r)return r.f==='non'?'pas faite':'faite : '+rpTxt(r)+(run&&isOwn(run)?' · '+run.km+' km à '+pace(run)+'/km'+(run.hr?', FC '+run.hr:''):'');
+const st=(W,s,i,res)=>{const k=iso(sd(W.w,s.d)),r=(S.rp||{})[k],m=res[i],run=m&&!isOwn(m)?O.find(o=>sameRun(o,m))||null:m;if(k>tk&&!r)return'à faire';if(r)return r.f==='non'?'pas faite':'faite : '+rpTxt(r)+(run&&isOwn(run)?' · '+run.km+' km à '+pace(run)+'/km'+(run.hr?', FC '+run.hr:''):'');
 if(run&&isOwn(run)&&s.st!=='ko')return'faite'+(rday(run)!==s.d?' ('+DN[rday(run)].toLowerCase()+'.)':'')+' : '+run.km+' km à '+pace(run)+'/km'+(run.hr?', FC '+run.hr:'');
-return s.st==='ok'?'faite':s.st==='ko'?'pas faite':s.hx&&hxDone(k)?'faite':k<tk?'inconnu':'à faire'};
+return s.st==='ok'||O.some(o=>o.d.slice(0,10)===k)?'faite':s.st==='ko'?'pas faite':s.hx&&hxDone(k)?'faite':k<tk?'inconnu':'à faire'};
 const own=!(S.runs||[]).some(r=>!isOwn(r)),P=own?vdotPaces():null,L4=O.filter(r=>rdate(r)>=new Date(Date.now()-28*864e5));
 return JSON.stringify({auj:tk,jour:DF[(new Date().getDay()+6)%7],
-obj:g?{type:isHx(g)?'HYROX '+HXD[g.div||'om'][0]+' : 8 × (1 km de course + 1 station)':'course à pied',nom:g.name,date:g.date,km:g.dist,temps:hms(g.time),allure_visee:isHx(g)?null:pf(g.time/g.dist)+'/km',jours:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,
+obj:g?{type:isHx(g)?'HYROX '+HXD[g.div||'om'][0]+' : 8 × (1 km de course + 1 station)':'course à pied',nom:g.name,date:g.date,km:g.dist,temps:g.time>0?hms(g.time):null,allure_visee:isHx(g)?null:pf(g.time/g.dist)+'/km',jours:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,
 zones_bpm:zones(),allures_entrainement:P?{base:P.src,endurance:pf(P.E)+'/km',marathon:pf(P.M)+'/km',seuil:pf(P.T)+'/km',fractionne:pf(P.I)+'/km'}:null,
 forme:(()=>{const f=forme(1);return{score:f.sc,niveau:FLV[f.lv],ressenti:f.ck||null,rapport_charge_7j_28j:f.acwr?+f.acwr.toFixed(2):null,series_jambes_36h:Math.round(f.lg)}})(),
 ...(own?{}:{strava:"Une partie des sorties vient de Strava et ne t'est pas transmise (règles de Strava) : ne conclus jamais que l'utilisateur n'a pas couru ; si c'est « inconnu », demande-lui."}),
