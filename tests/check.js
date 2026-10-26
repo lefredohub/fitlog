@@ -1,4 +1,4 @@
-// Vérification de FitLog avant chaque fusion : node tests/check.js [--shots dossier]
+// Vérification de Menhir avant chaque fusion : node tests/check.js [--shots dossier]
 // Contrôle la syntaxe JS, la version (VER = cache du service worker), puis ouvre l'app dans un iPhone simulé
 // (390 × 844, mode clair ET sombre) avec des données de test : erreurs JS, débordement horizontal,
 // accueil sans défilement, parcours d'une séance de muscu et barre du haut sous l'encoche.

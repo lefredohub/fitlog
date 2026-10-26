@@ -1,4 +1,4 @@
-# FitLog : fabrique l'APK Android (gratuit). Lancement manuel : onglet Actions > "APK Android" > Run workflow.
+# Menhir : fabrique l'APK Android (gratuit). Lancement manuel : onglet Actions > "APK Android" > Run workflow.
 # L'APK est une coquille qui affiche ton site GitHub Pages : l'app se met à jour toute seule, sans refaire d'APK.
 # Variable facultative APP_URL (Settings > Secrets and variables > Actions > Variables) si ton site n'est pas à l'adresse par défaut.
 name: APK Android
@@ -27,7 +27,7 @@ jobs:
           npm init -y >/dev/null
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/browser@6 @capacitor/filesystem@6 @capacitor/share@6
           cat > capacitor.config.json <<JSON
-          { "appId": "app.fitlog.perso", "appName": "FitLog", "webDir": "www",
+          { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www",
             "server": { "url": "$APP_URL", "cleartext": false },
             "backgroundColor": "#000000" }
           JSON
@@ -98,10 +98,10 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           cd build/android && ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/FitLog.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/Menhir.apk"
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: android
-          name: FitLog Android
-          body: Télécharge FitLog.apk sur ton téléphone Android et ouvre-le pour l'installer.
-          files: FitLog.apk
+          name: Menhir Android
+          body: Télécharge Menhir.apk sur ton téléphone Android et ouvre-le pour l'installer.
+          files: Menhir.apk

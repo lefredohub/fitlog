@@ -1,11 +1,14 @@
-# FitLog : consignes pour Claude Code
+# Menhir (ex-FitLog) : consignes pour Claude Code
 
 ## Le projet
-PWA perso de suivi course à pied + muscu (FitLog), hébergée sur GitHub Pages.
+PWA de suivi course à pied + muscu, nommée **Menhir** (ex-FitLog), hébergée sur GitHub Pages. Objectif : la commercialiser un jour ; chaque fonctionnalité se pense aussi dans ce but (voir `docs/commercialisation.md`).
 - `index.html` : toute l'app (HTML, CSS, JS purs, aucun framework, aucun build).
 - `sw.js` : service worker (hors ligne). `manifest.json`, `privacy.html`, `anat.bin` (modèle 3D), `archivo.woff2` (police), icônes et `splash/`.
 - `config.js` : clés Supabase et adresse du Worker. NE JAMAIS le modifier ni l'écraser.
 - `worker.js` : copie de référence du Worker Cloudflare (Strava + coach IA). Il n'est pas déployé depuis GitHub : il est collé à la main dans Cloudflare, et ses secrets sont des variables Cloudflare (jamais dans le fichier).
+- `.github/workflows/iphone.yml` : app iPhone (module Apple Santé), en mode test (projet Xcode) ou TestFlight ; `android.yml` : APK Android. `docs/` : guides et brouillons juridiques. `tests/check.js` : vérifications.
+- Les clés internes gardent l'ancien nom (`localStorage` « fitlog… », table `fitlog_data`, identifiant `app.fitlog.perso`) : ne pas les renommer sans migration.
+- Strava : retiré pour le propriétaire (Apple Santé à la place), gardé dans la version web pour ses amis. À couper avant tout lancement payant (règles Strava 2026).
 
 ## Qui je suis
 Je ne code pas : je teste sur iPhone. Réponses claires, concises, en français. Contredis-moi si tu vois mieux.
