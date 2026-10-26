@@ -1,4 +1,4 @@
-# FitLog iPhone avec Apple Santé : fabrique un IPA à installer soi-même (Sideloadly ou AltStore, Apple ID gratuit, 7 jours),
+# FitLog iPhone avec Apple Santé : fabrique un projet Xcode prêt à ouvrir sur un Mac et un IPA (Sideloadly ou AltStore), Apple ID gratuit, 7 jours,
 # pour tester la lecture d'Apple Santé avant de prendre le compte Apple Developer (TestFlight, App Store).
 # Lancement : onglet Actions > "IPA Apple Santé (test)" > Run workflow. Le fichier arrive dans Releases > "FitLog iPhone (Apple Santé, test)".
 # L'app affiche le site GitHub Pages (mises à jour sans refaire l'IPA) et ajoute le module natif Apple Santé (capacitor-health).
@@ -56,6 +56,16 @@ jobs:
           sed -i '' 's/INFOPLIST_FILE = App\/Info.plist;/INFOPLIST_FILE = App\/Info.plist; CODE_SIGN_ENTITLEMENTS = App\/App.entitlements;/g' build/ios/App/App.xcodeproj/project.pbxproj
           grep -c CODE_SIGN_ENTITLEMENTS build/ios/App/App.xcodeproj/project.pbxproj
           cp icon-1024.png "build/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+      - name: Projet Xcode prêt à ouvrir (Mac + compte Apple gratuit)
+        run: |
+          # dossier autonome : projet Xcode + modules (chemins relatifs), à dézipper n'importe où sur le Mac
+          mv build FitLog-Xcode && ditto -c -k --keepParent FitLog-Xcode FitLog-Xcode.zip && ls -la FitLog-Xcode.zip
+          # vérification : le projet dézippé ailleurs se compile tel quel
+          mkdir -p /tmp/essai && ditto -x -k FitLog-Xcode.zip /tmp/essai
+          set -o pipefail
+          xcodebuild -project /tmp/essai/FitLog-Xcode/ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath /tmp/essai/dd CODE_SIGNING_ALLOWED=NO build | tail -n 3
+          mv FitLog-Xcode build
       - name: Compiler (sans signature)
         run: |
           cd build/ios/App
@@ -77,11 +87,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: FitLog-Sante
-          path: FitLog-Sante.ipa
+          path: |
+            FitLog-Sante.ipa
+            FitLog-Xcode.zip
       - name: Publier dans Releases
         if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete ios-sante --yes --cleanup-tag 2>/dev/null || true
-          gh release create ios-sante FitLog-Sante.ipa --title "FitLog iPhone (Apple Santé, test)" --notes "IPA à installer avec Sideloadly ou AltStore (Apple ID gratuit : 7 jours). Voir ios-sante.md." --prerelease
+          gh release create ios-sante FitLog-Xcode.zip FitLog-Sante.ipa --title "FitLog iPhone (Apple Santé, test)" --notes "Avec un Mac : FitLog-Xcode.zip, à ouvrir dans Xcode (compte Apple gratuit, 7 jours). Sans Mac : FitLog-Sante.ipa avec Sideloadly. Voir ios-sante.md." --prerelease
