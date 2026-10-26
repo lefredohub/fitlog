@@ -498,7 +498,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.9.0';
+const VER='4.10.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -1104,7 +1104,7 @@ for(let n=0;n<40;n++){try{localStorage.setItem(TRK,JSON.stringify(o));return tru
 const trGet=id=>trAll()[id]||null;
 function runFromTrack(P,name,sum){const b=trBuild(P),st=new Date(b.t0),id='g'+b.t0;
 const run={id,n:(name||'Sortie importée').slice(0,60),d:lociso(st),km:sum&&sum.km>0?+sum.km.toFixed(2):b.km,s:sum&&sum.s>0?sum.s:b.s,up:sum&&sum.up!=null?sum.up:b.up,hr:sum&&sum.hr||b.hr,mx:sum&&sum.mx||b.mx,man:1,trk:1};
-if(run.km<.3)throw new Error('trace trop courte');S.runs=S.runs||[];{const m=S.runs.find(r=>sameRun(r,run));if(m){if(isOwn(m))return['',1];const nw=xrPush(run);if(!trGet(m.id))trSave(m.id,b.tr);return[nw?'1 sortie reliée à Strava (visible par le coach)':'',nw?0:1]}}
+if(run.km<.3)throw new Error('trace trop courte');S.runs=S.runs||[];{const m=S.runs.find(r=>sameRun(r,run));if(m){if(isOwn(m))return['',1];const nw=xrPush(run);if(!trGet(m.id))trSave(m.id,b.tr);trSave(run.id,b.tr);return[nw?'1 sortie reliée à Strava (visible par le coach)':'',nw?0:1]}}
 S.runs.push(run);trSave(id,b.tr);return['1 sortie de course',0]}
 function importTrack(t){const X=new DOMParser().parseFromString(t,'application/xml');if(X.getElementsByTagName('parsererror').length)throw new Error('fichier illisible');
 let P=[...X.getElementsByTagName('trkpt')].map(p=>({la:+p.getAttribute('lat'),lo:+p.getAttribute('lon'),t:Date.parse(tagT(p,'time')),e:parseFloat(tagT(p,'ele')),hr:parseFloat(locT(p,'hr')),dm:NaN}));
@@ -1308,7 +1308,8 @@ Modifier le plan : seulement si l'utilisateur le demande ou accepte ta propositi
 - mem (facultatif) : mémoire à jour (blessure, disponibilités, préférences durables ; 200 caractères max).
 Sans modification ni mémoire à noter, n'écris aucun bloc.
 Si l'objectif est une course HYROX (8 × 1 km + 8 stations), utilise aussi les types Stations, Course compromise et Simulation HYROX. Principes : environ 80 % du volume en endurance facile ; hausse hebdo ≤ 10 % ; semaine allégée toutes les 4 semaines ; pas de séance de qualité la veille d'une grosse séance de jambes ; affûtage avant la course. Douleur ou blessure : prudence, réduis, conseille un avis médical si elle persiste.
-Tu ne vois que les données qui viennent de l'utilisateur (comptes rendus, sorties importées depuis sa montre ou son archive, saisies) : ses sorties Strava ne te sont pas transmises. N'en déduis jamais qu'il n'a pas couru. Si une info te manque pour bien conseiller (séance faite ? ressenti ? douleur ?), demande-la simplement.`;
+Lire les sorties (DONNÉES « sorties ») : compare l'allure et la FC aux zones et aux allures d'entraînement ; une endurance trop rapide ou en zone 2+ est un signal à relever ; une FC plus haute qu'à l'habitude pour la même allure, ou des allures qui baissent d'une sortie à l'autre, peuvent indiquer de la fatigue ; un rapport de charge 7 j / 28 j au-dessus de 1,3 est un risque, sous 0,8 une baisse de forme. Les « km » (allure par kilomètre) montrent un départ trop rapide ou une fin difficile. Relie toujours ton analyse au plan à venir et à l'objectif : que faut-il garder, alléger ou renforcer, et pourquoi.
+Tu ne vois que les données qui viennent de l'utilisateur (Apple Santé, fichiers de montre, archive, saisies, comptes rendus) ; si les DONNÉES contiennent une note « strava », certaines sorties ne te sont pas transmises : n'en déduis jamais qu'il n'a pas couru. Si une info te manque pour bien conseiller (séance faite ? ressenti ? douleur ?), demande-la simplement.`;
 const CT=['Endurance','Sortie longue','Tempo','Fractionné','Allure objectif','Libre','Stations','Course compromise','Simulation HYROX'];
 const CHAT={coach:{busy:0,draft:''},mc:{busy:0,draft:''}};
 const planAt=d=>{const dt=new Date(d+'T12:00:00');if(isNaN(dt)||!S.plan)return null;const W=S.plan.weeks.find(x=>x.w===wk(dt));if(!W)return null;const dn=(dt.getDay()+6)%7;return{W,dn,k:W.s.findIndex(s=>s.d===dn)}};
@@ -1316,18 +1317,29 @@ const chOK=c=>{if(!c||!/^\d{4}-\d{2}-\d{2}$/.test(c.date)||c.date<iso(new Date()
 if(o&&(o.t==='Course'||o.t==='HYROX'||o.st))return false;return c.op==='del'?!!o:c.op==='set'&&CT.includes(c.t)&&+c.km>0&&+c.km<=60};
 const chTxt=c=>{const p=planAt(c.date),o=p&&p.k>=0?p.W.s[p.k]:null,dt=new Date(c.date+'T12:00:00'),d=DN[(dt.getDay()+6)%7]+' '+dt.getDate(),a=o?o.t+' '+o.km+' km':'';
 return c.op==='del'?d+' : '+a+' supprimée':d+' : '+(a?a+' → ':'')+c.t+' '+(+c.km)+' km'};
-function coachCtx(){const g=S.goal,tk=iso(new Date()),now=wk(Date.now());
+// Données du coach : uniquement ce qui vient de l'utilisateur (règle 6 : jamais de sortie Strava). Allure, FC, zone et allure par km
+// (quand le tracé est sur le téléphone) pour les dernières sorties ; statut de chaque séance du plan rapproché de la sortie qui la valide.
+function coachCtx(){const g=S.goal,tk=iso(new Date()),now=wk(Date.now()),O=ownRuns(),ZL=['endurance','tempo','seuil/fractionné','au-delà du fractionné'];
+const ok=v=>Number.isFinite(v)&&v>0,ri=r=>{const t=trGet(r.id),o={d:r.d.slice(0,10),km:r.km,duree:ok(r.s)?hms(r.s):null,allure:ok(r.s)&&ok(r.km)?pace(r):null,fc:r.hr||null,fc_max:r.mx||null,zone:r.hr?ZL[zoneOf(r.hr)]:null,dplus:r.up||0,source:r.src};
+if(t&&t.sp&&t.sp.length>1)o.km_par_km=t.sp.filter(x=>x[1]>=900).slice(0,30).map(x=>pf(x[0]*1000/x[1])+(x[2]?' '+x[2]:'')).join(', ');return o};
+const st=(W,s,i,res)=>{const k=iso(sd(W.w,s.d)),r=(S.rp||{})[k],m=res[i],run=m&&!isOwn(m)?O.find(o=>sameRun(o,m))||null:m;if(k>tk&&!r)return'à faire';if(r)return r.f==='non'?'pas faite':'faite : '+rpTxt(r)+(run&&isOwn(run)?' · '+run.km+' km à '+pace(run)+'/km'+(run.hr?', FC '+run.hr:''):'');
+if(run&&isOwn(run)&&s.st!=='ko')return'faite'+(rday(run)!==s.d?' ('+DN[rday(run)].toLowerCase()+'.)':'')+' : '+run.km+' km à '+pace(run)+'/km'+(run.hr?', FC '+run.hr:'');
+return s.st==='ok'||O.some(o=>o.d.slice(0,10)===k)?'faite':s.st==='ko'?'pas faite':s.hx&&hxDone(k)?'faite':k<tk?'inconnu':'à faire'};
+const own=!(S.runs||[]).some(r=>!isOwn(r)),P=own?vdotPaces():null,L4=O.filter(r=>rdate(r)>=new Date(Date.now()-28*864e5));
 return JSON.stringify({auj:tk,jour:DF[(new Date().getDay()+6)%7],
-obj:g?{type:isHx(g)?'HYROX '+HXD[g.div||'om'][0]+' : 8 × (1 km de course + 1 station)':'course à pied',nom:g.name,date:g.date,km:g.dist,temps:hms(g.time),jours:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,zones_bpm:zones(),forme:(()=>{const f=forme(1);return{score:f.sc,niveau:FLV[f.lv],ressenti:f.ck||null,rapport_charge_7j_28j:f.acwr?+f.acwr.toFixed(2):null,series_jambes_36h:Math.round(f.lg)}})(),
-strava:"Les sorties synchronisées depuis Strava ne te sont pas transmises (règles de Strava). Ne conclus jamais que l'utilisateur n'a pas couru ou a manqué une séance : appuie-toi sur les statuts, comptes rendus et sorties ci-dessous ; si c'est « inconnu », demande-lui.",
-plan:S.plan?(()=>{const od=new Set(ownRuns().map(r=>r.d.slice(0,10)));return S.plan.weeks.filter(W=>W.w>=pwk(now,1)).slice(0,5).map(W=>({sem:iso(new Date(W.w)),phase:W.ph,s:W.s.map(s=>{const k=iso(sd(W.w,s.d)),r=(S.rp||{})[k];return{date:k,j:DN[s.d],t:s.t,km:s.km,st:r?(r.f==='non'?'pas faite':'faite : '+rpTxt(r)):s.st==='ok'?'faite':s.st==='ko'?'pas faite':od.has(k)||(s.hx&&hxDone(k))?'faite':k<tk?'inconnu':'à faire'}})}))})():[],
+obj:g?{type:isHx(g)?'HYROX '+HXD[g.div||'om'][0]+' : 8 × (1 km de course + 1 station)':'course à pied',nom:g.name,date:g.date,km:g.dist,temps:g.time>0?hms(g.time):null,allure_visee:isHx(g)?null:pf(g.time/g.dist)+'/km',jours:g.days.map(d=>DN[d]),longue:DN[g.long]}:null,
+zones_bpm:zones(),allures_entrainement:P?{base:P.src,endurance:pf(P.E)+'/km',marathon:pf(P.M)+'/km',seuil:pf(P.T)+'/km',fractionne:pf(P.I)+'/km'}:null,
+forme:(()=>{const f=forme(1);return{score:f.sc,niveau:FLV[f.lv],ressenti:f.ck||null,rapport_charge_7j_28j:f.acwr?+f.acwr.toFixed(2):null,series_jambes_36h:Math.round(f.lg)}})(),
+...(own?{}:{strava:"Une partie des sorties vient de Strava et ne t'est pas transmise (règles de Strava) : ne conclus jamais que l'utilisateur n'a pas couru ; si c'est « inconnu », demande-lui."}),
+plan:S.plan?S.plan.weeks.filter(W=>W.w>=pwk(now,1)).slice(0,5).map(W=>{const res=matchWeek(W);return{sem:iso(new Date(W.w)),phase:W.ph,km_prevus:Math.round(W.s.reduce((a,s)=>a+s.km,0)),s:W.s.map((s,i)=>({date:iso(sd(W.w,s.d)),j:DN[s.d],t:s.t,km:s.km,detail:s.custom||undefined,st:st(W,s,i,res)}))}}):[],
 comptes_rendus:Object.entries(S.rp||{}).filter(([k])=>k>=dkey(28)).sort().map(([k,r])=>{const p=planAt(k),o=p&&p.k>=0?p.W.s[p.k]:null;return{d:k,seance:o?o.t+' '+o.km+' km':null,ressenti:rpTxt(r)}}),
-sorties_a_toi:(()=>{const O=ownRuns();const kw=w=>Math.round(O.filter(r=>wk(rdate(r))===w).reduce((a,r)=>a+r.km,0)*10)/10;return{km_par_semaine_8_sem:Array.from({length:8},(_,i)=>kw(pwk(now,7-i))),dernieres:O.slice(-15).reverse().map(r=>({d:r.d.slice(0,10),km:r.km,min:Math.round(r.s/60),fc:r.hr||null,dplus:r.up||0,type:r.t==='TrailRun'?'trail':undefined,source:r.src}))}})(),
+sorties:(()=>{const kw=w=>Math.round(O.filter(r=>wk(rdate(r))===w).reduce((a,r)=>a+r.km,0)*10)/10;
+return{km_par_semaine_8_sem:Array.from({length:8},(_,i)=>kw(pwk(now,7-i))),plus_longue_4_sem:L4.length?Math.max(...L4.map(r=>r.km)):0,nb_4_sem:L4.length,dernieres:O.slice(-12).reverse().map(ri)}})(),
 renfo:S.h.slice(-4).map(h=>({d:h.date.slice(0,10),n:h.name,ex:h.ex.filter(e=>!e.skip).map(e=>e.name+' '+fmt(e)).join('; ').slice(0,300)})),
 mem:(S.coach||{}).mem||''})}
 async function chatSend(k,t){const c=CO(),q=(t||'').trim(),V=CHAT[k],X=CX[k];if(!q||V.busy)return;
 if(!c){toast("Le coach IA n'est pas disponible dans cette version");return}
-if(!S.cc){if(!confirm("Pour répondre, le coach envoie un résumé de tes séances de renfo, de tes comptes rendus et des sorties qui viennent de toi (montre, archive Strava, saisies), jamais celles synchronisées depuis Strava, à un service d'IA (Cloudflare ou Anthropic) qui ne s'en sert pas pour entraîner ses modèles. Tu parles à une IA : ses conseils ne remplacent pas un avis médical. Rien n'est envoyé sans ta question. Continuer ?"))return;S.cc=Date.now();save()}
+if((S.ccv||0)<2){if(!confirm("Pour répondre, le coach envoie à un service d'IA (Anthropic, ou Cloudflare en secours) ta question et un résumé de tes données : plan, sorties qui viennent de toi (Apple Santé, montre, saisies ; jamais celles synchronisées depuis Strava) avec allure et fréquence cardiaque, ressenti, séances de renfo. Ces services ne s'en servent pas pour entraîner leurs modèles. Tu parles à une IA : ses conseils ne remplacent pas un avis médical. Rien n'est envoyé sans ta question. Continuer ?"))return;S.cc=Date.now();S.ccv=2;save()}
 const C=S[k]=S[k]||{msgs:[]},M=C.msgs;M.push({r:'u',t:q});V.busy=1;V.draft='';render();
 try{
 const ms=M.slice(-13).map(m=>({role:m.r==='u'?'user':'assistant',content:m.t}));
@@ -1341,7 +1353,7 @@ const j=await r.json(),raw=typeof j.text==='string'?j.text:JSON.stringify(j.text
 if(mt){rp=raw.replace(mt[0],'').trim();try{o=JSON.parse(mt[1].trim())}catch(e){o={}}}
 else if(/^\s*\{[\s\S]*"reply"/.test(raw)){try{o=JSON.parse(raw.match(/\{[\s\S]*\}/)[0]);rp=String(o.reply||'')}catch(e){const m=raw.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);if(m)try{rp=JSON.parse('"'+m[1]+'"')}catch(e2){rp=m[1]}}}
 const ch=(Array.isArray(o.changes)?o.changes:[]).filter(X.ok).slice(0,X.n);
-M.push({r:'a',t:(rp||'Fait.').slice(0,2000),ch:ch.map(x=>({...x,x:X.txt(x)}))});
+M.push({r:'a',t:(rp||'Fait.').slice(0,2000),ch:ch.map(x=>({...x,x:X.txt(x)})),...(j.src==='cloudflare'?{fb:1}:{})});
 if(typeof o.mem==='string')C.mem=o.mem.slice(0,300);
 C.at=Date.now();C.msgs=M.slice(-12)
 }catch(e){M.pop();V.draft=q;toast('Coach indisponible ('+e.message+')')}
@@ -1399,7 +1411,7 @@ if(!S.h.length)L.push('Fais une première séance : le bilan se remplit ensuite 
 return L.length?L:['Pas encore assez de données : ajoute une sortie ou une séance.']}
 function chatView(k){const c=S[k]||{msgs:[]},M=c.msgs,Z=CV[k],V=CHAT[k];
 const body=M.length?M.map((m,i)=>m.r==='u'?`<div style="display:flex;justify-content:flex-end;margin:10px 0"><div style="background:var(--s3);padding:10px 14px;border-radius:18px 18px 4px 18px;max-width:85%">${esc(m.t)}</div></div>`
-:`<div class=card style="margin:10px 0"><div style="white-space:pre-wrap;line-height:1.45">${esc(m.t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</div>`+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
+:`<div class=card style="margin:10px 0"><div style="white-space:pre-wrap;line-height:1.45">${esc(m.t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</div>`+(m.fb?`<div class=sub style="margin:8px 0 0;font-size:11.5px">Réponse du modèle de secours (Cloudflare, moins précis) : le modèle principal n'a pas pu répondre.</div>`:'')+((m.ch||[]).length?`<div style="margin-top:12px;border-top:1px solid var(--ln);padding-top:6px">${m.ch.map(x=>`<div class=sub style="color:var(--tx);margin:6px 0">${esc(x.x)}</div>`).join('')}</div>`
 +(m.ap?`<div class=row style="justify-content:space-between;margin:6px 0 0"><span class=sub style="margin:0;color:var(--ok)">Appliqué</span>${m.u&&c.undo?`<button class="gh sm" data-a=chundo data-k=${k}>Annuler</button>`:''}</div>`:`<button class="p sm" style="width:100%;margin-top:8px" data-a=chapply data-k=${k} data-i=${i}>${Z.lbl}</button>`):'')+`</div>`).join('')
 :`<div class=card><h2>Bilan</h2>${bilan(k).map(x=>`<div class=sub style="color:var(--tx);margin:0 0 8px">${esc(x)}</div>`).join('')}</div>`+(CO()?`<div class=bar style="flex-wrap:wrap">${Z.chips.map(([l,q])=>`<button class=sm data-a=chsend data-k=${k} data-q="${esc(q)}" style="flex:none">${l}</button>`).join('')}</div>`:'');
 const cdl=k==='coach'?(()=>{const n=ownRuns().length,pd=rpPend();return`<button class=cdl data-a=nav data-v=cdata><span>Le coach voit ${n} sortie${n>1?'s':''} à toi${pd?' · 1 séance à raconter':''}</span><span class=sub style="margin:0;font-size:18px">›</span></button>`})():'';

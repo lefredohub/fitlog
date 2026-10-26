@@ -159,6 +159,40 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'sombre-Apple_Santé.png') });
     check('[Apple Santé] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
+  // Worker (coach IA) : requête Claude acceptée par l'API 2026-10-21, cache des consignes, repli sur Cloudflare si Claude refuse
+  {
+    const tmp = path.join(require('os').tmpdir(), 'worker-test-' + process.pid + '.mjs'); fs.writeFileSync(tmp, fs.readFileSync(path.join(ROOT, 'worker.js'), 'utf8'));
+    const W = (await import(require('url').pathToFileURL(tmp).href)).default; fs.unlinkSync(tmp);
+    const kv = new Map(), env = { ANTHROPIC_API_KEY: 'test', AI: { run: async () => ({ response: 'réponse cloudflare' }) }, TOKENS: { get: async k => kv.get(k) || null, put: async (k, v) => { kv.set(k, v) } }, ALLOWED_ORIGIN: 'https://x.test' };
+    let sent = null, mode = 'ok'; const realFetch = global.fetch;
+    global.fetch = async (u, o) => { sent = { u: String(u), h: o.headers, b: JSON.parse(o.body) };
+      return new Response(JSON.stringify(mode === 'ok' ? { stop_reason: 'end_turn', content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: 'réponse claude' }] } : { stop_reason: 'refusal', stop_details: { category: 'general_harms' }, content: [] }), { status: 200, headers: { 'content-type': 'application/json' } }) };
+    const call = async () => { const r = await W.fetch(new Request('https://w.test/ai', { method: 'POST', headers: { Authorization: 'Bearer ' + 'a'.repeat(48), Origin: 'https://x.test', 'Content-Type': 'application/json' }, body: JSON.stringify({ system: 'Consignes fixes '.repeat(80) + '\n\nDONNÉES :\n{"x":1}', messages: [{ role: 'user', content: 'Salut' }] }) }), env, {}); return r.json() };
+    try {
+      const a = await call(); const b = sent && sent.b;
+      check('[Coach IA] Claude répond (requête sans « temperature », version 2026-10-21)', a.text === 'réponse claude' && a.src === 'claude' && b && !('temperature' in b) && sent.h['anthropic-version'] === '2026-10-21', JSON.stringify(a));
+      check('[Coach IA] consignes mises en cache, données à part, effort réglé', b && Array.isArray(b.system) && b.system[0].cache_control && b.system.length === 2 && b.system[1].text.startsWith('DONNÉES') && b.output_config && b.output_config.effort === 'medium' && b.model === 'claude-haiku-5-5');
+      mode = 'refusal'; const c = await call();
+      check('[Coach IA] refus de Claude : réponse prudente, pas de repli sur un modèle moins encadré', /professionnel/.test(c.text) && c.src === 'claude', JSON.stringify(c));
+      mode = 'ok'; env.ANTHROPIC_API_KEY = ''; const d = await call();
+      check('[Coach IA] sans clé Claude : secours Cloudflare', d.text === 'réponse cloudflare' && d.src === 'cloudflare', JSON.stringify(d));
+    } catch (e) { check('[Coach IA] test du Worker', false, e.message) } finally { global.fetch = realFetch }
+  }
+  // Coach IA : données envoyées (jamais de sortie Strava ; allure, FC, zone ; taille raisonnable)
+  {
+    const p = await b.newPage(); await p.addInitScript(f => f.forEach(k => localStorage.setItem(k, '1')), FLAGS); await p.goto(URL); await p.waitForTimeout(600);
+    await p.evaluate(SEED); await p.waitForTimeout(200);
+    const cx = await p.evaluate(() => { S.runs.push({ id: 777777, n: 'Strava', d: new Date(Date.now() - 864e5).toISOString().slice(0, 16) + ':00Z', km: 13.37, s: 4000, hr: 150 }); S.runs.filter(r => r.man).slice(0, 3).forEach(r => { r.man = 0; r.hk = 1; r.src = 'santé' }); const j = coachCtx(), o = JSON.parse(j);
+      // séance validée par une sortie Strava dont la jumelle (montre) est rangée à part : le coach voit la version montre
+      const W = { w: wk(Date.now()) - 7 * 864e5, ph: 'Base', s: [{ d: 1, t: 'Endurance', km: 7, z: 'ef' }] }; S.plan.weeks.unshift(W); const s0 = W.s[0], day = iso(sd(W.w, s0.d)); S.runs.push({ id: 888888, n: 'Strava', d: day + 'T07:00:00Z', km: s0.km, s: s0.km * 330 });
+      S.xr = [{ id: 'gX', n: 'Montre', d: day + 'T07:00:00Z', km: s0.km, s: s0.km * 330, hr: 151, trk: 1, src: 'montre' }]; const o2 = JSON.parse(coachCtx()), q = o2.plan[0] && o2.plan[0].s.find(x => x.date === day);
+      return { len: j.length, strava: j.includes('13.37'), note: !!o.strava, last: o.sorties.dernieres[0], plan: o.plan.length, twin: q ? q.st : 'absente', day, past: day < iso(new Date()) } });
+    check('[Coach IA] séance validée par une sortie Strava : statut tiré de la sortie montre', cx.past && /faite.*FC 151/.test(cx.twin), cx.twin);
+    check('[Coach IA] données envoyées : aucune sortie Strava', !cx.strava && cx.note);
+    check('[Coach IA] données envoyées : allure, durée et zone par sortie', cx.last && /\d:\d\d/.test(cx.last.allure) && cx.last.duree && 'zone' in cx.last && cx.plan > 0, JSON.stringify(cx.last));
+    check('[Coach IA] données envoyées : taille raisonnable', cx.len < 25000, cx.len + ' caractères');
+    await p.close();
+  }
   await b.close(); server.close();
   console.log(`\n${ok.length} vérifications réussies, ${fails.length} échec${fails.length > 1 ? 's' : ''}.`);
   fails.forEach(f => console.log('ÉCHEC  ' + f));
