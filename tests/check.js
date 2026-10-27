@@ -174,9 +174,19 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       if (btn) btn.click(); await w(150); o.swapped = S.a.ex[0].name === other && +S.a.ex[0].sets[0].w === +L.sets[0].w;
       q('[data-a=swap][data-i="1"]').click(); await w(150); const i2 = q('#swq'); i2.value = 'hammer'; i2.dispatchEvent(new Event('input', { bubbles: true })); await w(100);
       o.hammer = document.querySelectorAll('#swr [data-a=swapdo]').length; o.fp = LIB.filter(l => /Hammer|Technogym|Gym80/.test(l.n)).length; document.querySelector('.sheet').remove();
+      // exercice libre connu seulement par l'historique (poids du corps) : pas de charge inventée ; exercice sauté : absent de la recherche
+      const d0 = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10), mk = (n, sk) => ({ name: n, ...(sk ? { skip: 1 } : {}), sets: [1, 2, 3].map(() => ({ w: 0, r: 10, done: !sk })) });
+      S.h.push({ id: 'tx', name: 'Perso', date: d0, ex: [mk('Pompes perso'), mk('Jamais fait', 1)] });
+      const pd = exDef('Pompes perso'), tg = target(pd, S.a.name); o.bw = tg.w === 0 && tg.r === 10 && pd.inc === 0 && pd.max >= 12;
+      q('[data-a=swap][data-i="1"]').click(); await w(150); const i3 = q('#swq'); i3.value = 'jamais'; i3.dispatchEvent(new Event('input', { bubbles: true })); await w(100);
+      o.skipHidden = !document.querySelector('#swr [data-a=swapdo]'); document.querySelector('.sheet').remove(); S.h.pop();
+      // repli sur une autre séance : charge reprise, séries et reps du programme, sans progression
+      const ox = JSON.parse(JSON.stringify(S.t[2].ex.find(x => !x.t))), lo = last(ox.name), to = target(ox, S.t[0].name);
+      o.other = to.w === (+lo.sets.find(s => s.done).w || +ox.w || 0) || to.w === +lo.sets[0].w; o.other = o.other && to.n === +ox.sets && to.r === +ox.min;
       S.a = null; save(); return o });
     check("[Séance] historique consultable pendant la séance, sans la modifier", r.peek && r.det && r.back, JSON.stringify(r));
     check('[Séance] remplacer en cherchant un exercice déjà fait ailleurs : dernière perf reprise', r.found && /dernière fois/.test(r.sub) && r.swapped, JSON.stringify(r));
+    check("[Séance] remplacement par un exercice de l'historique : pas de charge inventée, sautés exclus, autre séance sans progression", r.bw && r.skipHidden && r.other, JSON.stringify(r));
     check('[Séance] machines Fitness Park dans la bibliothèque et la recherche', r.fp >= 20 && r.hammer >= 5, JSON.stringify(r));
     check('[Séance] nouvelles fonctions sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }

@@ -335,17 +335,18 @@ const save=()=>{bdChk();S._mod=Date.now();localStorage.setItem('fitlog',JSON.str
 let lv='',view='home',ed=null,tm=null;
 const LOGO=(c='logo')=>`<img class="${c}" src="icon-180.png" alt="">`;
 const mv=i=>`<button data-a=mv data-i=${i} data-d=-1 aria-label="Monter l'exercice" style="padding:8px 11px;font-size:14px">↑</button><button data-a=mv data-i=${i} data-d=1 aria-label="Descendre l'exercice" style="padding:8px 11px;font-size:14px">↓</button>`;
-const pv=(n,sn)=>{const l=last(n,sn);return l?`Dernière fois (${new Date(l.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}) : ${fmt(l)}`:''};
+const pv=(n,sn)=>{const l=last(n,sn);return l?`Dernière fois (${new Date(l.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}${l.other&&l.sn?', '+l.sn:''}) : ${fmt(l)}`:''};
 const hint=e=>(e.prev?`<div>${esc(e.prev)}</div>`:'')+(e.pn?`<div>Note précédente : ${esc(e.pn)}</div>`:'');
 const noteField=(i,e)=>`<input style="text-align:left;font-size:16px;margin-top:6px" placeholder="Note (réglage, sensation…)" data-k="${i}.note" value="${esc(e.note||'')}">`;
 const exNames=()=>[...new Set([...S.t.flatMap(t=>t.ex.map(e=>e.name)),...S.h.flatMap(h=>h.ex.map(e=>e.name)),...LIB.map(l=>l.n)])].filter(Boolean);
 const METH={double:'Double progression',linear:'Surcharge linéaire',volume:'Progression en volume',reps:'Répétitions (+1 par séance)',sec:'Durée (+5 s par séance)'};
 const METHD={double:"Tu vises de « reps min » à « reps max ». Quand tu atteins le max sur toutes les séries, la charge augmente du pas choisi et tu repars du min.",linear:"Même nombre de reps à chaque séance. La charge augmente du pas dès que tu réussis toutes les séries.",volume:"Tu ajoutes une série à chaque séance réussie (jusqu'à 5), puis la charge augmente et tu repars de la série de départ.",reps:"Idéal au poids du corps : à chaque séance réussie, la cible monte d'une répétition.",sec:"Idéal pour les gainages : à chaque séance réussie, la cible monte de 5 secondes."};
-function last(name,sn){for(let i=S.h.length-1;i>=0;i--){if(sn&&S.h[i].name!==sn)continue;const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return{...e,date:S.h[i].date}}return sn?last(name):null}
+function last(name,sn){for(let i=S.h.length-1;i>=0;i--){if(sn&&S.h[i].name!==sn)continue;const e=S.h[i].ex.find(x=>x.name===name);if(e&&e.sets.some(s=>s.done))return{...e,date:S.h[i].date,sn:S.h[i].name}}if(!sn)return null;const o=last(name);return o&&{...o,other:1}}
 function target(x,sn){
 let w=+x.w||0,r=+x.min||1,n=+x.sets||3;const l=last(x.name,sn);
 if(!l)return{w,r,n};
 const ds=l.sets.filter(s=>s.done),lw=+ds[0].w||w,ln=l.sets.length;
+if(l.other)return{w:lw,r,n};
 const minR=Math.min(...ds.map(s=>+s.r||0)),rpe=Math.max(...ds.map(s=>+s.rpe||0)),inc=+x.inc||0;
 w=lw;n=ln;r=+x.min;
 if(x.m==='double'){
@@ -499,7 +500,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.11.0';
+const VER='4.11.1';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -1782,11 +1783,11 @@ const mmTxt=n=>{const m=mmOf(n);if(m==='-')return'Ignoré';if(!m)return'Non reco
 let SWI=-1;
 function exDef(n){const k=nrm(n);for(const t of S.t){const x=t.ex.find(y=>nrm(y.name)===k);if(x)return JSON.parse(JSON.stringify(x))}const l=LIBM.get(k);if(l)return libEx(l);
 const L=last(n);if(!L)return null;if(L.t==='cardio')return{name:n,t:'cardio',sets:1,min:+(L.sets[0]&&L.sets[0].d)||20,max:0,w:0,inc:0,m:'double',lvl:''};
-const R=L.sets.filter(s=>s.done).map(s=>+s.r||0),mn=Math.min(...R)||8;return{name:n,sets:L.sets.length||3,min:mn,max:Math.max(mn,...R),w:+(L.sets[0]&&L.sets[0].w)||0,inc:2.5,m:L.m||'double',...(L.eq?{eq:L.eq}:{}),...(L.u?{u:L.u}:{})}}
+const R=L.sets.filter(s=>s.done).map(s=>+s.r||0),mn=Math.min(...R)||8,w=+(L.sets[0]&&L.sets[0].w)||0;return{name:n,sets:L.sets.length||3,min:mn,max:Math.max(12,mn+2,...R),w,inc:L.eq==='c'||!w?0:2.5,m:L.m||'double',...(L.eq?{eq:L.eq}:{}),...(L.u?{u:L.u}:{})}}
 const swSub=n=>{const l=LIBM.get(nrm(n)),L=last(n);return[l?EQ[l.eq]+(l.p.length?' · '+l.p.map(mgl).join(', '):''):'Tes exercices',L?'dernière fois '+new Date(L.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' : '+fmt(L):''].filter(Boolean).join(' · ')};
 const swBtn=(i,n)=>`<button class=shi data-a=swapdo data-i=${i} data-n="${esc(n)}"><b>${esc(n)}</b><small>${esc(swSub(n))}</small></button>`;
 function swRows(i,q){const e=S.a.ex[i],have=new Set(S.a.ex.map(x=>nrm(x.name)));q=nrm(q||'');
-if(q){const seen=new Set(),hist=[...new Set(S.h.slice().reverse().flatMap(h=>h.ex.map(x=>x.name)))],all=[...hist,...LIB.map(l=>l.n)].filter(n=>{const k=nrm(n);if(seen.has(k)||have.has(k))return false;seen.add(k);return k.includes(q)});
+if(q){const seen=new Set(),hist=[...new Set(S.h.slice().reverse().flatMap(h=>h.ex.filter(x=>!x.skip&&x.sets.some(s=>s.done)).map(x=>x.name)))],all=[...hist,...LIB.map(l=>l.n)].filter(n=>{const k=nrm(n);if(seen.has(k)||have.has(k))return false;seen.add(k);return k.includes(q)});
 return all.length?all.slice(0,25).map(n=>swBtn(i,n)).join(''):`<div class=sub style="padding:10px 2px">Aucun exercice trouvé. Tu peux ajouter un exercice libre avec « + Ajouter un exercice » en bas de la séance.</div>`}
 const A=altsOf(e)||[],R=[...new Set(S.h.slice().reverse().flatMap(h=>h.ex.filter(x=>!x.skip&&x.t===e.t).map(x=>x.name)))].filter(n=>!have.has(nrm(n))).slice(0,6);
 return(e.was?`<button class=shi data-a=swapback data-i=${i}><b>Revenir à ${esc(e.was)}</b><small>L'exercice prévu</small></button>`:'')
@@ -1980,7 +1981,7 @@ A.addEventListener('click',e=>{if(Date.now()-sw<400){e.stopPropagation();e.preve
 document.addEventListener('click',async ev=>{
 if(ev.target.classList&&ev.target.classList.contains('sh-bg')){ev.target.closest('.sheet').remove();return}
 const b=ev.target.closest('button');if(!b)return;const shx=b.closest('.sheet');if(shx)shx.remove();const a=b.dataset.a,i=+b.dataset.i;
-if(a==='nav'){peek=false;if(LB&&LB.live)LB=null;if(b.dataset.v==='train'&&!['train','hist'].includes(view))histTab='t';view=b.dataset.v;ed=null}
+if(a==='nav'){if(peek)hOpen=-1;peek=false;if(LB&&LB.live)LB=null;if(b.dataset.v==='train'&&!['train','hist'].includes(view))histTab='t';view=b.dataset.v;ed=null}
 else if(a==='new')ed={new:1,id:uid(),name:'',ex:[]};
 else if(a==='edit')ed=JSON.parse(JSON.stringify(S.t.find(t=>t.id===b.dataset.id)));
 else if(a==='delex'){ed.ex.splice(i,1);ed.open=-1}
@@ -2107,7 +2108,7 @@ if(v){e.rest=v;S.rs[k]=v;toast('Repos de '+pf(v)+' retenu pour cet exercice')}el
 else if(a==='swap'){const e=S.a&&S.a.ex[i];if(!e)return;SWI=i;const m=mmOf(e.name),mus=m&&m!=='-'?m[0].map(mgl).join(', '):'';
 sheetH(`Remplacer ${esc(e.name)}`,e.t==='cardio'?'Autre cardio, même durée':mus?`Mêmes muscles : ${esc(mus)}`:'Cherche dans la bibliothèque ou dans tes séances',`<input id=swq type=search placeholder="Chercher (bibliothèque ou tes exercices)" autocomplete=off style="text-align:left;text-align-last:left;font-size:16px;margin:4px 0 6px"><div id=swr>${swRows(i,'')}</div>`);return}
 else if(a==='swapdo'||a==='swapback'){const e=S.a&&S.a.ex[i];if(!e)return;let x;
-if(a==='swapdo'){const d=exDef(b.dataset.n);if(!d)return;x=sx0(d,S.a.name);x.was=e.was||e.name}
+if(a==='swapdo'){const d=exDef(b.dataset.n);if(!d){toast('Exercice introuvable');return}x=sx0(d,S.a.name);x.was=e.was||e.name}
 else{const t=S.t.find(t=>t.name===S.a.name),o=t&&t.ex.find(y=>y.name===e.was),l=LIBM.get(nrm(e.was));x=o?sx0(o,S.a.name):l?sx0(libEx(l),S.a.name):null;if(!x)return}
 S.a.ex[i]=x;if(RT&&RT.i===i){RT=null;rtDraw()}save();toast(a==='swapdo'?'Remplacé par '+x.name:'Exercice prévu rétabli')}
 else if(a==='rtadd'){if(RT){const d=+b.dataset.v,e=S.a&&S.a.ex[RT.i];RT.end+=d*1000;RT.tot=Math.max(15,RT.tot+d);RT.fired=0;RT.lb=0;
