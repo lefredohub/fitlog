@@ -159,6 +159,37 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'sombre-Apple_Santé.png') });
     check('[Apple Santé] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
+  // Séance : historique consultable, remplacement par recherche (avec la dernière perf), machines Fitness Park
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    await p.addInitScript(f => f.forEach(k => localStorage.setItem(k, '1')), FLAGS); await p.goto(URL); await p.waitForTimeout(600); await p.evaluate(SEED);
+    const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)), q = s => document.querySelector(s), o = {};
+      view = 'train'; start(S.t[0].id); render(); await w(100); const id = S.a.id;
+      q('[data-a=peek]').click(); await w(150); o.peek = !!q('[data-a=hopen]') && !q('[data-a=sok]'); q('[data-a=hopen]').click(); await w(100); o.det = !!q('.hdet') && !q('[data-a=editlog]');
+      q('button.big[data-a=peek]').click(); await w(150); o.back = !!q('[data-a=sok]') && S.a && S.a.id === id;
+      // un exercice d'une autre séance (Legs) remplace le 1er exercice : il arrive avec sa dernière charge
+      const other = S.t[2].ex.find(x => !x.t).name, L = last(other);
+      q('[data-a=swap][data-i="0"]').click(); await w(150); const inp = q('#swq'); inp.value = other.slice(0, 6); inp.dispatchEvent(new Event('input', { bubbles: true })); await w(100);
+      const btn = [...document.querySelectorAll('#swr [data-a=swapdo]')].find(x => x.dataset.n === other); o.found = !!btn; o.sub = btn ? btn.querySelector('small').textContent : '';
+      if (btn) btn.click(); await w(150); o.swapped = S.a.ex[0].name === other && +S.a.ex[0].sets[0].w === +L.sets[0].w;
+      q('[data-a=swap][data-i="1"]').click(); await w(150); const i2 = q('#swq'); i2.value = 'hammer'; i2.dispatchEvent(new Event('input', { bubbles: true })); await w(100);
+      o.hammer = document.querySelectorAll('#swr [data-a=swapdo]').length; o.fp = LIB.filter(l => /Hammer|Technogym|Gym80/.test(l.n)).length; document.querySelector('.sheet').remove();
+      // exercice libre connu seulement par l'historique (poids du corps) : pas de charge inventée ; exercice sauté : absent de la recherche
+      const d0 = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10), mk = (n, sk) => ({ name: n, ...(sk ? { skip: 1 } : {}), sets: [1, 2, 3].map(() => ({ w: 0, r: 10, done: !sk })) });
+      S.h.push({ id: 'tx', name: 'Perso', date: d0, ex: [mk('Pompes perso'), mk('Jamais fait', 1)] });
+      const pd = exDef('Pompes perso'), tg = target(pd, S.a.name); o.bw = tg.w === 0 && tg.r === 10 && pd.inc === 0 && pd.max >= 12;
+      q('[data-a=swap][data-i="1"]').click(); await w(150); const i3 = q('#swq'); i3.value = 'jamais'; i3.dispatchEvent(new Event('input', { bubbles: true })); await w(100);
+      o.skipHidden = !document.querySelector('#swr [data-a=swapdo]'); document.querySelector('.sheet').remove(); S.h.pop();
+      // repli sur une autre séance : charge reprise, séries et reps du programme, sans progression
+      const ox = JSON.parse(JSON.stringify(S.t[2].ex.find(x => !x.t))), lo = last(ox.name), to = target(ox, S.t[0].name);
+      o.other = to.w === (+lo.sets.find(s => s.done).w || +ox.w || 0) || to.w === +lo.sets[0].w; o.other = o.other && to.n === +ox.sets && to.r === +ox.min;
+      S.a = null; save(); return o });
+    check("[Séance] historique consultable pendant la séance, sans la modifier", r.peek && r.det && r.back, JSON.stringify(r));
+    check('[Séance] remplacer en cherchant un exercice déjà fait ailleurs : dernière perf reprise', r.found && /dernière fois/.test(r.sub) && r.swapped, JSON.stringify(r));
+    check("[Séance] remplacement par un exercice de l'historique : pas de charge inventée, sautés exclus, autre séance sans progression", r.bw && r.skipHidden && r.other, JSON.stringify(r));
+    check('[Séance] machines Fitness Park dans la bibliothèque et la recherche', r.fp >= 20 && r.hammer >= 5, JSON.stringify(r));
+    check('[Séance] nouvelles fonctions sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
   // Worker (coach IA) : requête Claude acceptée par l'API 2026-10-21, cache des consignes, repli sur Cloudflare si Claude refuse
   {
     const tmp = path.join(require('os').tmpdir(), 'worker-test-' + process.pid + '.mjs'); fs.writeFileSync(tmp, fs.readFileSync(path.join(ROOT, 'worker.js'), 'utf8'));
