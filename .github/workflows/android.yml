@@ -1,44 +1,95 @@
-# Menhir : fabrique l'APK Android (gratuit). Lancement manuel : onglet Actions > "APK Android" > Run workflow.
-# L'APK est une coquille qui affiche ton site GitHub Pages : l'app se met à jour toute seule, sans refaire d'APK.
-# Variable facultative APP_URL (Settings > Secrets and variables > Actions > Variables) si ton site n'est pas à l'adresse par défaut.
-name: APK Android
+# Menhir : app Android (Capacitor + Health Connect). Lancement : onglet Actions > "App Android" > Run workflow, puis choisir :
+#   - test : APK pour toi et tes amis (Releases > "Menhir Android"). Il affiche le site GitHub Pages : mis à jour tout seul, Strava disponible ;
+#   - play : fichier .aab signé pour le Play Store (artefact du workflow). L'app y est EMBARQUÉE (pas de site distant, pas de Strava) ;
+#            secrets ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD (voir docs/android.md).
+# Chaque modification de ce fichier sur une branche claude/** lance une compilation de contrôle (rien n'est publié).
+# Variable facultative APP_URL si le site n'est pas à l'adresse par défaut.
+name: App Android
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'test (APK pour tes amis) ou play (fichier pour le Play Store)'
+        type: choice
+        options: [test, play]
+        default: test
+  push:
+    branches: ['claude/**']
+    paths: ['.github/workflows/android.yml']
 permissions:
   contents: write
 jobs:
-  apk:
+  android:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # compilation de contrôle (push) : les deux variantes ; lancement manuel : celle choisie
+        mode: ${{ fromJSON(github.event_name == 'push' && '["test","play"]' || format('["{0}"]', inputs.mode)) }}
     env:
       APP_URL: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+      MODE: ${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
       - name: Préparer le projet Capacitor
         run: |
           mkdir -p build/www && cd build
-          echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
+          if [ "$MODE" = play ]; then
+            # app embarquée : les fichiers du site, sans la doc, les tests ni le Worker
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' "$GITHUB_WORKSPACE/" www/
+            SERVER=''
+          else
+            echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
+            SERVER="\"server\": { \"url\": \"$APP_URL\", \"cleartext\": false },"
+          fi
           npm init -y >/dev/null
-          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/browser@6 @capacitor/filesystem@6 @capacitor/share@6
+          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8
+          # identifiant gardé tel quel (app.fitlog.perso) : le changer crée une autre app. À décider avant la première publication sur le Play Store.
           cat > capacitor.config.json <<JSON
-          { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www",
-            "server": { "url": "$APP_URL", "cleartext": false },
+          { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www", $SERVER
             "backgroundColor": "#000000" }
           JSON
+          cat capacitor.config.json
           npx cap add android
           npx cap sync android
-      - name: Retour depuis Strava (adresse fitlog://)
+      - name: Health Connect (droits, page d'explication), retour depuis Strava, version minimale d'Android
+        env:
+          PRIVACY: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}privacy.html
         run: |
           python3 - <<'PY'
+          import os,re
           p='build/android/app/src/main/AndroidManifest.xml'
           s=open(p,encoding='utf-8').read()
-          f='''
+          if 'xmlns:tools' not in s:
+              s=s.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android"','<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"',1)
+          # seuls les droits utilisés : séances, distance, fréquence cardiaque, tracé (le module en déclare d'autres)
+          drop=['READ_STEPS','READ_ACTIVE_CALORIES_BURNED','READ_TOTAL_CALORIES_BURNED','READ_FLOORS_CLIMBED','READ_WEIGHT','READ_HEIGHT','READ_BODY_FAT','READ_LEAN_BODY_MASS','READ_NUTRITION']
+          root='\n    <queries><package android:name="com.google.android.apps.healthdata" /></queries>\n'
+          root+=''.join(f'    <uses-permission android:name="android.permission.health.{d}" tools:node="remove" />\n' for d in drop)
+          s=s.replace('<application',root+'    <application',1)
+          app='''
+                  <activity android:name="com.fit_up.health.capacitor.PermissionsRationaleActivity" android:exported="true">
+                      <intent-filter><action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" /></intent-filter>
+                  </activity>
+                  <activity-alias android:name="ViewPermissionUsageActivity" android:exported="true"
+                      android:targetActivity="com.fit_up.health.capacitor.PermissionsRationaleActivity"
+                      android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+                      <intent-filter>
+                          <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                          <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+                      </intent-filter>
+                  </activity-alias>
+          '''
+          if os.environ.get('MODE')!='play':
+              # retour depuis Strava (adresse fitlog://), seulement dans l'APK de test
+              f='''
                   <intent-filter>
                       <action android:name="android.intent.action.VIEW" />
                       <category android:name="android.intent.category.DEFAULT" />
@@ -46,23 +97,33 @@ jobs:
                       <data android:scheme="fitlog" />
                   </intent-filter>
               '''
-          assert '</activity>' in s
-          s=s.replace('</activity>',f+'</activity>',1)
+              assert '</activity>' in s
+              s=s.replace('</activity>',f+'</activity>',1)
+          s=s.replace('</application>',app+'    </application>',1)
           open(p,'w',encoding='utf-8').write(s)
+          # page ouverte par Health Connect quand on touche « politique de confidentialité »
+          v='build/android/app/src/main/res/values/strings.xml'
+          t=open(v,encoding='utf-8').read()
+          t=t.replace('</resources>','    <string name="privacy_policy_url">'+os.environ['PRIVACY']+'</string>\n</resources>',1)
+          open(v,'w',encoding='utf-8').write(t)
+          # Health Connect demande Android 8 au minimum
+          g='build/android/variables.gradle'
+          u=open(g,encoding='utf-8').read()
+          u=re.sub(r'minSdkVersion = \d+','minSdkVersion = 26',u)
+          open(g,'w',encoding='utf-8').write(u)
           PY
-          grep -n 'fitlog' build/android/app/src/main/AndroidManifest.xml
+          cat build/android/app/src/main/AndroidManifest.xml
+          grep minSdkVersion build/android/variables.gradle
       - name: Plein écran (barres noires, bouton Android masqué)
         run: |
           python3 - <<'PY'
           import glob,re
-          # barres système noires, comme l'app
           p='build/android/app/src/main/res/values/styles.xml'
           s=open(p,encoding='utf-8').read()
           a='<item name="android:background">@null</item>'
           if a in s and 'navigationBarColor' not in s:
               s=s.replace(a,a+'\n        <item name="android:navigationBarColor">#000000</item>\n        <item name="android:statusBarColor">#000000</item>\n        <item name="android:windowBackground">#000000</item>',1)
               open(p,'w',encoding='utf-8').write(s)
-          # barre de navigation masquée (réapparaît d'un glissement depuis le bas)
           f=glob.glob('build/android/app/src/main/java/**/MainActivity.java',recursive=True)[0]
           pk=re.search(r'^package\s+[^;]+;',open(f,encoding='utf-8').read(),re.M).group(0)
           open(f,'w',encoding='utf-8').write(pk+"""
@@ -94,14 +155,67 @@ jobs:
             convert "$GITHUB_WORKSPACE/icon-512.png" -resize $((f*62/100))x$((f*62/100)) -background none -gravity center -extent ${f}x${f} mipmap-$n/ic_launcher_foreground.png
           done
           printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">#0A0908</color></resources>\n' > values/ic_launcher_background.xml
+
+      # ---------- test : APK pour tes amis ----------
       - name: Construire l'APK
+        if: env.MODE == 'test'
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           cd build/android && ./gradlew assembleDebug --no-daemon
           cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/Menhir.apk"
       - uses: softprops/action-gh-release@v2
+        if: env.MODE == 'test' && github.event_name == 'workflow_dispatch'
         with:
           tag_name: android
           name: Menhir Android
-          body: Télécharge Menhir.apk sur ton téléphone Android et ouvre-le pour l'installer.
+          body: Télécharge Menhir.apk sur ton téléphone Android et ouvre-le pour l'installer. Les courses de ta montre arrivent par Health Connect.
           files: Menhir.apk
+
+      # ---------- play : fichier signé pour le Play Store ----------
+      - name: Signer et construire le fichier Play Store (.aab)
+        if: env.MODE == 'play'
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ "${{ github.event_name }}" = push ]; then
+            # contrôle seulement : clé jetable, le fichier produit n'est pas publiable
+            KS_PASS=controle KEY_PASS=controle KEY_ALIAS=controle
+            keytool -genkeypair -keystore "$RUNNER_TEMP/upload.jks" -storepass controle -keypass controle -alias controle -keyalg RSA -keysize 2048 -validity 1 -dname CN=controle
+            export KS_PASS KEY_PASS KEY_ALIAS
+          else
+            for v in KS_B64 KS_PASS KEY_ALIAS KEY_PASS; do [ -n "${!v}" ] || { echo "Secret manquant pour $v (voir docs/android.md)"; exit 1; }; done
+            printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          fi
+          export KS_FILE="$RUNNER_TEMP/upload.jks"
+          python3 - <<'PY'
+          import re
+          p='build/android/app/build.gradle'
+          s=open(p,encoding='utf-8').read()
+          s=re.sub(r'versionCode \d+','versionCode ${{ github.run_number }}',s,1)
+          s=re.sub(r'versionName "[^"]*"','versionName "1.0.${{ github.run_number }}"',s,1)
+          sign='''    signingConfigs {
+                  release {
+                      storeFile file(System.getenv("KS_FILE"))
+                      storePassword System.getenv("KS_PASS")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASS")
+                  }
+              }
+              buildTypes {'''
+          assert '    buildTypes {' in s
+          s=s.replace('    buildTypes {',sign,1)
+          s=re.sub(r'(buildTypes \{\s*release \{)',r'\1\n            signingConfig signingConfigs.release',s,1)
+          open(p,'w',encoding='utf-8').write(s)
+          PY
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          cd build/android && ./gradlew bundleRelease --no-daemon
+          cp app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/Menhir.aab"
+          rm -f "$KS_FILE"
+      - uses: actions/upload-artifact@v4
+        if: env.MODE == 'play' && github.event_name == 'workflow_dispatch'
+        with:
+          name: Menhir-PlayStore
+          path: Menhir.aab

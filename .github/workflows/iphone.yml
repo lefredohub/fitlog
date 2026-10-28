@@ -1,5 +1,6 @@
-# Menhir : app iPhone (Capacitor + module Apple Santé « capacitor-health »). L'app affiche le site GitHub Pages : les mises à jour du site arrivent
-# sans refaire l'app ; il ne faut la refaire que pour changer le module natif, le nom ou l'icône.
+# Menhir : app iPhone (Capacitor + module Apple Santé « capacitor-health »).
+# Mode test : l'app affiche le site GitHub Pages (mises à jour sans refaire l'app). Mode testflight : l'app est EMBARQUÉE (exigé pour l'App Store),
+# sans Strava ; chaque nouvelle version passe par un nouvel envoi à TestFlight.
 # Lancement : onglet Actions > "App iPhone" > Run workflow, puis choisir :
 #   - test : projet Xcode prêt à ouvrir sur un Mac (compte Apple gratuit, 7 jours) + IPA, publiés dans Releases > "Menhir iPhone (test)" ;
 #   - testflight : envoi à TestFlight (compte Apple Developer payant ; secrets APPLE_TEAM_ID, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8, voir docs/iphone.md).
@@ -36,13 +37,18 @@ jobs:
       - name: Préparer le projet Capacitor iOS
         run: |
           mkdir -p build/www && cd build
-          echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
+          if [ "$MODE" = testflight ]; then
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' "$GITHUB_WORKSPACE/" www/
+            SERVER=''
+          else
+            echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
+            SERVER="\"server\": { \"url\": \"$APP_URL\", \"cleartext\": false },"
+          fi
           npm init -y >/dev/null
           npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/ios@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8
           # identifiant gardé tel quel (app.fitlog.perso) : le changer crée une autre app, sans les données de l'actuelle. À décider au lancement App Store.
           cat > capacitor.config.json <<JSON
-          { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www",
-            "server": { "url": "$APP_URL", "cleartext": false },
+          { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www", $SERVER
             "ios": { "contentInset": "never", "backgroundColor": "#000000" },
             "backgroundColor": "#000000" }
           JSON
@@ -54,7 +60,8 @@ jobs:
           import plistlib
           p='build/ios/App/App/Info.plist'
           d=plistlib.load(open(p,'rb'))
-          d.setdefault('CFBundleURLTypes',[]).append({'CFBundleURLName':'app.fitlog.perso','CFBundleURLSchemes':['fitlog']})
+          import os
+          if os.environ.get('MODE')!='testflight': d.setdefault('CFBundleURLTypes',[]).append({'CFBundleURLName':'app.fitlog.perso','CFBundleURLSchemes':['fitlog']})
           d['CFBundleDisplayName']='Menhir'
           d['NSHealthShareUsageDescription']="Menhir lit tes séances de course enregistrées dans Apple Santé (distance, durée, fréquence cardiaque, tracé GPS) pour ton suivi, ton plan et tes records."
           d['NSHealthUpdateUsageDescription']="Menhir n'écrit rien dans Apple Santé ; cette autorisation est demandée par le module de lecture."

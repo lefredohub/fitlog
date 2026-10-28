@@ -1,38 +1,41 @@
 # Commercialisation de Menhir : feuille de route
 
-État au 26 octobre 2026. Ce document n'est pas un avis juridique : les textes de `docs/juridique/` sont des brouillons à faire relire.
+État au 28 octobre 2026. Ce document n'est pas un avis juridique : les textes de `docs/juridique/` sont des brouillons à faire relire.
 
-## 1. Ce qui bloque (à régler avant d'encaisser)
+## 1. Où on en est
 
 | Point | État | Qui |
 |---|---|---|
-| **Nom** : « FitLog » était déjà utilisé par au moins 5 apps. | Renommé **Menhir** (v4.9). Reste : recherche de marque gratuite sur data.inpi.fr avant toute publication ; dépôt plus tard. | Toi |
-| **Strava** : règles 2026 (pas d'app concurrente, pas de revente, données gardées 7 jours, pas d'IA). | Retiré de ton compte. La version web le garde pour tes amis (10 comptes maximum en accès « Standard »). À couper avant le lancement payant. | Moi, au lancement |
-| **Apple Santé** à la place de Strava. | Fait (v4.7) et testé sur ton iPhone. | — |
-| **Accord exprès pour les données de santé** (RGPD art. 9). | Fait (v4.8) : demandé avant Apple Santé et le ressenti du jour, retirable avec effacement. | — |
-| **Statut** : micro-entreprise. | À créer (gratuit, en ligne sur formalites.entreprises.gouv.fr). | Toi |
-| **Textes légaux** : mentions légales, CGU/CGV, confidentialité, analyse d'impact. | Brouillons dans `docs/juridique/`, à compléter (nom, SIRET, prix) et à faire relire. | Toi + juriste |
-| **Compte Apple Developer** (99 $/an) : TestFlight, App Store. | À prendre au moment de la bêta. | Toi |
-| **Cartes** : les serveurs gratuits d'OpenStreetMap ne sont pas faits pour une app commerciale. | À remplacer par un fournisseur payant (quelques €/mois). | Moi |
-| **Supabase** (compte et sauvegarde) : vérifier la région (Europe) et accepter l'accord de traitement des données (DPA). | À vérifier dans le tableau de bord Supabase (Project Settings > General : région ; Legal : DPA). | Toi |
+| **Nom** « Menhir » (« FitLog » était déjà pris par au moins 5 apps) | Renommé. Reste : recherche gratuite sur data.inpi.fr et euipo.europa.eu (classes 9 et 41) avant de publier. Dépôt (≈ 190 €) plus tard. | Toi |
+| **Textes légaux dans l'app** | Fait (v4.12) : une seule page `privacy.html` (confidentialité, suppression des données, conditions d'utilisation, mentions légales), affichée dans Réglages > Infos légales. À compléter à la création de la micro-entreprise (nom, SIRET, adresse) et à faire relire. | Moi / toi |
+| **Accords** : données de santé (RGPD art. 9) et coach IA (règle Apple 5.1.2) | Faits, retirables dans Réglages > Mes données. | — |
+| **Suppression du compte** dans l'app et par e-mail | Faite (Apple 5.1.1, Google). | — |
+| **Strava** | Absent des apps des stores. La version web le garde pour tes amis (10 comptes maximum). À couper du web avant le lancement payant. | Moi, au lancement |
+| **Montre** : Apple Santé (iPhone), Health Connect (Android) | Faits. Health Connect à tester sur un vrai Android (un de tes 2 amis). | Ton ami |
+| **Apps des stores** : app embarquée, signée | Prête : `iphone.yml` mode `testflight`, `android.yml` mode `play`. Fiches et formulaires dans `docs/fiches-store.md`. | — |
+| **Statut** : micro-entreprise | À créer (gratuit, formalites.entreprises.gouv.fr). Nécessaire pour le compte Google « organisation » et pour encaisser. | Toi |
+| **Comptes développeur** | Google : 25 $ une fois, compte **organisation** (évite le test à 12 testeurs). Apple : 99 $/an. | Toi |
+| **Cartes** : les serveurs gratuits d'OpenStreetMap ne sont pas faits pour une app commerciale | À remplacer par un fournisseur payant (quelques €/mois) avant le lancement payant. | Moi |
+| **Supabase** : région (Europe) et accord de traitement des données (DPA) | À vérifier : Project Settings > General (région) ; Legal (DPA). | Toi |
 
-## 2. Le nom : Menhir
-
-Le dépôt d'une marque **n'est pas obligatoire** pour vendre une app. Il protège : sans dépôt, quelqu'un peut déposer « Menhir » après toi et t'obliger à
-renommer. L'inverse compte davantage : **ne pas utiliser un nom déjà déposé par un autre** dans le même domaine (risque de contrefaçon). La recherche,
-elle, est gratuite : [data.inpi.fr](https://data.inpi.fr) et [euipo.europa.eu/eSearch](https://euipo.europa.eu/eSearch), classes 9 (logiciels) et 41 (sport, coaching).
-À faire avant de publier sous ce nom ; le dépôt (environ 190 € pour une classe à l'INPI) attendra que l'app rapporte.
+## 2. Le nom
+Le dépôt d'une marque **n'est pas obligatoire**. Il protège : sans dépôt, quelqu'un peut déposer « Menhir » après toi. L'inverse compte davantage :
+**ne pas utiliser un nom déjà déposé** dans le même domaine. Recherche gratuite : [data.inpi.fr](https://data.inpi.fr), [euipo.europa.eu/eSearch](https://euipo.europa.eu/eSearch).
 
 ## 3. Ordre conseillé
-
-1. Vérifier gratuitement que « Menhir » n'est pas déjà une marque déposée (INPI, EUIPO) ; le déposer plus tard.
-2. Créer la micro-entreprise. Un abonnement relève des prestations de services : plafond 83 600 €/an, pas de TVA à facturer sous ~37 500 €/an (à vérifier sur impots.gouv.fr).
-3. Compléter les textes de `docs/juridique/` (nom, SIRET, adresse, prix) et les faire relire (quelques centaines d'euros).
-4. Technique (moi) : fournisseur de cartes, Strava coupé, version iPhone qui embarque l'app (exigé par Apple pour l'App Store), écran d'abonnement.
-5. Compte Apple Developer, TestFlight, bêta gratuite avec 20 à 50 personnes pendant 1 à 2 mois.
-6. Lancement payant : abonnement via l'App Store (Apple prend 15 % la première année avec le programme petites entreprises), puis Google Play.
+1. Recherche de marque « Menhir » (gratuit, 15 minutes).
+2. **Micro-entreprise** (activité : édition de logiciels / applications ; un abonnement relève des prestations de services). Puis numéro **D-U-N-S** (gratuit).
+3. Compléter `privacy.html` (section Mentions légales : nom, statut, SIRET, adresse) : je le fais quand tu me donnes les informations.
+4. **Android** (`docs/android.md`) : compte Play Console organisation, clé de signature, mode `play`, test interne avec tes amis, puis production.
+5. **iPhone** (`docs/iphone.md`) : compte Apple Developer, mode `testflight`, bêta, puis App Store.
+6. Lancement payant (plus tard) : abonnement via les achats intégrés (Apple et Google prennent 15 % pour les petits éditeurs), écran d'abonnement,
+   CGV (`docs/juridique/cgu-cgv.md`), médiateur de la consommation, cartes payantes, Strava coupé sur le web.
 
 ## 4. Modèle proposé
+Gratuit : carnet muscu et course, import Apple Santé / Health Connect et fichiers de montre. Payant (4 à 6 €/mois ou 30 à 40 €/an) : plans de course et HYROX, coach IA, statistiques avancées.
+Le coût du coach IA (API Claude, ≈ 0,1 centime par message) est payé par l'éditeur : garder un plafond de messages par abonné.
 
-Gratuit : carnet muscu et course, import Apple Santé et fichiers de montre. Payant (4 à 6 €/mois ou 30 à 40 €/an) : plans de course et HYROX, coach IA, statistiques avancées.
-Le coût du coach IA (API Claude) est payé par l'éditeur : garder un plafond de messages par abonné.
+## 5. À savoir
+- Les apps des stores sont **embarquées** : une modification n'y arrive qu'après un nouvel envoi (et l'examen d'Apple, souvent 24 h). La version web et l'APK de test suivent le site.
+- Les données de l'app embarquée sont séparées de celles du site : crée un compte (Réglages > Compte) avant de passer de l'une à l'autre, la sauvegarde les fait suivre.
+- L'identifiant `app.fitlog.perso` se change **avant** la première publication, jamais après (par exemple `fr.menhir.app` ; l'app de test actuelle deviendrait une autre app).

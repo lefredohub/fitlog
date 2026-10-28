@@ -1,6 +1,6 @@
 // Service worker : l'app s'ouvre même sans réseau (salle en sous-sol). Réseau d'abord, copie locale en secours.
 // Le modèle 3D (anat.bin) a son propre cache, conservé d'une version à l'autre.
-const C='fitlog-v4.11.1',A='fitlog-anat-1';
+const C='fitlog-v4.12.0',A='fitlog-anat-1';
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C&&x!==A).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);
