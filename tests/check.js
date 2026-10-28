@@ -37,7 +37,7 @@ const SEED = () => {
 const VIEWS = {
   'Accueil': "view='home'", 'Course > Plan': "view='run';runTab='p'", 'Course > Sorties': "view='run';runTab='r'", 'Course > Records': "view='run';runTab='rec'", 'Course > HYROX': "view='run';runTab='hx'",
   'Muscu > Séances': "view='train';histTab='t'", 'Muscu > Muscles': "view='train';histTab='m'", 'Muscu > Historique': "view='train';histTab='s';hOpen=S.h.length-1", 'Muscu > Records': "view='train';histTab='r'",
-  'Réglages': "view='set'", 'Aide': "view='help'", 'Outils': "view='tools'", 'Succès': "view='ach'", 'Score': "view='score'", 'Programmes types': "view='prog'", 'Forme du jour': "view='forme'", 'Coach': "view='coach'",
+  'Réglages': "view='set'", 'Infos légales': "view='legal'", 'Aide': "view='help'", 'Outils': "view='tools'", 'Succès': "view='ach'", 'Score': "view='score'", 'Programmes types': "view='prog'", 'Forme du jour': "view='forme'", 'Coach': "view='coach'",
   'Détail sortie': "RDI=S.runs[0].id;view='rdet'", 'Nouvelle sortie': "view='rform';RX={id:'',date:iso(new Date()),km:'',h:'',m:'',s:'',n:'',hr:'',up:''}", 'Objectif': "RX=null;ge={...S.goal,days:[...S.goal.days],races:[]};view='goal'",
   'Éditeur de séance': "ge=null;view='train';ed=JSON.parse(JSON.stringify(S.t[0]));ed.open=0", 'Bibliothèque': "LB={q:'',eq:'',g:'',sel:[]}", 'Séance en cours': "LB=null;ed=null;view='train';start(S.t[0].id)"
 };
@@ -54,6 +54,9 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     // nouvel utilisateur (présentation passée)
     let p = await page(['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb']); let o = await over(p);
     check(`[${M}] Accueil nouvel utilisateur sans défilement`, o.y <= 0, `dépasse de ${o.y} px`);
+    // nouvel utilisateur : chaque onglet s'affiche (Course sans aucune sortie compris)
+    const tabs = await p.evaluate(() => { const r = []; for (const v of ["view='run';runTab='p'", "view='run';runTab='r'", "view='run';runTab='rec'", "view='train';histTab='t'", "view='train';histTab='s'", "view='set'"]) { try { eval(v); render(); if (!document.querySelector('main').innerText.trim()) r.push(v + ' vide') } catch (e) { r.push(v + ' : ' + e.message) } } view = 'home'; render(); return r });
+    check(`[${M}] Nouvel utilisateur : tous les onglets s'affichent`, !tabs.length, tabs.join(' | '));
     check(`[${M}] Accueil nouvel utilisateur sans erreur JS`, !p.errs.length, p.errs.join(' | ')); await p.close();
 
     // tous les écrans avec des données
@@ -158,6 +161,56 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     const o = await p.evaluate(() => document.documentElement.scrollWidth); check('[Apple Santé] pas de débordement horizontal', o <= 390, o + ' px');
     if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'sombre-Apple_Santé.png') });
     check('[Apple Santé] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
+  // App Android (Health Connect) et app des stores (fichiers embarqués) : pas de Strava, accord avant le coach IA, page légale
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'light', isMobile: true, hasTouch: true }); const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.addInitScript(f => {
+      f.forEach(k => localStorage.setItem(k, '1')); window.confirm = () => true; window.__STORE = 1; const at = j => new Date(Date.now() - j * 864e5);
+      window.__hc = { avail: 0, perms: [] };
+      window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', Plugins: { HealthPlugin: {
+        isHealthAvailable: async () => { window.__hc.avail++; return { available: true } },
+        requestHealthPermissions: async q => { window.__hc.perms = q.permissions; return {} },
+        queryWorkouts: async q => { const W = [{ id: 'u-1', workoutType: 'RUNNING', startDate: at(2).toISOString(), duration: 1800, distance: 5200, sourceBundleId: 'com.garmin.android.apps.connectmobile' },
+          { id: 'u-2', workoutType: 'RUNNING_TREADMILL', startDate: at(3).toISOString(), duration: 1500, distance: 4000 }, { id: 'u-3', workoutType: 'BIKING', startDate: at(4).toISOString(), duration: 3600, distance: 20000 }];
+          const a = Date.parse(q.startDate), z = Date.parse(q.endDate); return { workouts: W.filter(w => { const t = Date.parse(w.startDate); return t >= a && t < z }).map(w => ({ ...w, heartRate: [{ timestamp: w.startDate, bpm: 150 }] })) } } } } };
+    }, FLAGS);
+    await p.goto(URL); await p.waitForTimeout(600);
+    const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)), q = s => document.querySelector(s), o = {};
+      o.store = STORE && !STRV(); view = 'run'; runTab = 'r'; render(); await w(100); o.card = /Connecter Health Connect/.test(q('main').innerText) && !q('.sbtn');
+      q('[data-a=hksync]').click(); await w(150); q('.sheet [data-a=csok]').click(); await w(500);
+      o.hc = window.__hc.avail >= 1 && window.__hc.perms.includes('READ_DISTANCE'); o.runs = S.runs.filter(x => x.hk).map(x => x.id).sort().join();
+      // tracé demandé dans une nouvelle session : le client Health Connect est préparé d'abord
+      hkOk = null; const a0 = window.__hc.avail; await hkTrack(S.runs.find(x => x.id === 'hku-1')); o.ready = window.__hc.avail === a0 + 1;
+      // aucune mention de Strava dans les écrans courants
+      const T = []; for (const v of ["view='run';runTab='r'", "view='run';runTab='rec'", "view='help';['h0','h1','h2','h3','h7'].forEach(k=>accOpen[k]=true)", "view='cdata'", "view='set';accOpen.dt=true", "view='home'"]) { eval(v); render(); await w(60); T.push(q('main').innerText) }
+      o.nostrava = !T.some(t => /strava/i.test(t));
+      // coach : accord demandé avant le premier envoi, rien n'est envoyé avant
+      let sent = 0; const rf = window.fetch; window.fetch = async (u, i) => { if (/\/chat/.test(u)) { sent++; return new Response(JSON.stringify({ text: 'ok', src: 'claude' }), { status: 200 }) } return rf(u, i) };
+      FL.api = FL.api || 'https://worker.test/'; view = 'coach'; render(); await w(50); await chatSend('coach', 'Bonjour'); await w(50);
+      o.ask = !!q('.sheet [data-a=ccok]') && !sent && !S.ccv; q('.sheet [data-a=ccok]').click(); await w(300); o.after = S.ccv === 2 && !!S.cc;
+      view = 'set'; accOpen.dt = true; render(); await w(50); o.wd = !!q('[data-a=ccno]'); q('[data-a=ccno]').click(); await w(50); o.wd2 = !S.ccv && !S.cc; window.fetch = rf;
+      view = 'legal'; render(); await w(700); o.legal = document.querySelectorAll('.card.lgl').length >= 6 && /Supprimer ton compte/.test(q('main').innerText) && /non affilié|ni affilié/.test(q('main').innerText);
+      return o });
+    check('[Android] Health Connect : courses importées (tapis compris, vélo ignoré), distance demandée', r.card && r.hc && r.ready && r.runs === 'hku-1,hku-2', JSON.stringify(r));
+    check('[Stores] app embarquée : aucune mention ni bouton Strava', r.store && r.nostrava, JSON.stringify(r));
+    check('[Coach IA] accord demandé avant le premier envoi, puis retirable', r.ask && r.after && r.wd && r.wd2, JSON.stringify(r));
+    check("[Légal] page d'infos légales affichée dans l'app (confidentialité, suppression, mentions)", r.legal, JSON.stringify(r));
+    check('[Android / stores] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
+  // App iPhone des stores, nouvel utilisateur : présentation juste, pas de carte « Installe Menhir », accueil sans défilement
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148' }); const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.addInitScript(() => { window.__STORE = 1; localStorage.setItem('fitlog-nolog', '1'); window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'ios', Plugins: { HealthPlugin: { requestHealthPermissions: async () => ({}), queryWorkouts: async () => ({ workouts: [] }) } } } });
+    await p.goto(URL); await p.waitForTimeout(600);
+    const onb = await p.evaluate(async () => { const T = []; for (let i = 0; i < 6; i++) { const o = document.querySelector('.ov'); if (!o) break; T.push(o.innerText); const n = [...o.querySelectorAll('button')].find(b => /Suivant/.test(b.textContent)); if (!n) break; n.click(); await new Promise(r => setTimeout(r, 120)) } return T.join(' | ') });
+    check('[Stores] présentation : ni Strava ni bouton « ? » disparu, Apple Santé citée', onb && !/strava/i.test(onb) && !/Touche « \? »/.test(onb) && /Apple Santé/.test(onb), onb.slice(0, 300));
+    await p.evaluate(() => { localStorage.setItem('fitlog-onb', '1'); localStorage.setItem('fitlog-sb', '1'); document.querySelectorAll('.ov').forEach(o => o.remove()); view = 'home'; render() }); await p.waitForTimeout(200);
+    const h = await p.evaluate(() => { const m = document.querySelector('main'); return { y: m.scrollHeight - m.clientHeight, inst: /Installe Menhir/.test(m.innerText) } });
+    check('[Stores] accueil nouvel utilisateur : pas de carte « Installe Menhir », sans défilement', !h.inst && h.y <= 0, JSON.stringify(h));
+    check('[Stores] nouvel utilisateur sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
   // Séance : historique consultable, remplacement par recherche (avec la dernière perf), machines Fitness Park
   {

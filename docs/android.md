@@ -1,30 +1,58 @@
-# Menhir Android (APK) : fabriquer et partager
+# Menhir sur Android
 
-L'APK est une **coquille** qui affiche ton app hébergée sur GitHub Pages : quand tu mets à jour `index.html` sur GitHub, tous les téléphones sont à jour au prochain lancement, **sans refaire d'APK**. L'app est mise en cache : elle s'ouvre aussi hors-ligne.
+Deux versions, fabriquées par **Actions → App Android → Run workflow** :
 
-Avant de commencer : l'app doit déjà fonctionner dans un navigateur (voir `compte-cloud.md` pour le compte, `strava.md` pour Strava).
+| Mode | Fichier | Contenu | Pour qui |
+|---|---|---|---|
+| `test` | `Menhir.apk` (Releases → « Menhir Android ») | affiche le site en ligne (mis à jour tout seul), Strava disponible, Health Connect | toi et tes amis |
+| `play` | `Menhir.aab` (artefact « Menhir-PlayStore » du workflow) | app **embarquée**, sans Strava, Health Connect, signée | le Play Store |
 
-## 1. Fabriquer l'APK (une seule fois)
-1. Le workflow est déjà dans le dépôt (`.github/workflows/android.yml`).
-2. Vérifie que `icon-512.png` est à la racine du dépôt.
-3. Onglet **Actions → APK Android → Run workflow**. Compte ~5 minutes.
-4. Page d'accueil du dépôt → **Releases → Menhir Android** → télécharge `Menhir.apk`.
-5. Si ton site n'est pas à `https://<pseudo>.github.io/<dépôt>/` : *Settings → Secrets and variables → Actions → Variables* → crée `APP_URL` avec la bonne adresse, puis relance.
+## 1. APK de test (gratuit)
+1. Actions → **App Android** → Run workflow → mode **test** (environ 8 minutes).
+2. Releases → **Menhir Android** → envoie `Menhir.apk` (message, mail). Sur le téléphone : ouvrir le fichier, autoriser l'installation si Android le demande.
+   Play Protect peut afficher un avertissement : normal hors Play Store.
+3. Les courses de la montre : l'app de la montre (Garmin Connect, Samsung Health, Fitbit, Polar, Coros, Pixel Watch…) doit écrire dans **Health Connect**
+   (réglage « Health Connect » ou « Applis connectées » dans l'app de la montre ; la liste exacte dépend de la marque). Puis Menhir → Course → Sorties → **Connecter Health Connect**.
 
-Il faut refaire un APK seulement pour changer l'icône ou le nom, ou si l'adresse du site change.
+## 2. Play Store
 
-## 2. Installer sur un téléphone Android
-1. Envoie `Menhir.apk` (message, mail, lien de la Release).
-2. Ouvre le fichier, autorise « sources inconnues » si Android le demande. Play Protect peut afficher un avertissement : normal hors Play Store (APK signé « debug »).
+### Le compte développeur (25 $, une seule fois)
+- **Compte personnel** : Google impose un test fermé avec **au moins 12 testeurs pendant 14 jours d'affilée** avant de pouvoir publier. Avec 2 amis sur Android, ça bloque.
+- **Compte organisation** (recommandé) : pas de test obligatoire. Il faut :
+  1. la micro-entreprise (formalites.entreprises.gouv.fr, gratuit) ;
+  2. un **numéro D-U-N-S** (gratuit, demande en ligne chez Dun & Bradstreet, quelques jours ; le formulaire est accessible depuis la création du compte Play Console) ;
+  3. play.google.com/console → créer un compte **Organisation** avec ce numéro, payer 25 $, vérifier l'identité (quelques jours).
+- Ces règles changent souvent : relis la page d'aide « Exigences de test pour les nouveaux comptes personnels » au moment de créer le compte.
 
-## 3. Ce que voit un ami
-1. Un court tour de présentation (on peut le passer).
-2. **Créer un compte** Menhir (e-mail + mot de passe) pour sauvegarder ses données, ou **Continuer sans compte** (tout reste sur le téléphone).
-3. **Muscu** : tout est accessible (bibliothèque de 170 exercices, programmes, progression, carte du corps).
-4. **Course** : **Se connecter avec Strava** (facultatif) ou **+ Ajouter une sortie à la main**.
-5. Après l'autorisation Strava, un bouton **Ouvrir Menhir** ramène dans l'app.
+### La clé de signature (une fois, sur le Mac)
+1. Terminal : `keytool -genkeypair -v -keystore menhir-upload.jks -alias menhir -keyalg RSA -keysize 2048 -validity 10000`
+   (choisis un mot de passe, réponds aux questions, le nom suffit).
+2. `base64 -i menhir-upload.jks | pbcopy` : le contenu est copié.
+3. GitHub → Settings → Secrets and variables → Actions → New repository secret :
+   `ANDROID_KEYSTORE_B64` (coller), `ANDROID_KEYSTORE_PASSWORD` et `ANDROID_KEY_PASSWORD` (le mot de passe), `ANDROID_KEY_ALIAS` = `menhir`.
+4. Garde `menhir-upload.jks` et le mot de passe en lieu sûr (gestionnaire de mots de passe). Avec la signature gérée par Google (activée par défaut),
+   une clé perdue se remplace en écrivant au support, mais ça prend du temps.
 
-## 4. Limites
-- Strava : 10 athlètes maximum (toi compris) tant que Strava n'a pas validé l'application (voir `strava.md`).
-- APK « debug » : parfait pour toi et tes amis, pas pour le Play Store.
-- iPhone : pas d'APK. L'app web installée sur l'écran d'accueil (Safari → Partager → Sur l'écran d'accueil) fonctionne de la même façon, y compris Strava.
+### Fabriquer et envoyer
+1. Actions → App Android → Run workflow → mode **play**. À la fin : bas de la page du workflow → artefact **Menhir-PlayStore** → `Menhir.aab`.
+2. Play Console → Créer une application : nom **Menhir**, français, Application, Gratuite.
+3. **Contenu de l'application** (menu de gauche, tout doit être vert) :
+   - Règles de confidentialité : `https://lefredohub.github.io/fitlog/privacy.html` ;
+   - Accès à l'application : tout est accessible sans compte ;
+   - Annonces : non ;
+   - Classification du contenu : questionnaire (pas de violence, pas d'achat, pas d'échange entre utilisateurs) ;
+   - Public cible : 16 ans et plus (Google ne propose pas de tranche « 15 ans » ; l'app reste ouverte dès 15 ans, comme le disent les infos légales) ;
+   - Sécurité des données : réponses dans `docs/fiches-store.md` ;
+   - Suppression des données : `https://lefredohub.github.io/fitlog/privacy.html#suppression` ;
+   - **Health Connect** : déclarer les autorisations et leur usage (texte prêt dans `docs/fiches-store.md`) ; Google les examine (quelques jours) ;
+   - Applications de santé : catégorie « Activité physique et remise en forme ».
+4. **Fiche principale** : textes et captures (voir `docs/fiches-store.md`), icône 512 × 512 (`icon-512.png`), image de présentation 1024 × 500.
+5. **Tests → Test interne** : envoie `Menhir.aab`, ajoute ton adresse et celles de tes amis. Puis **Production** → nouvelle version → envoyer pour examen.
+6. Chaque mise à jour : relancer le mode `play` (le numéro de version augmente tout seul) et envoyer le nouveau `.aab`.
+
+## Limites
+- Health Connect ne donne que les **30 jours** précédant la première autorisation (pas tout l'historique comme Apple Santé) : les anciennes sorties s'importent avec les fichiers de montre.
+- Carte des sorties sur Android : à vérifier sur un vrai téléphone (Android demande un accord à part pour les itinéraires ; le module peut ne pas le gérer sur Android 15+). L'altitude n'est pas transmise par le module.
+- La version Play Store embarque l'app : une modification du site n'y arrive qu'après un nouvel envoi. L'APK de test, lui, suit le site.
+- Strava n'est pas dans la version Play Store (règles Strava : pas d'app concurrente).
+- Si l'identifiant `app.fitlog.perso` doit changer (par exemple `fr.menhir.app`), c'est **avant** la première publication : après, il est définitif.

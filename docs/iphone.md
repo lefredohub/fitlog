@@ -1,7 +1,8 @@
 # Menhir sur iPhone
 
-Trois façons d'avoir Menhir sur iPhone. Toutes affichent le site en ligne : les mises à jour arrivent toutes seules, sans réinstaller
-(il ne faut refaire l'app iPhone que si le module Apple Santé, le nom ou l'icône changent). Fabrication : onglet **Actions → App iPhone → Run workflow**.
+Trois façons d'avoir Menhir sur iPhone. Fabrication : onglet **Actions → App iPhone → Run workflow**.
+Les deux premières affichent le site en ligne : les mises à jour arrivent toutes seules. La troisième (TestFlight, App Store) **embarque** l'app, comme Apple l'exige :
+chaque mise à jour passe par un nouvel envoi (mode `testflight`), et Strava n'y figure pas.
 
 | | Prix | Apple Santé | Durée | Pour qui |
 |---|---|---|---|---|
@@ -44,13 +45,23 @@ Mise en place (une fois, environ 45 minutes) :
    `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8` (tout le contenu du fichier `.p8`, lignes BEGIN/END comprises).
 6. **Actions → App iPhone → Run workflow → mode `testflight`** (15 à 25 minutes). La version apparaît ensuite dans App Store Connect → TestFlight.
 7. **Inviter** : TestFlight → Groupes externes → nouveau groupe → **Activer le lien public** → « Informations de test » (e-mail, description, adresse de `privacy.html`) → ajoute la version.
+8. **Worker** : recolle `worker.js` dans Cloudflare (il accepte désormais les apps des stores, sinon le coach ne répond pas dans l'app embarquée).
+
+### Passer à l'App Store
+Dans App Store Connect → ta fiche Menhir :
+- **Informations de l'app** : catégorie Santé et forme ; URL de confidentialité `https://lefredohub.github.io/fitlog/privacy.html` ;
+- **Confidentialité de l'app** : réponses prêtes dans `docs/fiches-store.md` ;
+- **Classification par âge** : questionnaire (rien de sensible) ; **Prix** : gratuit (l'abonnement viendra plus tard, via les achats intégrés) ;
+- **Version** : textes, mots-clés et captures dans `docs/fiches-store.md`, choisir la version TestFlight, coller les **notes pour l'examen** du même fichier, puis « Soumettre pour examen ».
+Points que vérifie Apple et déjà en place : accord avant d'envoyer des données au coach IA (règle 5.1.2), suppression du compte dans l'app (5.1.1),
+textes d'autorisation Apple Santé, pas de publicité ni de revente des données de santé (5.1.3), app embarquée et utile sans compte.
 
 L'envoi à TestFlight n'a pas encore pu être essayé (il faut le compte payant) : au premier lancement, copie-moi l'erreur de l'onglet Actions s'il y en a une.
 
 ## 4. Synchro montre → Apple Santé → Menhir
 1. Vérifie que ta montre écrit dans Apple Santé : app **Santé → Parcourir → Activité → Entraînements**, ta dernière course doit y être.
    Garmin : app Garmin Connect → Paramètres → Apps connectées → Apple Santé → activer les entraînements. Coros, Polar, Suunto : même principe dans leur app.
-2. Ouvre l'app installée, connecte-toi à ton compte (ses données sont séparées de l'icône Safari), puis **Course → Sorties → Connecter Apple Santé** → accepte l'accord « données de santé » → autorise tout.
+2. Ouvre l'app installée, connecte-toi à ton compte (ses données sont séparées de l'icône Safari, et de l'app TestFlight qui est embarquée), puis **Course → Sorties → Connecter Apple Santé** → accepte l'accord « données de santé » → autorise tout.
 3. Tes courses arrivent (tout l'historique la première fois). Touche une sortie : la carte et la fréquence cardiaque se chargent depuis Apple Santé.
 4. Quand tout est là : **« Retirer Strava »** dans la même carte. C'est définitif : les sorties qui ne viennent que de Strava sont retirées.
 

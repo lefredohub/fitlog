@@ -6,9 +6,10 @@ PWA de suivi course à pied + muscu, nommée **Menhir** (ex-FitLog), hébergée 
 - `sw.js` : service worker (hors ligne). `manifest.json`, `privacy.html`, `anat.bin` (modèle 3D), `archivo.woff2` (police), icônes et `splash/`.
 - `config.js` : clés Supabase et adresse du Worker. NE JAMAIS le modifier ni l'écraser.
 - `worker.js` : copie de référence du Worker Cloudflare (Strava + coach IA). Il n'est pas déployé depuis GitHub : il est collé à la main dans Cloudflare, et ses secrets sont des variables Cloudflare (jamais dans le fichier).
-- `.github/workflows/iphone.yml` : app iPhone (module Apple Santé), en mode test (projet Xcode) ou TestFlight ; `android.yml` : APK Android. `docs/` : guides et brouillons juridiques. `tests/check.js` : vérifications.
+- `.github/workflows/iphone.yml` : app iPhone (Apple Santé), mode test (affiche le site) ou TestFlight (app embarquée) ; `android.yml` : app Android (Health Connect), APK de test (affiche le site) ou fichier Play Store (embarqué). `docs/` : guides, fiches des stores, brouillons juridiques. `tests/check.js` : vérifications.
+- `privacy.html` : seule source des textes légaux (confidentialité, suppression, conditions, mentions), affichée telle quelle dans l'app (Réglages > Infos légales). La tenir à jour à chaque nouvelle donnée collectée.
 - Les clés internes gardent l'ancien nom (`localStorage` « fitlog… », table `fitlog_data`, identifiant `app.fitlog.perso`) : ne pas les renommer sans migration.
-- Strava : retiré pour le propriétaire (Apple Santé à la place), gardé dans la version web pour ses amis. À couper avant tout lancement payant (règles Strava 2026).
+- Strava : retiré pour le propriétaire (Apple Santé à la place), gardé dans la version web pour ses amis, absent des apps des stores (`STORE`). À couper avant tout lancement payant (règles Strava 2026).
 
 ## Qui je suis
 Je ne code pas : je teste sur iPhone. Réponses claires, concises, en français. Contredis-moi si tu vois mieux.
@@ -37,6 +38,8 @@ Mode Automatique / Clair / Sombre (Réglages > Apparence).
 Depuis la v4.6 (« Lande 2 ») : barre d'onglets en capsule de verre flottante, onglets internes en pastille inversée,
 en-têtes avec surtitre en capitales bruyère, cartes avec relief léger (variables `--csh`, `--hl`, `--glass`, `--glow`),
 cartes « hero » avec courbes de niveau, tuiles de date pour les listes. Pas d'emoji dans l'interface : icônes en SVG.
+Depuis la v4.12 : boutons pleins sans halo ni dégradé, pas de lueur de fond, pas d'icône « étincelles » pour l'IA, pas d'effet « viseur » sur le modèle 3D,
+textes courts (une phrase utile plutôt qu'un paragraphe d'explication). L'app ne doit pas avoir l'air générée.
 
 ## Livraison
 Fais les changements sur une branche et ouvre une pull request avec un résumé court en français de ce qui change et de ce que je dois tester sur l'iPhone. Si le Worker Cloudflare doit changer, dis-le clairement dans la PR.

@@ -46,7 +46,8 @@ async function stravaToken(env, aid) {
 export default {
   async fetch(req, env) {
     const u = new URL(req.url), origin = req.headers.get('Origin') || '';
-    const allowed = (env.ALLOWED_ORIGIN || '').split(',').map(x => x.trim().replace(/\/$/, '')).filter(Boolean);
+    // + les apps des stores (fichiers embarqués) : capacitor://localhost sur iPhone, https://localhost sur Android
+    const allowed = (env.ALLOWED_ORIGIN || '').split(',').map(x => x.trim().replace(/\/$/, '')).filter(Boolean).concat(['capacitor://localhost', 'https://localhost']);
     const cors = { 'Access-Control-Allow-Origin': allowed.includes(origin) ? origin : (allowed[0] || ''), 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', Vary: 'Origin' };
     if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
 
