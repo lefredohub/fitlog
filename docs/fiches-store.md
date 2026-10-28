@@ -42,14 +42,14 @@ Suivi (tracking) : **non**. Données collectées (envoyées hors du téléphone)
 | Santé et forme → Santé (fréquence cardiaque, ressenti) | Fonctionnalités de l'app | Oui (si compte) |
 | Santé et forme → Forme physique (séances, sorties) | Fonctionnalités de l'app | Oui (si compte) |
 | Coordonnées → Adresse e-mail (compte facultatif) | Fonctionnalités de l'app | Oui |
-| Contenu utilisateur → Autre (messages au coach) | Fonctionnalités de l'app | Non |
+| Contenu utilisateur → Autre (messages au coach) | Fonctionnalités de l'app | Oui (si compte) |
 | Identifiants → ID de l'appareil (clé aléatoire du coach, pour limiter les messages) | Fonctionnalités de l'app | Non |
 
 Non collecté : position (les tracés GPS restent sur le téléphone), contacts, achats, données d'utilisation, diagnostics.
 
 **Notes pour l'examen d'Apple** :
 > Aucun compte n'est nécessaire (« Continuer sans compte »). Apple Santé est facultatif : Course > Sorties > Connecter Apple Santé ; Menhir lit seulement les
-> entraînements de course (distance, durée, fréquence cardiaque, tracé) et n'écrit rien. Le coach IA (Course > Coach) demande un accord explicite avant le
+> entraînements de course (distance, durée, fréquence cardiaque, tracé) et n'écrit rien. Le coach IA (Muscu > Coach muscu, ou Course > Plan après avoir défini un objectif) demande un accord explicite avant le
 > premier envoi de données au service d'IA (Anthropic) ; l'accord est retirable dans Réglages > Mes données. Suppression du compte : Réglages > Compte.
 
 ## Play Store : « Sécurité des données »
@@ -61,7 +61,7 @@ Non collecté : position (les tracés GPS restent sur le téléphone), contacts,
 |---|---|---|---|
 | Informations personnelles | Adresse e-mail | Oui (compte) | Fonctionnalités, gestion du compte |
 | Santé et remise en forme | Informations de santé (fréquence cardiaque, ressenti) | Oui | Fonctionnalités |
-| Santé et remise en forme | Informations sur la remise en forme (séances, sorties) | Non | Fonctionnalités |
+| Santé et remise en forme | Informations sur la remise en forme (séances, sorties) | Oui (rien ne sort du téléphone sans compte ni coach) | Fonctionnalités |
 | Activité dans l'app | Autre contenu généré (messages au coach) | Oui | Fonctionnalités |
 | Identifiants de l'appareil | Clé aléatoire du coach | Oui | Fonctionnalités (limite de messages) |
 

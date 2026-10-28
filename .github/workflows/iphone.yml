@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p build/www && cd build
           if [ "$MODE" = testflight ]; then
-            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' "$GITHUB_WORKSPACE/" www/
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude 'strava-*' --exclude sw.js "$GITHUB_WORKSPACE/" www/
             SERVER=''
           else
             echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html

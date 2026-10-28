@@ -181,6 +181,8 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       o.store = STORE && !STRV(); view = 'run'; runTab = 'r'; render(); await w(100); o.card = /Connecter Health Connect/.test(q('main').innerText) && !q('.sbtn');
       q('[data-a=hksync]').click(); await w(150); q('.sheet [data-a=csok]').click(); await w(500);
       o.hc = window.__hc.avail >= 1 && window.__hc.perms.includes('READ_DISTANCE'); o.runs = S.runs.filter(x => x.hk).map(x => x.id).sort().join();
+      // tracé demandé dans une nouvelle session : le client Health Connect est préparé d'abord
+      hkOk = null; const a0 = window.__hc.avail; await hkTrack(S.runs.find(x => x.id === 'hku-1')); o.ready = window.__hc.avail === a0 + 1;
       // aucune mention de Strava dans les écrans courants
       const T = []; for (const v of ["view='run';runTab='r'", "view='run';runTab='rec'", "view='help';['h0','h1','h2','h3','h7'].forEach(k=>accOpen[k]=true)", "view='cdata'", "view='set';accOpen.dt=true", "view='home'"]) { eval(v); render(); await w(60); T.push(q('main').innerText) }
       o.nostrava = !T.some(t => /strava/i.test(t));
@@ -191,11 +193,24 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
       view = 'set'; accOpen.dt = true; render(); await w(50); o.wd = !!q('[data-a=ccno]'); q('[data-a=ccno]').click(); await w(50); o.wd2 = !S.ccv && !S.cc; window.fetch = rf;
       view = 'legal'; render(); await w(700); o.legal = document.querySelectorAll('.card.lgl').length >= 6 && /Supprimer ton compte/.test(q('main').innerText) && /non affilié|ni affilié/.test(q('main').innerText);
       return o });
-    check('[Android] Health Connect : courses importées (tapis compris, vélo ignoré), distance demandée', r.card && r.hc && r.runs === 'hku-1,hku-2', JSON.stringify(r));
+    check('[Android] Health Connect : courses importées (tapis compris, vélo ignoré), distance demandée', r.card && r.hc && r.ready && r.runs === 'hku-1,hku-2', JSON.stringify(r));
     check('[Stores] app embarquée : aucune mention ni bouton Strava', r.store && r.nostrava, JSON.stringify(r));
     check('[Coach IA] accord demandé avant le premier envoi, puis retirable', r.ask && r.after && r.wd && r.wd2, JSON.stringify(r));
     check("[Légal] page d'infos légales affichée dans l'app (confidentialité, suppression, mentions)", r.legal, JSON.stringify(r));
     check('[Android / stores] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
+  // App iPhone des stores, nouvel utilisateur : présentation juste, pas de carte « Installe Menhir », accueil sans défilement
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148' }); const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.addInitScript(() => { window.__STORE = 1; localStorage.setItem('fitlog-nolog', '1'); window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'ios', Plugins: { HealthPlugin: { requestHealthPermissions: async () => ({}), queryWorkouts: async () => ({ workouts: [] }) } } } });
+    await p.goto(URL); await p.waitForTimeout(600);
+    const onb = await p.evaluate(async () => { const T = []; for (let i = 0; i < 6; i++) { const o = document.querySelector('.ov'); if (!o) break; T.push(o.innerText); const n = [...o.querySelectorAll('button')].find(b => /Suivant/.test(b.textContent)); if (!n) break; n.click(); await new Promise(r => setTimeout(r, 120)) } return T.join(' | ') });
+    check('[Stores] présentation : ni Strava ni bouton « ? » disparu, Apple Santé citée', onb && !/strava/i.test(onb) && !/Touche « \? »/.test(onb) && /Apple Santé/.test(onb), onb.slice(0, 300));
+    await p.evaluate(() => { localStorage.setItem('fitlog-onb', '1'); localStorage.setItem('fitlog-sb', '1'); document.querySelectorAll('.ov').forEach(o => o.remove()); view = 'home'; render() }); await p.waitForTimeout(200);
+    const h = await p.evaluate(() => { const m = document.querySelector('main'); return { y: m.scrollHeight - m.clientHeight, inst: /Installe Menhir/.test(m.innerText) } });
+    check('[Stores] accueil nouvel utilisateur : pas de carte « Installe Menhir », sans défilement', !h.inst && h.y <= 0, JSON.stringify(h));
+    check('[Stores] nouvel utilisateur sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
   // Séance : historique consultable, remplacement par recherche (avec la dernière perf), machines Fitness Park
   {

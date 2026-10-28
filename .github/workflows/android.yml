@@ -43,7 +43,7 @@ jobs:
           mkdir -p build/www && cd build
           if [ "$MODE" = play ]; then
             # app embarquée : les fichiers du site, sans la doc, les tests ni le Worker
-            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' "$GITHUB_WORKSPACE/" www/
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude 'strava-*' --exclude sw.js "$GITHUB_WORKSPACE/" www/
             SERVER=''
           else
             echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
@@ -146,15 +146,19 @@ jobs:
           PY
       - name: Icône de l'application
         run: |
-          sudo apt-get install -y imagemagick >/dev/null
-          cd build/android/app/src/main/res
-          for d in mdpi:48:108 hdpi:72:162 xhdpi:96:216 xxhdpi:144:324 xxxhdpi:192:432; do
-            IFS=: read n s f <<< "$d"
-            convert "$GITHUB_WORKSPACE/icon-512.png" -resize ${s}x${s} mipmap-$n/ic_launcher.png
-            convert "$GITHUB_WORKSPACE/icon-512.png" -resize ${s}x${s} mipmap-$n/ic_launcher_round.png
-            convert "$GITHUB_WORKSPACE/icon-512.png" -resize $((f*62/100))x$((f*62/100)) -background none -gravity center -extent ${f}x${f} mipmap-$n/ic_launcher_foreground.png
-          done
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">#0A0908</color></resources>\n' > values/ic_launcher_background.xml
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image
+          import os
+          src=Image.open(os.environ['GITHUB_WORKSPACE']+'/icon-512.png').convert('RGBA')
+          res='build/android/app/src/main/res'
+          for n,s,f in [('mdpi',48,108),('hdpi',72,162),('xhdpi',96,216),('xxhdpi',144,324),('xxxhdpi',192,432)]:
+              d=f'{res}/mipmap-{n}';os.makedirs(d,exist_ok=True)
+              src.resize((s,s),Image.LANCZOS).save(f'{d}/ic_launcher.png')
+              src.resize((s,s),Image.LANCZOS).save(f'{d}/ic_launcher_round.png')
+              k=f*62//100;fg=Image.new('RGBA',(f,f),(0,0,0,0));fg.paste(src.resize((k,k),Image.LANCZOS),((f-k)//2,(f-k)//2));fg.save(f'{d}/ic_launcher_foreground.png')
+          open(f'{res}/values/ic_launcher_background.xml','w').write('<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="ic_launcher_background">#0A0908</color></resources>\n')
+          PY
 
       # ---------- test : APK pour tes amis ----------
       - name: Construire l'APK
