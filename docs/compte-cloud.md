@@ -40,7 +40,7 @@ Sur GitHub, ouvre `config.js` → icône crayon → remplace les deux premières
 window.FITLOG = {
   url: 'https://abcd1234.supabase.co',
   key: 'ta-clé-publique',
-  api: '',     // Strava : voir strava.md
+  api: '',     // Worker du coach IA : voir coach-ia.md
   contact: 'toi@exemple.fr' // affiché dans Confidentialité
 };
 ```
@@ -71,6 +71,5 @@ grant execute on function public.delete_my_account() to authenticated;
 - **Conflit** (deux appareils modifiés sans synchro) : l'app te demande quelle version garder.
 - **Projet gratuit en pause** : Supabase met un projet gratuit en pause après environ 1 semaine sans aucune activité. Les données sont conservées et se réveillent en un clic depuis le tableau de bord. En utilisant l'app, ça n'arrive pas.
 - **Ami(e)s** : ils créent leur compte sur ta même app, avec leurs propres données (isolées par la sécurité de la table). Une fois les inscriptions faites, tu peux fermer les nouvelles inscriptions : *Authentication → Sign In / Providers → désactiver « Allow new users to sign up »*.
-- **Strava** est indépendant du compte Menhir et facultatif : chacun se connecte avec **son** compte Strava depuis l'onglet Course (voir `strava.md`).
 - Aucune donnée n'est sur un serveur autre que **ton** projet Supabase.
 - **Légal** : tu es responsable du traitement des données de tes amis. L'app inclut une page Confidentialité (aussi `privacy.html`), une case d'acceptation (15 ans et plus) à l'inscription, l'export et la suppression. Renseigne `contact` dans `config.js`.

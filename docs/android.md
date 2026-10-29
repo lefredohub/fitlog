@@ -4,8 +4,8 @@ Deux versions, fabriquées par **Actions → App Android → Run workflow** :
 
 | Mode | Fichier | Contenu | Pour qui |
 |---|---|---|---|
-| `test` | `Menhir.apk` (Releases → « Menhir Android ») | affiche le site en ligne (mis à jour tout seul), Strava disponible, Health Connect | toi et tes amis |
-| `play` | `Menhir.aab` (artefact « Menhir-PlayStore » du workflow) | app **embarquée**, sans Strava, Health Connect, signée | le Play Store |
+| `test` | `Menhir.apk` (Releases → « Menhir Android ») | affiche le site en ligne (mis à jour tout seul), Health Connect | toi et tes amis |
+| `play` | `Menhir.aab` (artefact « Menhir-PlayStore » du workflow) | app **embarquée**, Health Connect, signée | le Play Store |
 
 ## 1. APK de test (gratuit)
 1. Actions → **App Android** → Run workflow → mode **test** (environ 8 minutes).
@@ -44,6 +44,7 @@ Deux versions, fabriquées par **Actions → App Android → Run workflow** :
    - Public cible : 16 ans et plus (Google ne propose pas de tranche « 15 ans » ; l'app reste ouverte dès 15 ans, comme le disent les infos légales) ;
    - Sécurité des données : réponses dans `docs/fiches-store.md` ;
    - Suppression des données : `https://menhir.rk8h5294kt.workers.dev/privacy.html#suppression` ;
+   - **Service de premier plan (localisation)** : guidage des parcours écran éteint ; texte et vidéo à fournir dans `docs/fiches-store.md` ;
    - **Health Connect** : déclarer les autorisations et leur usage (texte prêt dans `docs/fiches-store.md`) ; Google les examine (quelques jours) ;
    - Applications de santé : catégorie « Activité physique et remise en forme ».
 4. **Fiche principale** : textes et captures (voir `docs/fiches-store.md`), icône 512 × 512 (`icon-512.png`), image de présentation 1024 × 500.
@@ -54,5 +55,4 @@ Deux versions, fabriquées par **Actions → App Android → Run workflow** :
 - Health Connect ne donne que les **30 jours** précédant la première autorisation (pas tout l'historique comme Apple Santé) : les anciennes sorties s'importent avec les fichiers de montre.
 - Carte des sorties sur Android : à vérifier sur un vrai téléphone (Android demande un accord à part pour les itinéraires ; le module peut ne pas le gérer sur Android 15+). L'altitude n'est pas transmise par le module.
 - La version Play Store embarque l'app : une modification du site n'y arrive qu'après un nouvel envoi. L'APK de test, lui, suit le site.
-- Strava n'est pas dans la version Play Store (règles Strava : pas d'app concurrente).
 - Si l'identifiant `app.fitlog.perso` doit changer (par exemple `fr.menhir.app`), c'est **avant** la première publication : après, il est définitif.

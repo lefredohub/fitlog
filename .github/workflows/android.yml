@@ -1,6 +1,6 @@
 # Menhir : app Android (Capacitor + Health Connect). Lancement : onglet Actions > "App Android" > Run workflow, puis choisir :
-#   - test : APK pour toi et tes amis (Releases > "Menhir Android"). Il affiche le site GitHub Pages : mis à jour tout seul, Strava disponible ;
-#   - play : fichier .aab signé pour le Play Store (artefact du workflow). L'app y est EMBARQUÉE (pas de site distant, pas de Strava) ;
+#   - test : APK pour toi et tes amis (Releases > "Menhir Android"). Il affiche le site en ligne : mis à jour tout seul ;
+#   - play : fichier .aab signé pour le Play Store (artefact du workflow). L'app y est EMBARQUÉE (pas de site distant) ;
 #            secrets ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD (voir docs/android.md).
 # Chaque modification de ce fichier sur une branche claude/** lance une compilation de contrôle (rien n'est publié).
 # Variable facultative APP_URL si le site n'est pas à l'adresse par défaut.
@@ -43,23 +43,24 @@ jobs:
           mkdir -p build/www && cd build
           if [ "$MODE" = play ]; then
             # app embarquée : les fichiers du site, sans la doc, les tests ni le Worker
-            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude 'strava-*' --exclude sw.js "$GITHUB_WORKSPACE/" www/
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude runlab --exclude node_modules --exclude sw.js "$GITHUB_WORKSPACE/" www/
             SERVER=''
           else
             echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
             SERVER="\"server\": { \"url\": \"$APP_URL\", \"cleartext\": false },"
           fi
           npm init -y >/dev/null
-          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8
+          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8 @capacitor-community/background-geolocation@1.3.1 @capacitor-community/text-to-speech@8 @capacitor/local-notifications@8
           # identifiant gardé tel quel (app.fitlog.perso) : le changer crée une autre app. À décider avant la première publication sur le Play Store.
           cat > capacitor.config.json <<JSON
           { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www", $SERVER
+            "android": { "useLegacyBridge": true },
             "backgroundColor": "#000000" }
           JSON
           cat capacitor.config.json
           npx cap add android
           npx cap sync android
-      - name: Health Connect (droits, page d'explication), retour depuis Strava, version minimale d'Android
+      - name: Health Connect (droits, page d'explication), guidage GPS (Parcours), version minimale d'Android
         env:
           PRIVACY: ${{ vars.APP_URL || 'https://menhir.rk8h5294kt.workers.dev/' }}privacy.html
         run: |
@@ -87,24 +88,14 @@ jobs:
                       </intent-filter>
                   </activity-alias>
           '''
-          if os.environ.get('MODE')!='play':
-              # retour depuis Strava (adresse fitlog://), seulement dans l'APK de test
-              f='''
-                  <intent-filter>
-                      <action android:name="android.intent.action.VIEW" />
-                      <category android:name="android.intent.category.DEFAULT" />
-                      <category android:name="android.intent.category.BROWSABLE" />
-                      <data android:scheme="fitlog" />
-                  </intent-filter>
-              '''
-              assert '</activity>' in s
-              s=s.replace('</activity>',f+'</activity>',1)
           s=s.replace('</application>',app+'    </application>',1)
           open(p,'w',encoding='utf-8').write(s)
           # page ouverte par Health Connect quand on touche « politique de confidentialité »
           v='build/android/app/src/main/res/values/strings.xml'
           t=open(v,encoding='utf-8').read()
           t=t.replace('</resources>','    <string name="privacy_policy_url">'+os.environ['PRIVACY']+'</string>\n</resources>',1)
+          # notification affichée pendant le guidage d'un parcours (GPS écran éteint)
+          t=t.replace('</resources>','    <string name="capacitor_background_geolocation_notification_channel_name">Guidage de course</string>\n</resources>',1)
           open(v,'w',encoding='utf-8').write(t)
           # Health Connect demande Android 8 au minimum
           g='build/android/variables.gradle'

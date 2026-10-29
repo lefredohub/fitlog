@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/*
+ * Couleurs : mêmes variables que Menhir (thème « Lande ») pour une fusion sans retouche.
+ * Ardoise / granit, accent bruyère, or pour les records.
+ */
+:root {
+  --bg: #0e1416;
+  --s1: #151d20;
+  --s2: #1d272b;
+  --s3: #283439;
+  --ln: rgba(225, 240, 235, 0.08);
+  --tx: #edf2f0;
+  --t2: #b8c5c1;
+  --mut: #7e8d89;
+  --y: #f2609f;
+  --on: #22060f;
+  --au: #f0b94a;
+  --ok: #3ccb8a;
+  --rd: #ff6b57;
+  --glass: rgba(23, 31, 34, 0.88);
+  --csh: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 28px -12px rgba(0, 0, 0, 0.55);
+  --route-casing: #0e1416;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-mode="dark"]) {
+    --bg: #edf1ef;
+    --s1: #fff;
+    --s2: #e4eae7;
+    --s3: #d3dcd8;
+    --ln: rgba(18, 34, 29, 0.1);
+    --tx: #102019;
+    --t2: #3a4b45;
+    --mut: #66766f;
+    --y: #c2236a;
+    --on: #fff;
+    --au: #b07a12;
+    --ok: #13865a;
+    --rd: #d63b2b;
+    --glass: rgba(255, 255, 255, 0.88);
+    --csh: 0 1px 2px rgba(16, 32, 25, 0.05), 0 10px 26px -10px rgba(16, 32, 25, 0.14);
+    --route-casing: #102019;
+    color-scheme: light;
+  }
+}
+/* choix « Clair » forcé dans Menhir (Réglages > Apparence) */
+:root[data-mode="light"] {
+  --bg: #edf1ef;
+  --s1: #fff;
+  --s2: #e4eae7;
+  --s3: #d3dcd8;
+  --ln: rgba(18, 34, 29, 0.1);
+  --tx: #102019;
+  --t2: #3a4b45;
+  --mut: #66766f;
+  --y: #c2236a;
+  --on: #fff;
+  --au: #b07a12;
+  --ok: #13865a;
+  --rd: #d63b2b;
+  --glass: rgba(255, 255, 255, 0.88);
+  --csh: 0 1px 2px rgba(16, 32, 25, 0.05), 0 10px 26px -10px rgba(16, 32, 25, 0.14);
+  --route-casing: #102019;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-s1: var(--s1);
+  --color-s2: var(--s2);
+  --color-s3: var(--s3);
+  --color-ln: var(--ln);
+  --color-tx: var(--tx);
+  --color-t2: var(--t2);
+  --color-mut: var(--mut);
+  --color-y: var(--y);
+  --color-on: var(--on);
+  --color-au: var(--au);
+  --color-ok: var(--ok);
+  --color-rd: var(--rd);
+  --color-glass: var(--glass);
+  --font-display: "Archivo Variable", -apple-system, system-ui, sans-serif;
+  --font-sans: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --shadow-card: var(--csh);
+}
+
+html,
+body,
+#runlab {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+.font-display {
+  font-stretch: 112%;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+}
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}

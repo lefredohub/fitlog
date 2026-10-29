@@ -216,11 +216,6 @@ button.exb{background:none;padding:4px 0 4px 6px;display:flex;gap:10px;align-ite
 .mrr{display:flex;align-items:center;border-bottom:1px solid var(--ln)}.mrl>.mrr:last-of-type,.mrl>.mrc:last-child{border-bottom:0}.mrc{border-bottom:1px solid var(--ln)}
 button.mrb{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border-radius:0;padding:12px 0;text-align:left;font-weight:400}.mrb svg{flex:none;width:52px}.mrl .rri b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25}.mrl .rrk{display:flex;align-items:baseline;gap:3px}.mrr .more{min-width:40px;padding:6px}.mrr .more svg{width:18px;height:18px}
 
-/* ----- Strava (couleurs imposées par la marque) ----- */
-button.sbtn{display:block;width:100%;background:#fc4c02;color:#fff;font-weight:700;border-radius:8px;padding:14px;font-size:16px;margin-top:4px}
-button.sbtn.ok{background:none;padding:0;min-height:48px}button.sbtn img{display:block;margin:0 auto;height:48px;width:auto;max-width:100%}button.sbtn.ok .fbt{display:none}
-.pwr{text-align:center;margin:14px 0 2px;color:var(--mut);font-size:12px}.pwr img{height:20px;width:auto}
-
 /* ----- aide ----- */
 .hlp p{margin:0 0 10px;color:var(--t2);font-size:15px;line-height:1.5}.hlp p:last-child{margin-bottom:0}
 .hlp dl{margin:0}.hlp dt{font-weight:650;margin-top:12px}.hlp dd{margin:2px 0 0;color:var(--t2);font-size:14.5px;line-height:1.45}
@@ -386,7 +381,7 @@ function render(){if(!fxN&&view===lv)$('#app').classList.remove('fx','fy');if(!S
 if(S.plan)reconcilePlan();
 if(view==='hist')view='train'
 document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===({coach:'run',mcoach:'train',score:'home',mmedit:'train',prog:'train',rform:'run',help:'set',ach:'home',tools:'set',legal:'set',forme:'home',guide:'run',rdet:'run',hxrace:'run',hxres:'run',hxform:'run'}[view]||view)));
-$('#app').innerHTML=(LB&&(ed||LB.live&&S.a)?lbView():ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'||view==='mcoach'?chatView(view==='coach'?'coach':'mc'):view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='prog'?progView():view==='ach'?achView():view==='tools'?toolsView():view==='forme'?formeView():view==='cdata'?cdataView():view==='rdet'?rdetView():view==='hxrace'&&HXC?hxRaceView():view==='hxres'&&HXR()[HXF]?hxResView():view==='hxform'&&HXF&&HXF.seg?hxFormView():view==='guide'&&GD?guideView():view==='legal'?legalView():view==='rform'&&RX?rform():view==='help'?helpView():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?(peek?peekView():session()):history()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+$('#app').innerHTML=(LB&&(ed||LB.live&&S.a)?lbView():ed?editor():ge&&view==='goal'?goalView():sx&&view==='sedit'?sedit():view==='coach'||view==='mcoach'?chatView(view==='coach'?'coach':'mc'):view==='score'?scoreView():view==='mmedit'&&mmE?mmEdit():view==='prog'?progView():view==='ach'?achView():view==='tools'?toolsView():view==='forme'?formeView():view==='cdata'?cdataView():view==='rdet'?rdetView():view==='hxrace'&&HXC?hxRaceView():view==='hxres'&&HXR()[HXF]?hxResView():view==='hxform'&&HXF&&HXF.seg?hxFormView():view==='guide'&&GD?guideView():view==='legal'?legalView():view==='rform'&&RX?rform():view==='help'?helpView():view==='set'?settings():view==='run'?runs():view==='train'?(S.a?(peek?peekView():session()):histView()):dash())+`<datalist id=exn>${exNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
 if(view==='tools')tlCalc();
 if(view==='rdet')rdetAfter();else if(LMAP){try{LMAP.remove()}catch(e){}LMAP=null}
 if(view==='train'&&histTab==='m'&&!S.a&&!ed&&Mx.ok&&$('#m3d')){m3Attach($('#m3d'));m3Set(Mx.cnt,mSel)}
@@ -397,49 +392,15 @@ if(view==='coach'||view==='mcoach'){const m=$('#app');m.scrollTop=m.scrollHeight
 if(S.a&&!ed)keep();a11y();
 }
 const WU=()=>(FL.api||S.api||'').replace(/\/$/,'');
-const SC=()=>{const u=WU();return u?{url:u}:null};
 const CO=()=>WU()?{url:WU()}:null;
 const hx=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 const DK=()=>{try{let k=localStorage.getItem('fitlog-dk');if(!/^[0-9a-f]{32,}$/.test(k||'')){k=hx(crypto.getRandomValues(new Uint8Array(24)));localStorage.setItem('fitlog-dk',k)}return k}catch(e){return''}};
-let DKHV='';const DKH=async()=>DKHV||(DKHV=hx(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(DK()))));
-DKH().catch(()=>{});
 const SH=async j=>{const k=DK();return k?{Authorization:'Bearer '+k,...(j?{'Content-Type':'application/json'}:{})}:null};
-try{localStorage.removeItem('fitlog-sync');const o=JSON.parse(localStorage.getItem('fitlog-strava')||'null');if(o&&o.url&&!S.api)S.api=o.url;localStorage.removeItem('fitlog-strava')}catch(e){}
-let stS='',stWait=0;const setSv=t=>{stS=t;const e=$('#sv');if(e)e.textContent=t};
-async function syncRuns(auto){if(S.stravaOff||STORE)return;const c=SC(),H=c&&await SH();if(!c||!H){if(!auto)setSv("Strava n'est pas disponible dans cette version.");return}
-try{setSv('Synchronisation…');S.runs=S.runs||[];
-const last=S.runs.filter(r=>!isOwn(r)).reduce((m,r)=>Math.max(m,new Date(r.d).getTime()),0),full=!S.hist||!!S.gneed;
-const after=full?0:last?Math.floor(last/1000)-86400:Math.floor(Date.now()/1000)-365*86400,base=c.url+'/activities?after='+after;
-let a=[];for(let p=1;p<=60;p+=5){const r=await fetch(base+'&p='+p,{headers:H});
-if(r.status===409){const was=S.sv;delete S.sv;if(was)save();setSv(auto?'':'Strava n\'est pas encore connecté : touche « Se connecter avec Strava ».');if(was&&(view==='set'||view==='run'))render();return}
-if(!r.ok)throw new Error(r.status);const x=await r.json();a.push(...x);if(!full||x.length<500)break;setSv('Historique complet… '+a.length+' sorties')}
-a.forEach(x=>{const i=S.runs.findIndex(y=>y.id===x.id);if(i<0&&S.runs.some(y=>y.hk&&sameRunT(y,x)))return;if(i<0){const j=S.runs.findIndex(y=>isOwn(y)&&(y.id==='a'+x.id||sameRun(y,x)));if(j>=0){const o=S.runs.splice(j,1)[0];xrPush(o);const tr=trGet(o.id);if(tr&&!trGet(x.id))trSave(x.id,tr);if(o.sh&&!x.sh)x.sh=o.sh}S.runs.push(x)}else{if(S.runs[i].sh)x.sh=S.runs[i].sh;S.runs[i]=x}});if(full)S.hist=1;{const hg=a.some(x=>x.g!==undefined);if(full&&hg){S.gfull=1;S.gneed=0}else if(hg&&!S.gfull){S.gneed=1;save();return syncRuns(auto)}}
-S.sv=1;S.syncAt=Date.now();stWait=0;try{localStorage.removeItem('fitlog-stw')}catch(e){}save();setSv(a.length?a.length+' sortie'+(a.length>1?'s':'')+' récupérée'+(a.length>1?'s':''):'À jour.');
-if(!S.svn)try{const m=await fetch(c.url+'/me',{headers:H});if(m.ok){const j=await m.json();S.svn=j.n||'';save()}}catch(e){}
-if((view==='run'||view==='set')&&!ed)render();await shSync(1);await fetchEfforts()
-}catch(e){setSv(navigator.onLine===false?'Pas de connexion : réessaie plus tard.':'Échec de la synchro ('+e.message+')')}}
-let effSt='',recYr='';
-async function fetchEfforts(){const c=SC(),H=c&&S.sv&&await SH();if(!H)return;const up=()=>{if(view==='run'&&runTab==='rec'&&!ed)render()};
-try{S.be=S.be||{};const all=S.runs.filter(r=>r.km>=4.9&&typeof r.id==='number'),todo=all.filter(r=>S.be[r.id]===undefined).sort((a,b)=>b.km-a.km).slice(0,32);
-if(!todo.length){effSt=all.length?'Records à jour sur '+all.length+' sorties.':'';up();return}
-effSt='Analyse des meilleurs efforts…';up();
-for(let i=0;i<todo.length;i+=8){const ids=todo.slice(i,i+8).map(r=>r.id).join(','),r=await fetch(c.url+'/efforts?ids='+ids,{headers:H});
-if(r.status===404||r.status===501){effSt='Worker pas à jour : redéploie worker.js sur Cloudflare.';up();return}
-if(r.status===409){effSt='Strava pas connecté.';up();return}
-if(!r.ok&&r.status!==429){effSt='Erreur Strava ('+r.status+').';up();return}
-const d=await r.json();Object.assign(S.be,d.done||d);save();up();if(r.status===429){effSt='Limite Strava atteinte : réessaie dans 15 min.';up();return}}
-const left=all.filter(r=>S.be[r.id]===undefined).length;effSt=left?left+' sorties restantes : touche pour continuer.':'Records à jour sur '+all.length+' sorties.';up()}catch(e){effSt='Échec : '+e.message;up()}}
-const autoSync=()=>{if(S.stravaOff||STORE)return;if(SC()&&S.sv&&(!S.syncAt||Date.now()-S.syncAt>36e5))syncRuns(true)};
+try{['fitlog-sync','fitlog-strava','fitlog-stw'].forEach(k=>localStorage.removeItem(k))}catch(e){}
+let recYr='';
 const wk=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x.getTime()};
 const hms=t=>{const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
 const pace=r=>{const t=Math.round(r.s/r.km);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
-// Bouton officiel « Connect with Strava » : dépose le fichier fourni par Strava sous le nom strava-connect.svg (ou .png). À défaut, bouton orange simple.
-const SBTN=()=>`<button class=sbtn data-a=connect aria-label="Se connecter avec Strava"><img src="strava-connect.svg" alt="" onload="this.parentNode.classList.add('ok')" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='strava-connect.png'}else this.remove()"><span class=fbt>Se connecter avec Strava</span></button>`;
-const PWR=()=>S.sv?`<div class=pwr><img src="strava-powered.svg" alt="Propulsé par Strava" onerror="this.outerHTML='<span>Propulsé par Strava</span>'"></div>`:'';
-const strCta=()=>STRV()?`<div class=card><h2>Importe tes sorties avec Strava</h2><div class=sub>Menhir lit tes courses en lecture seule : rien n'est publié sur ton compte, et tu peux couper l'accès quand tu veux.</div>${SBTN()}</div>`:'';
-function stravaCard(){const m=stS||(!WU()?"Strava n'est pas disponible dans cette version.":S.sv?(S.syncAt?'Dernière synchro : '+new Date(S.syncAt).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Connecté.'):"Importe tes sorties de course en un geste. Lecture seule : rien n'est publié sur ton compte.");
-return`<div class=card><h2>Strava${S.sv&&S.svn?' · '+esc(S.svn):''}</h2><div class=sub id=sv aria-live=polite>${esc(m)}</div>`
-+(S.sv?'<button class=p style="width:100%" data-a=syncnow>Synchroniser maintenant</button><div class=bar><button data-a=connect>Reconnecter</button><button class=d data-a=disconnect>Déconnecter</button></div>':WU()?SBTN():'')+PWR()+'</div>'}
 const DN=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'],DF=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 let ge=null,planAll=false;
 const pf=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -460,7 +421,7 @@ if(s.t==='Fractionné')return`Échauffement 15' en endurance, ${s.r} × 3' à ${
 if(s.t==='Allure objectif')return`Échauffement 15' en endurance, ${s.m}' à ${gp}/km en 2 blocs (récup 3'), retour au calme 10'`;
 return s.txt||''}
 const zonesCard=()=>{const Z=zones(),row=(k,l)=>`<div class=row><span style="flex:none;width:96px">${l}</span><input type=number inputmode=numeric data-zn="${k}.0" value="${Z[k][0]}"><input type=number inputmode=numeric data-zn="${k}.1" value="${Z[k][1]}"></div>`;
-return`<div class=card><h2>Zones cardiaques</h2><div class=sub>En bpm (min / max). Ton plan de course s'appuie dessus. L'allure affichée est calculée d'après tes sorties Strava dans la zone.</div>${row('ef','Endurance')}${row('tp','Tempo')}${row('iv','Fractionné')}</div>`};
+return`<div class=card><h2>Zones cardiaques</h2><div class=sub>En bpm (min / max). Ton plan de course s'appuie dessus. L'allure affichée est calculée d'après tes sorties dans la zone.</div>${row('ef','Endurance')}${row('tp','Tempo')}${row('iv','Fractionné')}</div>`};
 function genPlan(g){if(isHx(g))return genHyrox(g);
 const D=864e5,t0=wk(Date.now()),race=new Date(g.date+'T12:00:00').getTime(),n=Math.round((wk(race)-t0)/(7*D))+1;
 if(!(n>=1))return null;
@@ -502,7 +463,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.12.1';
+const VER='4.13.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -512,7 +473,7 @@ else if(manual)toast('Tu as la dernière version')
 }catch(e){if(manual)toast('Impossible de vérifier')}}
 const installCard=()=>(!NATP&&/iphone|ipad/i.test(navigator.userAgent||'')&&!navigator.standalone&&!localStorage.getItem('fitlog-inst'))?`<div class=card><h2>Installe Menhir</h2><div class=sub>Touche Partager (le carré avec une flèche) puis « Sur l'écran d'accueil » pour l'utiliser comme une vraie app.</div><button data-a=hideinst style="width:100%">J'ai compris</button></div>`:'';
 const backupHint=()=>(S.h.length>=3&&SBU&&!AU()&&!localStorage.getItem('fitlog-bk'))?`<div class=card><h2>Protège ton historique</h2><div class=sub>Connecte-toi : tes séances seront sauvegardées et retrouvées sur tous tes appareils.</div><div class=bar><button data-a=hidebk>Plus tard</button><button class=p data-a=login>Se connecter</button></div></div>`:'';
-function showOnb(){const P=[['Bienvenue sur Menhir',"Ton carnet de muscu et de course à pied : note tes séances, suis tes progrès, prépare ta prochaine course."],['Muscu',"Crée tes séances ou pars d'un programme tout prêt (poids du corps, salle, coureur…). Menhir te dit quelle charge viser, et un corps en 3D s'allume selon les muscles travaillés."],['Course',(HKP()?`Tes courses arrivent de ta montre par ${HKN()}, ou ajoute-les à la main.`:STRV()?'Importe tes sorties depuis Strava ou ajoute-les à la main.':'Importe le fichier de ta montre ou ajoute tes sorties à la main.')+" Fixe un objectif (10 km, semi…) : Menhir construit ton plan semaine par semaine."],['Prêt ?',"Un score hebdomadaire te montre si tu tiens ton programme. Le mode d'emploi est dans Réglages > Aide. Menhir est un carnet, pas un avis médical : en cas de doute sur ta santé, consulte un médecin."]];
+function showOnb(){const P=[['Bienvenue sur Menhir',"Ton carnet de muscu et de course à pied : note tes séances, suis tes progrès, prépare ta prochaine course."],['Muscu',"Crée tes séances ou pars d'un programme tout prêt (poids du corps, salle, coureur…). Menhir te dit quelle charge viser, et un corps en 3D s'allume selon les muscles travaillés."],['Course',(HKP()?`Tes courses arrivent de ta montre par ${HKN()}, ou ajoute-les à la main.`:'Importe le fichier de ta montre ou ajoute tes sorties à la main.')+" Fixe un objectif (10 km, semi…) : Menhir construit ton plan semaine par semaine."],['Prêt ?',"Un score hebdomadaire te montre si tu tiens ton programme. Le mode d'emploi est dans Réglages > Aide. Menhir est un carnet, pas un avis médical : en cas de doute sur ta santé, consulte un médecin."]];
 let i=0;const o=document.createElement('div');o.className='ov';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Présentation de Menhir');document.body.appendChild(o);
 const end=()=>{localStorage.setItem('fitlog-onb','1');o.remove();if(needLogin())showLogin()},L=P.length-1;
 const draw=()=>{o.innerHTML=`${LOGO('logo lg')}<h1 style="margin-bottom:10px">${P[i][0]}</h1><div class=sub style="font-size:17px;max-width:310px">${P[i][1]}</div><div style="margin:22px 0" aria-hidden=true>${P.map((_,k)=>`<i style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px;background:${k===i?'var(--y)':'var(--s3)'}"></i>`).join('')}</div><button class=p style="width:240px" id=ob>${i<L?'Suivant':'Commencer'}</button>${i<L?'<button class=gh id=os style="margin-top:6px">Passer</button>':''}`;
@@ -536,7 +497,7 @@ if(!j.access_token){if(up)return'confirm';throw new Error('Connexion impossible'
 saveAuth(j);return'ok'}
 async function cloudPush(){const a=await authOK();if(!a)return;const m=S._mod||0;
 try{const r=await sb('/rest/v1/fitlog_data',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:a.uid,data:{...S,_sync:m},updated_at:new Date().toISOString()})},a.access);
-if(!r.ok)throw new Error(r.status);S._sync=m;localStorage.setItem('fitlog',JSON.stringify(S));
+if(!r.ok)throw new Error(r.status);S._sync=m;pgPend=0;localStorage.setItem('fitlog',JSON.stringify(S));
 setCs('Synchronisé à '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
 }catch(e){setCs('Hors ligne ou erreur : nouvelle tentative plus tard ('+e.message+')')}}
 async function cloudSync(auto){lastCS=Date.now();const a=await authOK();if(!a)return;
@@ -548,8 +509,8 @@ if(rm>lm){
 const dirty=lm>(S._sync||0);
 if(auto&&(S.a||dirty)){setCs(dirty?'Conflit : touche « Synchroniser » pour choisir.':'Des données plus récentes t\'attendent après ta séance.');return}
 if(dirty&&!confirm('Ce téléphone a des modifications non synchronisées. OK = garder les données du cloud, Annuler = garder celles de ce téléphone.')){await cloudPush();return}
-S=rd;S._sync=S._mod;localStorage.setItem('fitlog',JSON.stringify(S));setCs('Données récupérées du cloud.');render()
-}else if(lm>rm)await cloudPush();else setCs('À jour.')
+S=rd;const pg=stravaPurge();S._sync=S._mod;localStorage.setItem('fitlog',JSON.stringify(S));if(pg)save();setCs('Données récupérées du cloud.');render()
+}else if(lm>rm||pgPend)await cloudPush();else setCs('À jour.')
 }catch(e){setCs('Hors ligne ou erreur : nouvelle tentative plus tard ('+e.message+')')}}
 function accountCard(){const a=AU();
 if(!SBU)return`<div class=card><h2>Compte</h2><div class=sub style="margin:0">Le compte n'est pas disponible dans cette version.</div></div>`;
@@ -648,7 +609,7 @@ return`<div class=top><h1>${ed.new?'Nouvelle séance':'Modifier'}</h1></div><div
 +`<div class=bar style="margin-top:12px">${mv(i)}<button class=gh data-a=exopen data-i=${i}>Fermer</button><button class="gh d" data-a=delex data-i=${i}>Retirer</button></div></div>`
 :`<button class=item data-di=${i} data-a=exopen data-i=${i}><div><b>${esc(x.name)||'Exercice sans nom'}</b><div class=sub>${sum(x)}</div></div>${CH}</button>`).join('')
 +`<button class=p style="width:100%;margin-bottom:10px" data-a=lbopen>+ Ajouter un exercice</button><button class=p style="width:100%;padding:16px" data-a=savet>Enregistrer</button><div class=bar style="margin-top:4px"><button class=gh data-a=back>Annuler</button>${ed.new?'':'<button class="gh d" data-a=delt>Supprimer</button>'}</div>`}
-function history(){
+function histView(){
 const best={},ser={},pr={},e1={};
 S.h.forEach((h,hi)=>h.ex.forEach((e,ei)=>{const ok=e.sets.filter(s=>s.done&&+s.w>0);if(!ok.length)return;
 const m=Math.max(...ok.map(s=>+s.w));(ser[e.name]=ser[e.name]||[]).push(m);
@@ -667,8 +628,11 @@ function histRows(L,pr,peek){return L.map(hi=>{const h=S.h[hi];
 const vol=h.ex.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=h.ex.filter(e=>!e.skip).length,o=hOpen===hi;
 return`<button class="item hrow${o?' open':''}" data-a=hopen data-i=${hi} aria-expanded=${o}>${dtile(h.date)}<div><b>${esc(h.name)}</b><div class=sub>${n} exo${n>1?'s':''}${h.dur?' · '+h.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}</div></div><svg class=chev viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`
 +(o?`<div class="card hdet">${h.ex.map((e,ei)=>`<div style="margin:6px 0"><b>${esc(e.name)}</b>${pr&&pr[hi+'.'+ei]?' <span class=pr>record</span>':''}<div class=sub style="margin:0">${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</div>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}${peek?'':`<div class=row style="margin:4px 0 0"><button class=gh data-a=editlog data-i=${hi} style="padding-left:0">Modifier cette séance</button><button class=gh data-a=shimg data-k=m data-i=${hi}>Partager en image</button></div>`}</div>`:'')}).join('')}
-// Course sans aucune sortie : comment en ajouter (montre via Apple Santé / Health Connect, Strava sur le web, ou à la main)
-const runStart=()=>HKP()?hkCard()+`<button class=gh style="width:100%;margin:-4px 0 10px" data-a=radd>Ou ajoute une sortie à la main</button>`:`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>${STRV()?'Importe-les depuis Strava ou saisis-les toi-même (date, distance, durée).':'Importe le fichier de ta montre (Réglages > Mes données) ou saisis-les toi-même (date, distance, durée).'}</div>${STRV()?SBTN()+'<div class=sub style="text-align:center;margin:10px 0">ou</div>':''}<button${STRV()?'':' class=p'} style="width:100%" data-a=radd>Ajouter une sortie à la main</button></div>`;
+// Course sans aucune sortie : comment en ajouter (montre via Apple Santé / Health Connect, fichier de montre, ou à la main)
+const runStart=()=>HKP()?hkCard()+`<button class=gh style="width:100%;margin:-4px 0 10px" data-a=radd>Ou ajoute une sortie à la main</button>`:`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>Importe le fichier de ta montre (Réglages > Mes données) ou saisis-les toi-même (date, distance, durée).</div><button class=p style="width:100%" data-a=radd>Ajouter une sortie à la main</button></div>`;
+// une seule fois après le retrait de Strava (v4.13) : comment retrouver son historique
+let cdFrom='';
+const stgCard=()=>S.stg?`<div class=card><h2>Strava n'est plus relié</h2><div class=sub>Tes sorties synchronisées depuis Strava ont été retirées, avec les records calculés par Strava. Pour retrouver ton historique, importe ton archive Strava : c'est une copie de tes données, demandée une fois sur strava.com.</div><div class=bar><button class=p data-a=stghow>Comment faire</button><button data-a=stgok>OK</button></div></div>`:'';
 // séances précédentes, consultables pendant une séance (bouton « Historique » de la barre du haut)
 let peek=false;
 function peekView(){const a=S.a,all=S.h.map((h,hi)=>hi).reverse(),same=all.filter(hi=>S.h[hi].name===a.name),other=all.filter(hi=>S.h[hi].name!==a.name);
@@ -683,15 +647,15 @@ function runs(){
 const R=(S.runs||[]).slice().sort((a,b)=>b.d.localeCompare(a.d)),RW=runWeek();
 const seg=`<div class=seg role=tablist aria-label="Sections de Course"><button role=tab aria-selected=${runTab==='p'} class="${runTab==='p'?'on':''}" data-a=rtab data-v=p>Plan</button><button role=tab aria-selected=${runTab==='r'} class="${runTab==='r'?'on':''}" data-a=rtab data-v=r>Sorties</button><button role=tab aria-selected=${runTab==='rec'} class="${runTab==='rec'?'on':''}" data-a=rtab data-v=rec>Records</button><button role=tab aria-selected=${runTab==='hx'} class="${runTab==='hx'?'on':''}" data-a=rtab data-v=hx>HYROX</button></div>`,
 head=hdr(`Cette semaine · ${RW.n} sortie${RW.n>1?'s':''}${RW.km?' · '+km1(RW.km)+' km':''}`,'Course',`<button class=rb data-a=radd aria-label="Ajouter une sortie à la main">+</button>`)+seg;
-if(runTab==='rec')return head+recView()+PWR();
+if(runTab==='rec')return head+recView();
 if(runTab==='hx')return head+hyroxView();
-if(runTab==='p')return head+(R.length||S.sv&&STRV()?'':runStart())+planBlock()+coachItem();
+if(runTab==='p')return head+(R.length?'':stgCard()+runStart())+planBlock()+rlItem()+coachItem();
 const now=wk(Date.now()),W=[];for(let i=7;i>=0;i--){const x=new Date(now);x.setDate(x.getDate()-7*i);W.push(x.getTime())}
 const km=W.map(w=>R.filter(r=>wk(r.d)===w).reduce((a,r)=>a+r.km,0)),mx=Math.max(...km,1),avg=(km[3]+km[4]+km[5]+km[6])/4,dl=avg?Math.round((km[7]/avg-1)*100):0;
 const chart=`<svg class=wch viewBox="0 0 320 112" width="100%" role=img aria-label="Kilomètres par semaine sur 8 semaines : ${km.map(v=>Math.round(v)).join(', ')}"><defs><linearGradient id=wg x1=0 y1=0 x2=0 y2=1><stop offset=0 style="stop-color:var(--y)"/><stop offset=1 style="stop-color:var(--y);stop-opacity:.45"/></linearGradient></defs>${avg?`<line x1=0 x2=320 y1="${(86-avg/mx*66).toFixed(1)}" y2="${(86-avg/mx*66).toFixed(1)}" class=wav />`:''}${km.map((v,i)=>{const hh=v/mx*66;return`<rect x="${i*40+9}" y="${86-hh}" width="22" height="${Math.max(hh,3)}" rx="7" style="fill:${i===7?'url(#wg)':'var(--s3)'}"/><text x="${i*40+20}" y="${80-hh}" text-anchor="middle" font-size="11" font-weight="600" style="fill:${i===7?'var(--tx)':'var(--mut)'}">${v?Math.round(v):''}</text><text x="${i*40+20}" y="106" text-anchor="middle" font-size="9.5" style="fill:var(--mut)">${new Date(W[i]).toLocaleDateString('fr-FR',{day:'numeric',month:'numeric'})}</text>`}).join('')}</svg>`;
-if(!R.length)return head+(S.sv&&STRV()?stravaCard()+`<div class=card><h2>Aucune course trouvée</h2><div class=sub>Strava est connecté mais aucune course n'a été trouvée. Synchronise, ou ajoute une sortie à la main.</div><button class=p style="width:100%" data-a=radd>Ajouter une sortie</button></div>`:runStart());
+if(!R.length)return head+stgCard()+runStart();
 return head+`<div class="card wk8"><div class=hk><span class=eyb>Kilomètres · 8 semaines</span>${avg?`<span class="dlt${dl>=0?' up':''}">${dl>=0?'+':''}${dl} % vs moyenne</span>`:''}</div><div class=bigv><b>${km1(km[7])}</b><small>km cette semaine</small></div><div class=tiles3><div><b>${RW.n}</b><span>sortie${RW.n>1?'s':''}</span></div><div><b>${RW.s?hms(RW.s):'0:00'}</b><span>temps</span></div><div><b>${RW.km?pace({s:RW.s,km:RW.km}):'–'}</b><span>allure /km</span></div></div>${chart}</div>`
-+(HKP()?hkCard():'')+(S.sv&&STRV()?stravaCard():HKP()?'':strCta())+shoesCard()
++stgCard()+(HKP()?hkCard():'')+rlItem()+shoesCard()
 +`<div class=sec>Dernières sorties</div><div class=list>${R.slice(0,runAll?40:6).map(runCard).join('')}</div>`
 +(R.length>6?`<button class=gh style="width:100%" data-a=rall>${runAll?'Réduire':'Tout afficher ('+R.length+')'}</button>`:'')}
 function rxPace(){const q=RX,s=(+q.h||0)*3600+(+q.m||0)*60+(+q.s||0),km=+q.km;return km>0&&s>0?'Allure : '+pace({s,km})+' /km · '+(km/(s/3600)).toFixed(1).replace('.',',')+' km/h':"L'allure s'affiche ici."}
@@ -706,7 +670,7 @@ const H=h=>`<div class=hlp>${h}</div>`,N=HKN();
 return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','set')}<h1>Aide</h1></div></div>`
 +acc('h0','Par où commencer ?','',H(`<p>Trois onglets en bas : <b>Accueil</b> (ce qu'il y a à faire aujourd'hui), <b>Course</b> (sorties, plan, records) et <b>Muscu</b> (séances, muscles, records).</p><p>Rien à régler avant de commencer : choisis un programme dans Muscu, ou ajoute une sortie dans Course.</p>`))
 +acc('h1','Faire une séance de muscu','',H(`<p><b>Créer.</b> Muscu > « + » : crée une séance ou pars d'un programme type. La bibliothèque compte près de 200 exercices et machines.</p><p><b>Démarrer.</b> La charge et les répétitions à viser sont pré-remplies d'après ta dernière fois. Corrige si besoin, coche chaque série : le repos se lance tout seul.</p><p><b>Machine prise ?</b> Les deux flèches à côté d'un exercice proposent un remplaçant, ou cherche n'importe quel exercice : ta dernière perf est reprise.</p><p><b>Revoir tes séances</b> sans quitter celle en cours : bouton horloge en haut.</p><p><b>Progresser.</b> La cible suivante est recalculée à la fin de la séance. Première fois : prends une charge avec laquelle tu pourrais faire encore 2 ou 3 répétitions.</p>`))
-+acc('h2','Course : plan, sorties, records','',H(`<p><b>Plan.</b> Course > Plan > « Définir un objectif » : course, date et temps visé. Menhir construit le plan semaine par semaine ; touche une séance pour la déplacer, le rond pour la marquer faite.</p><p><b>Sorties.</b> ${HKP()?`Connecte ${N} dans Course > Sorties : les courses de ta montre arrivent toutes seules.`:'Importe le fichier de ta montre (Réglages > Mes données > Importer) ou ajoute la sortie à la main avec « + ».'}</p><p><b>Records et allures.</b> Tes meilleurs temps et tes allures d'entraînement, calculées d'après ton meilleur record.</p><p><b>Séance guidée.</b> Bouton lecture sur l'accueil : une voix annonce chaque étape. Garde l'écran allumé.</p>`))
++acc('h2','Course : plan, sorties, records','',H(`<p><b>Plan.</b> Course > Plan > « Définir un objectif » : course, date et temps visé. Menhir construit le plan semaine par semaine ; touche une séance pour la déplacer, le rond pour la marquer faite.</p><p><b>Sorties.</b> ${HKP()?`Connecte ${N} dans Course > Sorties : les courses de ta montre arrivent toutes seules.`:'Importe le fichier de ta montre (Réglages > Mes données > Importer) ou ajoute la sortie à la main avec « + ».'}</p><p><b>Records et allures.</b> Tes meilleurs temps et tes allures d'entraînement, calculées d'après ton meilleur record.</p><p><b>Séance guidée.</b> Bouton lecture sur l'accueil : une voix annonce chaque étape. Garde l'écran allumé.</p><p><b>Créer un parcours.</b> Course > « Créer un parcours » : une boucle sur de vrais chemins, à la distance de ta prochaine sortie, avec guidage vocal (écran verrouillé dans l'app).</p>`))
 +acc('h3','Forme du jour et score','',H(`<p><b>Forme du jour.</b> « Ma forme ? » sur l'accueil : 3 questions (sommeil, énergie, jambes), croisées avec ta charge des 4 dernières semaines. Feu vert, à adapter ou récupération.</p><p><b>Score de la semaine.</b> Course 65 % (km du plan réalisés) et muscu 35 % (séances faites). Malus si tu dépasses le plan de plus de 15 % : c'est un risque de blessure.</p>`))
 +acc('h5','Glossaire','',H(`<dl><dt>Série</dt><dd>Un bloc de répétitions d'affilée, suivi d'un repos.</dd><dt>Répétition (rep)</dt><dd>Un mouvement complet de l'exercice.</dd><dt>Pas</dt><dd>L'écart dont la charge augmente quand tu progresses (par exemple 2,5 kg).</dd><dt>Double progression</dt><dd>Tu vises un nombre de répétitions entre un minimum et un maximum. Quand tu atteins le maximum sur toutes les séries, la charge augmente et tu repars du minimum.</dd><dt>1RM estimé</dt><dd>La charge maximale théorique pour une seule répétition, calculée d'après tes séries.</dd><dt>Allure</dt><dd>Minutes par kilomètre (par exemple 5:30 /km).</dd><dt>D+</dt><dd>Dénivelé positif : les mètres gagnés en montée.</dd><dt>FC et zones</dt><dd>Fréquence cardiaque, en battements par minute. Les zones donnent la FC cible de chaque type de sortie (Réglages > Zones cardiaques).</dd><dt>Sortie longue</dt><dd>La sortie la plus longue de la semaine, à allure tranquille.</dd></dl>`))
 +acc('h7','Un souci ?','',H(`<p><b>Mes données ont disparu.</b> Sans compte, elles vivent dans l'app : la désinstaller les efface. Crée un compte ou exporte une sauvegarde de temps en temps.</p><p><b>Je change de téléphone.</b> Connecte-toi au même compte, ou Exporter puis Importer.</p><p><b>Sans réseau.</b> Tout fonctionne, sauf le compte, le coach et les cartes.</p><p><b>Une question ?</b> Écris à ${LCT()}.</p>`))}
@@ -763,7 +727,7 @@ save()}
 function nextRun(){if(!S.plan)return null;const tk=iso(new Date());
 for(const W of S.plan.weeks){const res=matchWeek(W);for(let i=0;i<W.s.length;i++){const s=W.s[i],k=iso(sd(W.w,s.d));if(k<tk||sStatus(W,s,res[i],tk)==='ok')continue;return{W,s,i,k}}}return null}
 const zoneTxt=(s,g)=>{const Z=zones();if(s.t==='HYROX')return[hms(g.time),'objectif'];if(s.hx)return[pf(hxPace(g))+'/km','allure course'];return['ef','tp','iv'].includes(s.z)?[`${Z[s.z][0]}–${Z[s.z][1]} bpm`,'FC cible']:s.t==='Course'?[hms(g.time),'objectif']:s.z==='ob'?[pf(g.time/g.dist)+'/km','allure cible']:['','']};
-const welcome=()=>(S.t.length||S.h.length||(S.runs||[]).length||S.goal||localStorage.getItem('fitlog-wel'))?'':`<div class=card><h2>Bienvenue sur Menhir</h2><div class=sub style="margin-bottom:10px">Par quoi veux-tu commencer ?</div><button class=item data-a=prog style="margin-bottom:8px"><div class=ico>${IC.m}</div><div><b>Muscu</b><div class=sub>Choisis un programme tout prêt</div></div>${CH}</button><button class=item data-a=nav data-v=run style="margin-bottom:8px"><div class=ico>${IC.r}</div><div><b>Course</b><div class=sub>${HKP()?'Connecte '+HKN():STRV()?'Connecte Strava ou ajoute une sortie':'Ajoute ou importe une sortie'}</div></div>${CH}</button><button class=item data-a=nav data-v=help style="margin-bottom:8px"><div class=ico>${IC.q}</div><div><b>Comprendre l'app</b><div class=sub>Le mode d'emploi, simplement</div></div>${CH}</button><button class=gh style="width:100%" data-a=hidewel>Masquer ce message</button></div>`;
+const welcome=()=>(S.t.length||S.h.length||(S.runs||[]).length||S.goal||localStorage.getItem('fitlog-wel'))?'':`<div class=card><h2>Bienvenue sur Menhir</h2><div class=sub style="margin-bottom:10px">Par quoi veux-tu commencer ?</div><button class=item data-a=prog style="margin-bottom:8px"><div class=ico>${IC.m}</div><div><b>Muscu</b><div class=sub>Choisis un programme tout prêt</div></div>${CH}</button><button class=item data-a=nav data-v=run style="margin-bottom:8px"><div class=ico>${IC.r}</div><div><b>Course</b><div class=sub>${HKP()?'Connecte '+HKN():'Ajoute ou importe une sortie'}</div></div>${CH}</button><button class=item data-a=nav data-v=help style="margin-bottom:8px"><div class=ico>${IC.q}</div><div><b>Comprendre l'app</b><div class=sub>Le mode d'emploi, simplement</div></div>${CH}</button><button class=gh style="width:100%" data-a=hidewel>Masquer ce message</button></div>`;
 const TOPO='<svg class=topo viewBox="0 0 240 150" aria-hidden=true><path d="M203 38 205 42 205 46 202 49 198 52 194 54 189 56 184 57 179 58 174 59 169 58 165 57 161 57 157 56 153 55 148 55 143 55 138 53 134 51 132 48 132 44 132 41 133 38 134 35 134 32 134 29 135 25 137 22 140 19 144 17 149 16 155 15 160 15 165 15 170 16 174 17 178 19 181 22 182 25 184 27 186 29 190 31 195 32 199 35ZM228 38 230 44 228 50 223 55 217 60 209 63 201 66 194 68 187 69 179 70 172 70 165 69 158 68 152 68 144 68 136 67 128 66 120 64 113 60 110 54 110 49 112 43 114 38 116 33 117 29 117 24 118 18 121 13 126 9 133 5 141 3 149 2 157 1 165 1 173 2 180 4 186 7 191 11 195 16 198 19 202 23 208 25 215 28 222 33ZM252 38 254 46 251 55 244 62 234 67 224 71 214 75 204 78 194 80 184 81 175 82 165 81 156 81 146 80 136 80 124 80 112 78 101 74 92 69 88 61 89 53 92 45 95 38 98 32 99 25 100 19 102 11 106 4 112 -2 121 -6 132 -10 143 -12 154 -13 165 -13 176 -12 186 -10 195 -5 202 1 207 6 212 12 218 16 226 20 236 24 245 30ZM277 38 279 49 274 59 264 68 251 74 238 80 226 84 214 88 202 91 190 93 177 94 165 93 153 93 140 93 127 93 111 93 96 90 82 85 71 77 67 67 68 57 72 47 77 38 80 30 82 22 83 13 85 4 90 -4 99 -12 110 -18 123 -22 137 -25 151 -27 165 -28 179 -26 192 -23 204 -17 212 -10 219 -3 226 4 234 9 244 14 257 20 269 28ZM301 38 303 51 296 63 284 73 268 81 252 87 237 93 223 97 209 101 195 104 180 106 165 106 150 106 134 106 117 106 98 106 79 103 62 96 51 86 46 73 48 60 53 48 59 38 63 28 65 19 66 8 68 -3 74 -13 85 -23 98 -30 114 -35 131 -39 148 -41 165 -42 182 -41 198 -36 212 -29 223 -21 231 -12 240 -4 250 2 263 9 278 16 292 26ZM325 38 326 53 318 67 303 79 284 88 266 95 249 101 233 107 217 112 200 116 183 118 165 119 147 119 128 120 108 120 85 119 63 115 43 107 30 95 26 80 28 64 35 50 42 38 47 27 48 16 49 3 51 -10 58 -22 70 -33 87 -42 105 -48 124 -52 145 -55 165 -56 185 -55 204 -50 221 -42 233 -32 244 -21 254 -12 266 -5 282 3 300 12 316 24ZM350 38 349 55 339 71 321 85 300 95 280 103 261 110 243 117 225 123 205 128 185 131 165 132 144 133 122 134 98 134 72 133 46 128 25 118 11 103 6 85 10 68 18 52 26 38 30 25 31 12 31 -2 34 -17 42 -32 56 -44 75 -54 96 -61 118 -66 141 -69 165 -71 188 -69 210 -63 229 -54 244 -42 256 -31 268 -20 283 -11 301 -3 322 8 339 22ZM374 38 372 57 360 75 339 90 316 101 293 111 272 119 253 127 232 135 211 140 188 144 165 146 141 147 116 148 88 148 58 146 30 140 6 128 -9 111 -13 91 -8 71 1 53 10 38 14 24 14 9 14 -7 16 -24 26 -41 41 -55 63 -66 87 -74 112 -80 138 -84 165 -85 192 -83 216 -76 237 -66 254 -53 268 -40 282 -28 299 -18 321 -8 343 4 363 19ZM397 38 395 60 380 79 357 95 331 108 306 118 284 128 262 137 240 146 217 153 191 157 165 160 138 161 109 162 78 163 45 160 13 152 -12 138 -28 119 -31 97 -25 75 -15 55 -6 38 -3 22 -3 6 -4 -13 -1 -32 9 -51 27 -66 50 -79 77 -88 106 -94 135 -98 165 -100 195 -97 222 -89 246 -77 264 -63 280 -49 296 -36 316 -25 340 -14 365 -0 387 17Z"/></svg>';
 function dash(){
 const now=new Date(),R=S.runs||[],tk=iso(now),tm1=iso(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)),g=S.goal;
@@ -839,7 +803,7 @@ c.fillStyle=`rgba(${yr},.25)`;c.fillRect(80,590,920,3);
 ex.slice(0,8).forEach((e,k)=>{const yy=670+k*76,d=e.sets.filter(t=>t.done!==false);let best='';if(e.t==='cardio')best=(d[0]?d[0].d:'')+' min';else{const b=d.slice().sort((p,q)=>(+q.w||0)-(+p.w||0)||(+q.r||0)-(+p.r||0))[0];best=b?(+b.w?`${b.r} × ${(+b.w).toString().replace('.',',')} kg`:`${b.r}${e.m==='sec'?' s':' reps'}`):''}T(e.name,80,yy,40,600,tx,'left',560);T(best,1000,yy,40,700,y,'right')});
 if(ex.length>8)T('+ '+(ex.length-8)+' autres',80,670+8*76,32,500,mut)}
 else if(kind==='r'){const x=(S.runs||[]).find(q=>String(q.id)===String(i));if(!x)return;T('COURSE',80,168,38,800,y);T(x.n,80,262,80,800,tx,'left',920);T(ds(new Date(x.d.slice(0,10)+'T12:00:00')),80,318,36,500,mut);
-T(x.km.toFixed(2).replace('.',','),80,700,250,800,y);T('km',80,780,56,600,mut);stat(hms(x.s),'temps',80,990);stat(pace(x)+' /km','allure',460,990);if(x.hr)stat(x.hr+' bpm','FC moyenne',80,1130);if(!x.man)note='Données Strava'}
+T(x.km.toFixed(2).replace('.',','),80,700,250,800,y);T('km',80,780,56,600,mut);stat(hms(x.s),'temps',80,990);stat(pace(x)+' /km','allure',460,990);if(x.hr)stat(x.hr+' bpm','FC moyenne',80,1130);}
 else{const w=wk(Date.now()),sc=weekScore(w),R=(S.runs||[]).filter(q=>wk(rdate(q))===w),km=R.reduce((a,q)=>a+q.km,0),ms=S.h.filter(h=>wk(new Date(h.date))===w),mi=Math.round(R.reduce((a,q)=>a+q.s,0)/60+ms.reduce((a,h)=>a+(h.dur||0),0)),e=new Date(w);e.setDate(e.getDate()+6);
 T('MA SEMAINE',80,168,38,800,y);T('Semaine du '+new Date(w).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}),80,262,76,800,tx,'left',920);T('au '+e.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}),80,318,36,500,mut);
 if(sc.t!=null){c.lineWidth=34;c.strokeStyle=s1;c.beginPath();c.arc(540,700,190,0,7);c.stroke();c.strokeStyle=y;c.lineCap='round';c.beginPath();c.arc(540,700,190,-Math.PI/2,-Math.PI/2+Math.PI*2*sc.t/100);c.stroke();T(String(sc.t),540,740,150,800,tx,'center');T('score',540,800,34,600,mut,'center')}
@@ -870,6 +834,23 @@ function dayLoads(own){const o={},Z=zones(),g=k=>o[k]=o[k]||{r:0,m:0};
 S.h.forEach(h=>{const n=h.ex.reduce((a,e)=>a+(e.skip||e.t==='cardio'?0:e.sets.length),0);g(iso(new Date(h.date))).m+=(h.dur||Math.max(20,n*3))*1.1});return o}
 /* ===== données à toi (utilisables par le coach IA) ===== */
 const isOwn=r=>!!(r&&(r.man||r.trk||r.arc||r.hk));
+// v4.13 : Strava retiré. Les sorties synchronisées depuis Strava, ses meilleurs efforts et ses tracés sont effacés (aussi après une
+// récupération du compte ou l'import d'une sauvegarde). Les sorties à soi rangées à part parce qu'une sortie Strava les doublait (S.xr :
+// archive, fichier de montre) redeviennent des sorties normales. Les km retirés restent comptés sur les chaussures (k0) ; une carte
+// unique (S.stg) explique comment réimporter l'archive Strava. Renvoie true si quelque chose a changé.
+function stravaPurge(){const R=S.runs||[],gone=R.filter(r=>!isOwn(r)),X=S.xr||[];
+if(!gone.length&&!X.length&&!S.sv&&!S.be&&!S.stravaOff&&!R.some(r=>r.g!==undefined)&&!(S.shoes||[]).some(x=>x.sg))return false;
+const keep=R.filter(isOwn),back=[];
+X.forEach(x=>{if(keep.some(y=>sameRun(y,x))||back.some(y=>sameRun(y,x)))return;const{src,...o}=x;const tw=gone.find(g=>sameRun(g,x));
+back.push({...o,src,man:1,...(src==='archive'?{arc:1}:src==='montre'?{trk:1}:src==='santé'?{hk:1}:{}),...(tw&&tw.sh?{sh:tw.sh}:{})})});
+// chaussures : les km des sorties Strava sans équivalent à soi restent comptés sur la paire qui les portait
+gone.forEach(g=>{if(back.some(y=>sameRun(y,g)))return;const z=shoeOf(g);if(z)z.k0=Math.round(((z.k0||0)+g.km)*10)/10});
+if(gone.length){S.stg=1;S.stgAt=gone.reduce((m,g)=>g.d.slice(0,10)>m?g.d.slice(0,10):m,S.stgAt||'')}
+S.runs=keep.concat(back).map(r=>{if(r.g===undefined)return r;const{g,...o}=r;return o});(S.shoes||[]).forEach(x=>delete x.sg);
+['xr','be','sv','svn','syncAt','hist','gfull','gneed','stravaOff'].forEach(k=>delete S[k]);
+try{const o=trAll();let c=0;Object.keys(o).forEach(k=>{if(/^\d+$/.test(k)){delete o[k];c++}});if(c)localStorage.setItem(TRK,JSON.stringify(o))}catch(e){}return true}
+// après une purge au démarrage avec un compte : envoyer la version nettoyée sans écraser une version plus récente du cloud
+let pgPend=0;
 const sameRun=(a,b)=>a.d.slice(0,10)===b.d.slice(0,10)&&Math.abs(a.km-b.km)<Math.max(.3,a.km*.03);
 // pour Apple Santé : en plus, départ à moins de 10 min quand les deux sorties ont une vraie heure (pas une saisie à la main)
 const sameRunT=(a,b)=>{if(!sameRun(a,b))return false;const t=r=>r.man&&!r.trk?NaN:Date.parse(r.d),x=t(a),y=t(b);return isNaN(x)||isNaN(y)||Math.abs(x-y)<6e5};
@@ -910,7 +891,7 @@ const med=i=>{const v=B.map(r=>numx(r[i])).filter(x=>x>0).sort((a,b)=>a-b);retur
 let n=0,sk=0,lk=0;S.runs=S.runs||[];
 for(const r of B){const ty=String(r[cT]||'');if(!/run|course|trail|footing|jog/i.test(nrm0(ty))||/ride|velo|walk|marche|hike|randon|swim|natation|ski|velo/i.test(nrm0(ty)))continue;
 const dt=sdate(r[cD]),km=dist(r),sec=numx(r[cM])>0?numx(r[cM]):numx(r[cE]);if(!dt||!(km>=.3)||!(sec>0)){sk++;continue}
-const o={id:'a'+String(r[0]).trim(),n:String(r[cN]||'Course').slice(0,60),d:lociso(dt),km:+km.toFixed(2),s:Math.round(sec),up:Math.round(numx(r[cU]))||0,hr:Math.round(numx(r[cH]))||null,mx:Math.round(numx(r[cX]))||null,t:/trail/i.test(nrm0(ty))?'TrailRun':'Run',man:1,arc:1};
+const o={id:'a'+String(r[0]).trim(),n:String(r[cN]||'Course').slice(0,60),d:lociso(dt),km:+km.toFixed(2),s:Math.round(sec),up:Math.round(numx(r[cU]))||0,hr:Math.round(numx(r[cH]))||null,mx:Math.round(numx(r[cX]))||null,t:/trail/i.test(nrm0(ty))?'TrailRun':'Run',man:1,arc:1,...(S.stgAt&&lociso(dt).slice(0,10)<=S.stgAt&&(S.shoes||[]).length?{sh:'none'}:{})};
 if(S.runs.some(y=>y.id===o.id)||(S.xr||[]).some(y=>y.id===o.id)){sk++;continue}
 const m=S.runs.find(y=>String(y.id)===String(r[0]).trim()||sameRun(y,o));
 if(m){if(isOwn(m))sk++;else if(xrPush(o))lk++;else sk++;continue}
@@ -918,9 +899,9 @@ S.runs.push(o);n++}
 if(!n&&!lk&&!sk)throw new Error('aucune sortie de course dans ce fichier');
 return[[n?n+' sortie'+(n>1?'s':'')+' ajoutée'+(n>1?'s':''):'',lk?lk+' sortie'+(lk>1?'s':'')+' Strava désormais visible'+(lk>1?'s':'')+' par le coach':''].filter(Boolean).join(', ')||'',sk]}
 function cdataView(){const O=ownRuns(),c={};O.forEach(r=>{c[r.src]=(c[r.src]||0)+1});const nr=Object.keys(S.rp||{}).length,pd=rpPend(),st=(l,v)=>`<div><div class=hv style="font-size:22px">${v}</div><div class=sub style="margin:2px 0 0">${l}</div></div>`;
-const sv=!STORE&&(S.sv||(S.runs||[]).some(r=>!isOwn(r))),det=[['santé','depuis '+HKN()],['archive',"depuis ton archive Strava"],['montre','depuis ta montre'],['saisie','saisie'+((c.saisie||0)>1?'s':'')+' à la main']].filter(([k])=>c[k]).map(([k,l])=>c[k]+' '+l).join(', ');
-return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','coach')}<h1>Données du coach</h1></div></div>
-<div class=card><h2>Ce que voit ton coach</h2><div class=rdg>${st('Sorties à toi',O.length)}${st('Comptes rendus',nr)}${st('Séances renfo',S.h.length)}</div><div class=sub style="margin:10px 0 0">${det?det+'.':''}${sv?" Tes sorties synchronisées depuis Strava restent dans Menhir, mais les règles de Strava interdisent de les envoyer à une IA : le coach se sert de ce qui vient de toi.":''}</div></div>
+const sv=!STORE||!!S.stg,det=[['santé','depuis '+HKN()],['archive',"depuis ton archive Strava"],['montre','depuis ta montre'],['saisie','saisie'+((c.saisie||0)>1?'s':'')+' à la main']].filter(([k])=>c[k]).map(([k,l])=>c[k]+' '+l).join(', ');
+return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@',cdFrom||'coach')}<h1>Données du coach</h1></div></div>
+<div class=card><h2>Ce que voit ton coach</h2><div class=rdg>${st('Sorties à toi',O.length)}${st('Comptes rendus',nr)}${st('Séances renfo',S.h.length)}</div><div class=sub style="margin:10px 0 0">${det?det+'.':''}</div></div>
 ${sv?`<div class=card><h2>Ton historique : l'archive Strava</h2><div class=sub>Une seule fois. Strava doit te remettre une copie de tes données (droit RGPD) : cette copie est à toi, le coach peut s'en servir.</div><ol class=cdo><li>Sur strava.com, dans le navigateur : Paramètres → Mon compte → « Télécharger ou supprimer votre compte » → Commencer → « Demander votre archive ».</li><li>Strava t'envoie un lien par e-mail, en général en quelques heures. Télécharge le fichier .zip.</li><li>Importe le .zip ici tel quel, sans le décompresser.</li></ol><button class=p style="width:100%;margin-top:10px" data-a=impx>Importer mon archive Strava (.zip)</button></div>`:''}
 <div class=card><h2>Après chaque séance : 2 touches</h2><div class=sub>Dis si la séance du plan est faite et comment tu l'as sentie. C'est ce qui compte le plus pour adapter la suite.</div><button style="width:100%;margin-top:10px" data-a=nav data-v=forme>${pd?'Raconter ma séance de '+DF[pd.s.d].toLowerCase():'Raconter mes séances'}</button></div>
 ${HKP()?'':`<div class=card><h2>Le plus précis : le fichier de ta montre</h2><div class=sub>Fichier FIT, GPX ou TCX exporté depuis l'app de ta montre : tu as la carte, la fréquence cardiaque et le détail par km.</div><button style="width:100%;margin-top:10px" data-a=impx>Importer un fichier de montre</button></div>`}`}
@@ -1030,26 +1011,17 @@ const TRAILRX=/trail|speedgoat|peregrine|cascadia|mafate|speedcross|ultra ?glide
 const isTrailRun=r=>/Trail/.test(r.t||'')||(r.km>0&&(r.up||0)/r.km>=25);
 const shOn=(x,d)=>d>=x.since&&(!x.end||d<=x.end);
 function shoeOf(r){const L=S.shoes||[];if(!L.length||r.sh==='none')return null;let x;
-if(r.sh&&(x=L.find(y=>y.id===r.sh)))return x;if(r.g&&(x=L.find(y=>y.sg===r.g)))return x;
+if(r.sh&&(x=L.find(y=>y.id===r.sh)))return x;
 const d=r.d.slice(0,10),A=L.filter(y=>shOn(y,d));if(!A.length)return null;const tr=isTrailRun(r),T=A.filter(y=>(y.ty==='t')===tr),P=T.length?T:A;return P.find(y=>y.def)||P[P.length-1]}
 const shRuns=x=>(S.runs||[]).filter(r=>shoeOf(r)===x);
 const shKm=x=>(x.k0||0)+shRuns(x).reduce((a,r)=>a+r.km,0);
 const shTy=x=>x.ty==='t'?'Trail':'Route';
 function shoesCard(){const L=S.shoes||[],A=L.filter(x=>!x.end),O=L.filter(x=>x.end);
-const one=x=>{const k=shKm(x),n=shRuns(x).length,pc=Math.min(100,Math.round(k/x.max*100));return`<div style="margin:12px 0 14px"><div class=row style="justify-content:space-between;margin:0;gap:8px"><b style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}</b><span class=sub style="margin:0;white-space:nowrap">${Math.round(k)} / ${x.max} km</span></div><div class=prog style="margin:6px 0"><i style="width:${pc}%;${pc>=90?'background:var(--rd)':''}"></i></div><div class=row style="justify-content:space-between;margin:0;gap:6px"><span class=sub style="margin:0">${shTy(x)}${x.def&&!x.end?' · par défaut':''}${x.sg?' · Strava':''} · ${n} sortie${n>1?'s':''}${x.end?' · retirée':''}</span>${MORE('shoe',`data-id=${x.id}`)}</div></div>`};
+const one=x=>{const k=shKm(x),n=shRuns(x).length,pc=Math.min(100,Math.round(k/x.max*100));return`<div style="margin:12px 0 14px"><div class=row style="justify-content:space-between;margin:0;gap:8px"><b style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}</b><span class=sub style="margin:0;white-space:nowrap">${Math.round(k)} / ${x.max} km</span></div><div class=prog style="margin:6px 0"><i style="width:${pc}%;${pc>=90?'background:var(--rd)':''}"></i></div><div class=row style="justify-content:space-between;margin:0;gap:6px"><span class=sub style="margin:0">${shTy(x)}${x.def&&!x.end?' · par défaut':''} · ${n} sortie${n>1?'s':''}${x.end?' · retirée':''}</span>${MORE('shoe',`data-id=${x.id}`)}</div></div>`};
 const body=(L.length?A.map(one).join('')+(O.length?`<div class=sub style="margin:14px 0 0">Anciennes paires</div>`+O.slice().reverse().map(one).join(''):'')+`<div class=sub style="margin:8px 0 0">Chaque sortie va à ta paire par défaut (ou trail pour les sorties avec du D+). Tu peux la changer dans le détail de la sortie.</div>`:'<div class=sub>Suis le kilométrage de tes paires : on les change en général entre 500 et 800 km.</div>')
-+`<button class=p style="width:100%;margin-top:10px" data-a=shnew>Ajouter une paire</button>`+(S.sv&&STRV()?`<button style="width:100%;margin-top:8px" data-a=shsv>Récupérer mes chaussures Strava</button>`:'');
++`<button class=p style="width:100%;margin-top:10px" data-a=shnew>Ajouter une paire</button>`;
 const sm=A.length?A.map(x=>{const k=shKm(x);return esc(x.n)+' '+Math.round(k)+' km'+(k>=x.max*.9?' (à changer)':'')}).join(' · '):'Aucune paire suivie';return acc('shoe','Chaussures',sm,body)}
 function shRow(r){if(!(S.shoes||[]).length)return'';const x=shoeOf(r);return`<button class=shrow data-a=rshoe aria-label="Chaussures de cette sortie : ${x?esc(x.n):'aucune'}. Changer"><span>Chaussures : ${x?esc(x.n):'aucune'}</span><span class=sub style="margin:0">${r.sh?'choisie':'auto'} ›</span></button>`}
-async function shSync(auto){const c=SC(),H=c&&S.sv&&await SH();if(!H)return;const L=S.shoes=S.shoes||[];
-if(auto&&L.some(x=>!x.sg))return;
-const ids=[...new Set((S.runs||[]).map(r=>r.g).filter(g=>g&&/^g\d+$/.test(g)&&!L.some(x=>x.sg===g)))];if(!ids.length){if(!auto)toast(S.runs.some(r=>r.g!==undefined)?'Aucune nouvelle paire sur Strava':'Mets à jour le Worker Strava (voir le guide), puis resynchronise');return}
-try{const r=await fetch(c.url+'/gear?ids='+ids.slice(0,10).join(','),{headers:H});if(!r.ok)throw new Error(r.status);const G=await r.json();let n=0;
-for(const id of ids.slice(0,10)){const g=G[id],R=S.runs.filter(x=>x.g===id).sort((a,b)=>a.d<b.d?-1:1);if(!R.length)continue;const nm=((g&&g.n)||'Paire Strava '+(L.length+1)).slice(0,40);
-const ex=L.find(x=>!x.sg&&x.n.toLowerCase()===nm.toLowerCase());if(ex){ex.sg=id;n++;continue}
-const loc=R.reduce((a,x)=>a+x.km,0),ty=TRAILRX.test(nm)||R.filter(isTrailRun).length*2>R.length?'t':'r',o={id:uid(),n:nm,since:R[0].d.slice(0,10),max:ty==='t'?800:700,ty,sg:id,k0:g&&g.km>loc?Math.round(g.km-loc):0};
-if(g&&g.ret)o.end=R[R.length-1].d.slice(0,10);if(!o.end&&!L.some(x=>!x.end&&x.ty===ty&&x.def))o.def=1;L.push(o);n++}
-if(n){save();toast(n+' paire'+(n>1?'s':'')+' récupérée'+(n>1?'s':'')+' depuis Strava');if(view==='run'||view==='rdet')render()}else if(!auto)toast('Aucune nouvelle paire sur Strava')}catch(e){if(!auto)toast('Échec ('+e.message+')')}}
 /* ===== import depuis Strong, Hevy, GPX, TCX ===== */
 const EXTR=[[/incline.*bench.*dumbbell|incline.*dumbbell.*press/,'Développé incliné haltères'],[/incline.*bench/,'Développé incliné barre'],[/decline.*bench/,'Développé décliné barre'],[/close.?grip.*bench/,'Développé couché prise serrée'],[/bench press.*dumbbell|dumbbell bench/,'Développé couché haltères'],[/bench press.*smith/,'Développé couché Smith machine'],[/chest press|bench press.*machine/,'Développé couché machine (chest press)'],[/bench press/,'Développé couché barre'],
 [/front squat/,'Squat avant (front squat)'],[/goblet squat/,'Squat gobelet (goblet)'],[/bulgarian|split squat/,'Squat bulgare haltères'],[/hack squat/,'Hack squat'],[/squat.*smith/,'Squat Smith machine'],[/squat/,'Squat barre'],[/romanian deadlift.*dumbbell/,'Soulevé de terre roumain haltères'],[/romanian deadlift|\brdl\b|stiff.?leg/,'Soulevé de terre roumain barre'],[/sumo deadlift/,'Soulevé de terre sumo'],[/trap bar|hex bar/,'Soulevé de terre barre hexagonale'],[/deadlift/,'Soulevé de terre'],
@@ -1136,7 +1108,7 @@ return runFromTrack(P,tagT(X,'name'))}
 function importFIT(buf){const f=parseFIT(buf);if(f.sport!=null&&![1,11].includes(f.sport))throw new Error("ce n'est pas une course à pied");return runFromTrack(f.P,'Sortie importée',f.sum)}
 /* ===== Apple Santé (app iPhone) : les courses de la montre arrivent par Apple Santé ===== */
 // Module natif « capacitor-health » (nom JS HealthPlugin) : Apple Santé dans l'app iPhone, Health Connect dans l'app Android. Dans un navigateur, HKP() vaut null.
-const HKN=()=>NATP==='android'?'Health Connect':'Apple Santé',STRV=()=>!STORE&&!S.stravaOff&&!!WU();
+const HKN=()=>NATP==='android'?'Health Connect':'Apple Santé';
 let HKX,hkS='',hkBusy=0;
 const HKL=()=>{try{return JSON.parse(localStorage.getItem('fitlog-hk')||'null')}catch(e){return null}},hkSet=o=>{try{localStorage.setItem('fitlog-hk',JSON.stringify(o))}catch(e){}};
 const HKP=()=>{if(HKX!==undefined)return HKX;try{const C=window.Capacitor;HKX=(NATP==='ios'||NATP==='android')?(C.Plugins&&C.Plugins.HealthPlugin)||(C.registerPlugin&&C.registerPlugin('HealthPlugin'))||null:null}catch(e){HKX=null}return HKX};
@@ -1144,7 +1116,6 @@ const HKP=()=>{if(HKX!==undefined)return HKX;try{const C=window.Capacitor;HKX=(N
 let hkOk=null;const hkReady=async P=>{if(NATP!=='android')return true;if(hkOk)return true;try{const v=await P.isHealthAvailable();hkOk=!!(v&&v.available)}catch(e){hkOk=false}return hkOk};
 const setHk=t=>{hkS=t;const e=$('#hks');if(e)e.textContent=t};
 const hkD=v=>typeof v==='number'?new Date(v<1e11?v*1000:v):new Date(v);
-const stLeft=()=>(S.runs||[]).filter(r=>!isOwn(r)).length;
 function hkRun(w){if(!/^running/i.test(w.workoutType||''))return null;const t0=hkD(w.startDate),km=(+w.distance||0)/1000,s=Math.round(+w.duration||0);if(isNaN(t0)||km<.3||s<60)return null;
 const H=(w.heartRate||[]).map(x=>+x.bpm).filter(x=>x>30&&x<240),h=t0.getHours();
 return{id:'hk'+(w.id||t0.getTime()),n:'Course '+(h<11?'du matin':h<14?'du midi':h<18?"de l'après-midi":'du soir'),d:lociso(t0),t0:t0.getTime(),km:+km.toFixed(2),s,hr:H.length?Math.round(H.reduce((a,b)=>a+b,0)/H.length):null,mx:H.length?Math.max(...H):null,up:0,hk:1,src:'santé',...(w.sourceName?{sn:(x=>x.length%2===0&&x.slice(0,x.length/2)===x.slice(x.length/2)?x.slice(0,x.length/2):x)(String(w.sourceName)).slice(0,40)}:{})}}
@@ -1164,7 +1135,7 @@ const r=await P.queryWorkouts({startDate:new Date(a).toISOString(),endDate:new D
 const k=S.runs.findIndex(x=>x.id===o.id);if(k>=0){const x=S.runs[k];if(x.km!==o.km||x.s!==o.s||x.hr!==o.hr){S.runs[k]={...x,...o,n:x.n,up:x.up||0,sh:x.sh};ch=1}return}
 const m=S.runs.findIndex(x=>sameRunT(x,o));if(m>=0){const x=S.runs[m];if(isOwn(x))return;if(x.sh)o.sh=x.sh;else{const z=shoeOf(x);if(z)o.sh=z.id}S.runs[m]=o;rep++;return}S.runs.push(o);n++})}
 if(found)L.last=now;hkSet(L);if(n||rep||ch)save()
-setHk(n||rep?`${n} sortie${n>1?'s':''} ajoutée${n>1?'s':''}${rep?', '+rep+' remplacée'+(rep>1?'s':'')+' (Strava → '+HKN()+')':''}.`:found?'À jour.':NATP==='android'?"Aucune course trouvée. Vérifie l'accès dans l'app Health Connect > Autorisations des applications > Menhir.":"Aucune course trouvée. Vérifie l'accès : Réglages de l'iPhone > Santé > Accès aux données et appareils > Menhir.");
+setHk(n||rep?`${n} sortie${n>1?'s':''} ajoutée${n>1?'s':''}${rep?', '+rep+' remplacée'+(rep>1?'s':''):''}.`:found?'À jour.':NATP==='android'?"Aucune course trouvée. Vérifie l'accès dans l'app Health Connect > Autorisations des applications > Menhir.":"Aucune course trouvée. Vérifie l'accès : Réglages de l'iPhone > Santé > Accès aux données et appareils > Menhir.");
 if(n||rep)render()}catch(e){setHk(HKN()+' indisponible ('+(e&&e.message||e)+').');if(!auto)toast(HKN()+' indisponible')}finally{hkBusy=0}}
 /* accord exprès pour les données de santé : demandé avant Apple Santé et avant le ressenti du jour, retirable dans Réglages > Données */
 const HOK=()=>!!(S.cs&&S.cs.sante);let csNext=null;
@@ -1178,14 +1149,10 @@ const w=(x&&x.workouts||[]).find(w=>'hk'+w.id===r.id);if(!w||!w.route||w.route.l
 const H=(w.heartRate||[]).map(q=>({t:hkD(q.timestamp).getTime(),b:+q.bpm})).sort((p,q)=>p.t-q.t);let j=0;
 const Pt=w.route.slice().sort((p,q)=>hkD(p.timestamp)-hkD(q.timestamp)).map(p=>{const t=hkD(p.timestamp).getTime();while(j+1<H.length&&Math.abs(H[j+1].t-t)<=Math.abs(H[j].t-t))j++;return{t,la:+p.lat,lo:+p.lng,e:p.alt==null?NaN:+p.alt,hr:H.length&&Math.abs(H[j].t-t)<3e4?H[j].b:NaN,dm:NaN}});
 const b=trBuild(Pt);trSave(r.id,b.tr);if(b.up&&!r.up)r.up=b.up;if(b.mx&&!r.mx)r.mx=b.mx;save();return b.tr}
-function hkCard(){const L=stLeft(),K=HKL();
+function hkCard(){const K=HKL();
 const N=HKN();return`<div class=card><h2>${N}</h2><div class=sub id=hks aria-live=polite>${esc(hkS||(K&&!HOK()?`Lecture en pause : touche « Relire ${N} » pour donner ton accord sur les données de santé.`:K?(K.last?'Dernière lecture : '+new Date(K.last).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Connecté.'):`Les courses de ta montre enregistrées dans ${N} arrivent toutes seules : distance, durée, fréquence cardiaque et tracé.`))}</div>`
 +(K?`<button style="width:100%" data-a=hksync>Relire ${N}</button>`:`<button class=p style="width:100%" data-a=hksync>Connecter ${N}</button>`)
-+(K&&!S.stravaOff&&(S.sv||L)?`<div class=sub style="margin:14px 0 8px">${L?L+' sortie'+(L>1?'s':'')+(L>1?' viennent':' vient')+" encore de Strava (absente"+(L>1?'s':'')+" de "+N+").":"Toutes tes sorties viennent maintenant de "+N+"."}</div><button class="gh d" style="width:100%" data-a=stoff>Retirer Strava</button>`:'')+`</div>`}
-// --- flux Strava (sur demande, une sortie à la fois) ---
-async function trStrava(r){const c=SC(),H=c&&S.sv&&await SH();if(!H)return null;const x=await fetch(c.url+'/streams?id='+r.id,{headers:H});if(!x.ok)throw new Error(x.status);const j=await x.json();
-if(!j||!j.t||!j.t.length)return null;const P=j.t.map((t,i)=>({t:(Date.parse(r.d.slice(0,19)+'Z')||0)+t*1000,la:j.ll&&j.ll[i]?j.ll[i][0]:NaN,lo:j.ll&&j.ll[i]?j.ll[i][1]:NaN,e:j.el?j.el[i]:NaN,hr:j.hr?j.hr[i]:NaN,dm:j.d?j.d[i]:NaN}));
-const b=trBuild(P);trSave(r.id,b.tr);if(b.mx&&!r.mx){r.mx=b.mx;save()}return b.tr}
++`</div>`}
 // --- écran détail d'une sortie ---
 let RDI=null,RDS='',LMAP=null;
 const zoneOf=h=>{const Z=zones();return h<=Z.ef[1]?0:h<=Z.tp[1]?1:h<=Z.iv[1]?2:3};
@@ -1203,12 +1170,11 @@ const z=[0,0,0,0];for(let i=1;i<tr.t.length;i++){const h=tr.hr[i];if(h)z[zoneOf(
 ch+=`<div class=zbar>${z.map((x,i)=>x?`<i class=z${i} style="flex:${x}"></i>`:'').join('')}</div>${z.map((x,i)=>`<div class=row style="justify-content:space-between;margin:4px 0"><span><i class="zd z${i}"></i>${ZN[i]}</span><span class=sub style="margin:0">${pf(x)} · ${Math.round(x/zt*100)} %</span></div>`).join('')}<div class=sub style="margin:6px 0 0">Selon tes zones (Réglages > Zones cardiaques).</div></div>`}
 if(tr.el.some(x=>x!=null))ch+=`<div class=card><h2>Altitude</h2>${svgLine(D,tr.el,{c:'var(--t2)',h:90,f:x=>Math.round(x)+' m',al:"Profil d'altitude"})}</div>`;
 if(tr.sp&&tr.sp.length)ch+=`<div class=card><h2>Kilomètre par kilomètre</h2><div class=row style="justify-content:space-between;margin:4px 0" aria-hidden=true><span class=sub style="margin:0;width:36px">km</span><span class=sub style="margin:0;flex:1;text-align:right">Temps</span><span class=sub style="margin:0;width:78px;text-align:right">Allure</span><span class=sub style="margin:0;width:62px;text-align:right">FC</span></div>${tr.sp.map(([s,d,h],i)=>`<div class=row style="justify-content:space-between;margin:4px 0"><span style="width:36px">${d>=990?i+1:(d/1000).toFixed(2).replace('.',',')}</span><span style="flex:1;text-align:right">${pf(s)}</span><b style="width:78px;text-align:right">${pf(s/d*1000)}</b><span style="width:62px;text-align:right" class=sub>${h?h+' bpm':'—'}</span></div>`).join('')}</div>`}
-const strava=typeof r.id==='number'&&S.sv&&STRV()&&!tr;
-return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','run')}<h1 style="font-size:24px">${esc(r.n)}</h1></div></div><div class=sub style="margin:-10px 4px 12px">${new Date(r.d.slice(0,10)+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${r.hk?' · '+HKN()+(r.sn?' ('+esc(r.sn)+')':''):r.man&&!r.trk?' · saisie à la main':r.trk?' · importée depuis un fichier':STORE?'':' · Strava'}</div>
+return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@','run')}<h1 style="font-size:24px">${esc(r.n)}</h1></div></div><div class=sub style="margin:-10px 4px 12px">${new Date(r.d.slice(0,10)+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${r.hk?' · '+HKN()+(r.sn?' ('+esc(r.sn)+')':''):r.man&&!r.trk?' · saisie à la main':r.trk?' · importée depuis un fichier':r.arc?' · archive Strava':''}</div>
 <div class=card><div class=rdg>${st('Distance',r.km.toFixed(2).replace('.',',')+' km')}${st('Durée',hms(r.s))}${st('Allure',pace(r)+' /km')}${r.hr?st('FC moyenne',r.hr+' bpm'):''}${r.mx?st('FC max',r.mx+' bpm'):''}${r.up?st('D+',r.up+' m'):''}</div>${shRow(r)}</div>
 ${pl?`<div class=card style="padding:0;overflow:hidden"><div id=rmap data-pl="${esc(pl)}" role=img aria-label="Carte du parcours"></div></div>`:''}
-${RDS?`<div class=sub style="margin:0 4px 12px" aria-live=polite>${esc(RDS)}</div>`:''}${strava&&!RDS?'<button style="width:100%;margin-bottom:12px" data-a=rstream>Charger la carte et les courbes depuis Strava</button>':''}
-${!pl&&!strava&&!tr&&!(r.hk&&HKP())?`<div class=card><div class=sub style="margin:0">Pas de tracé GPS pour cette sortie. Importe le fichier de ta montre (Réglages > Mes données) pour avoir la carte et le détail par km.</div></div>`:''}${ch}${r.man?`<button class=gh style="width:100%" data-a=menu data-k=run data-id=${r.id}>Modifier ou supprimer</button>`:''}`}
+${RDS?`<div class=sub style="margin:0 4px 12px" aria-live=polite>${esc(RDS)}</div>`:''}
+${!pl&&!tr&&!(r.hk&&HKP())?`<div class=card><div class=sub style="margin:0">Pas de tracé GPS pour cette sortie. Importe le fichier de ta montre (Réglages > Mes données) pour avoir la carte et le détail par km.</div></div>`:''}${ch}${r.man?`<button class=gh style="width:100%" data-a=menu data-k=run data-id=${r.id}>Modifier ou supprimer</button>`:''}`}
 let LFP=null;const LFV='1.9.4',LFB='https://cdnjs.cloudflare.com/ajax/libs/leaflet/'+LFV+'/';
 function lfLoad(){if(window.L)return Promise.resolve();if(LFP)return LFP;LFP=new Promise((ok,no)=>{const c=document.createElement('link');c.rel='stylesheet';c.href=LFB+'leaflet.min.css';document.head.appendChild(c);const s=document.createElement('script');s.src=LFB+'leaflet.min.js';s.onload=()=>ok();s.onerror=()=>{LFP=null;no()};document.head.appendChild(s)});return LFP}
 function svgTrace(el,pts){const la=pts.map(p=>p[0]),lo=pts.map(p=>p[1]),a0=Math.min(...la),a1=Math.max(...la),o0=Math.min(...lo),o1=Math.max(...lo),k=Math.cos((a0+a1)/2*Math.PI/180),w=(o1-o0)*k||1e-5,h=(a1-a0)||1e-5,s=Math.min(300/w,220/h),X=v=>10+((v-o0)*k)*s+(300-w*s)/2,Y=v=>10+(a1-v)*s+(220-h*s)/2;
@@ -1218,8 +1184,7 @@ lfLoad().then(()=>{if(!el.isConnected)return;el.innerHTML='';const m=L.map(el,{z
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(m);const ln=L.polyline(pts,{color:getComputedStyle(document.documentElement).getPropertyValue('--y').trim()||'#ffd60a',weight:4}).addTo(m);
 L.circleMarker(pts[0],{radius:6,color:'#fff',weight:2,fillColor:'#34c759',fillOpacity:1}).addTo(m);L.circleMarker(pts[pts.length-1],{radius:6,color:'#fff',weight:2,fillColor:'#ff5d52',fillOpacity:1}).addTo(m);m.fitBounds(ln.getBounds(),{padding:[18,18]})}).catch(()=>svgTrace(el,pts))}
 async function rdetLoad(){const r=(S.runs||[]).find(x=>String(x.id)===String(RDI));
-if(r&&r.hk&&!trGet(r.id)&&HKP()){RDS='Chargement du tracé depuis '+HKN()+'…';render();try{const tr=await hkTrack(r);RDS=tr?'':'Pas de tracé GPS dans '+HKN()+' pour cette sortie (course sur tapis ?).'}catch(e){RDS='Tracé indisponible ('+(e&&e.message||e)+').'}if(view==='rdet'&&String(RDI)===String(r.id))render();return}if(!r||trGet(r.id)||typeof r.id!=='number'||!S.sv)return;RDS='Chargement des données détaillées depuis Strava…';render();
-try{const tr=await trStrava(r);RDS=tr?'':'Strava ne fournit pas de données détaillées pour cette sortie.'}catch(e){RDS=e.message==='429'?'Limite Strava atteinte : réessaie dans 15 minutes.':'Données détaillées indisponibles ('+e.message+').'}if(view==='rdet'&&String(RDI)===String(r.id))render()}
+if(r&&r.hk&&!trGet(r.id)&&HKP()){RDS='Chargement du tracé depuis '+HKN()+'…';render();try{const tr=await hkTrack(r);RDS=tr?'':'Pas de tracé GPS dans '+HKN()+' pour cette sortie (course sur tapis ?).'}catch(e){RDS='Tracé indisponible ('+(e&&e.message||e)+').'}if(view==='rdet'&&String(RDI)===String(r.id))render()}}
 
 /* ===== HYROX ===== */
 // Format officiel : 8 × (1 km de course + 1 station). Poids par division (saison 2025/26).
@@ -1368,7 +1333,7 @@ renfo:S.h.slice(-4).map(h=>({d:h.date.slice(0,10),n:h.name,ex:h.ex.filter(e=>!e.
 mem:(S.coach||{}).mem||''})}
 /* accord avant le premier envoi au coach IA (RGPD, règle Apple 5.1.2) ; retirable dans Réglages > Mes données */
 let ccNext=null;
-function askCoach(k,q){ccNext={k,q};sheetH('Le coach IA',"Ton accord avant le premier message.",`<div class=sub style="margin:4px 2px 12px;line-height:1.5;color:var(--t2)">Pour te répondre, Menhir envoie ta question et un résumé de tes données (plan, sorties avec allure et fréquence cardiaque, ressenti, séances de muscu) à <b>Claude, l'IA d'Anthropic</b> (Cloudflare en secours). Ces services ne s'en servent pas pour entraîner leurs modèles. Rien n'est envoyé sans ta question${STRV()?', et jamais tes sorties Strava':''}. Les réponses viennent d'une IA : elles peuvent se tromper et ne remplacent pas un avis médical.</div><button class=shi data-a=ccok><b>J'accepte</b><small>Retirable dans Réglages > Mes données</small></button>`)}
+function askCoach(k,q){ccNext={k,q};sheetH('Le coach IA',"Ton accord avant le premier message.",`<div class=sub style="margin:4px 2px 12px;line-height:1.5;color:var(--t2)">Pour te répondre, Menhir envoie ta question et un résumé de tes données (plan, sorties avec allure et fréquence cardiaque, ressenti, séances de muscu) à <b>Claude, l'IA d'Anthropic</b> (Cloudflare en secours). Ces services ne s'en servent pas pour entraîner leurs modèles. Rien n'est envoyé sans ta question. Les réponses viennent d'une IA : elles peuvent se tromper et ne remplacent pas un avis médical.</div><button class=shi data-a=ccok><b>J'accepte</b><small>Retirable dans Réglages > Mes données</small></button>`)}
 async function chatSend(k,t){const c=CO(),q=(t||'').trim(),V=CHAT[k],X=CX[k];if(!q||V.busy)return;
 if(!c){toast("Le coach IA n'est pas disponible dans cette version");return}
 if((S.ccv||0)<2){askCoach(k,q);return}
@@ -1396,6 +1361,9 @@ L.forEach(c=>{const{W,dn}=planAt(c.date),k=W.s.findIndex(s=>s.d===dn),orig=k>=0?
 const o=orig&&orig.t===c.t?{...orig}:{...(TP[c.t]||{})};o.d=dn;o.t=c.t;o.km=+c.km;delete o.mv;const x=String(c.txt||'').trim().slice(0,160);x?o.custom=x:delete o.custom;
 W.s.push(o);W.s.sort((a,b)=>a.d-b.d)});
 m.ap=1;m.u=1;save();toast('Plan mis à jour')}
+// Parcours (RunLab, page rl/) : une boucle à la distance de la prochaine sortie du plan
+IC.map='<svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
+const rlItem=()=>{const nr=nextRun(),km=nr&&+nr.s.km>=1?+nr.s.km:0;return`<button class=item data-a=rlgo data-km="${km||''}"><div class=ico>${IC.map}</div><div><b>Créer un parcours</b><div class=sub>${km?`Une boucle de ${String(km).replace('.',',')} km pour ta prochaine sortie`:'Une boucle à la bonne distance, autour de toi'}</div></div>${CH}</button>`};
 const coachItem=()=>{if(!S.plan)return'';const at=(S.coach||{}).at||0,n=at?(S.runs||[]).filter(r=>new Date(r.d)>at).length:0;
 return item('coach','c','Coach',n?n+' nouvelle'+(n>1?'s':'')+' sortie'+(n>1?'s':'')+' à analyser':'Bilan de ta semaine et conseils')};
 const MC_SYS=`Tu es le coach de musculation de l'utilisateur dans l'app Menhir. C'est un coureur (objectif de course dans les DONNÉES) : le renfo sert la performance, la prévention des blessures et l'équilibre musculaire. Les DONNÉES JSON (en fin de consigne) contiennent : seances (modèles : nom, ex = exercices n/s séries/r reps/kg), recents (dernières séances faites), muscles (séries par semaine, moyenne sur 14 jours ; principal = 1 série, secondaire = ½), non_reconnus (exercices sans muscle associé, non comptés), obj_renfo (séances/semaine visées), obj (course), mem.
@@ -1457,7 +1425,7 @@ const rieg=(s,a,b)=>s*Math.pow(b/a,1.06);
 const pwk=(w,k)=>{const x=new Date(w);x.setDate(x.getDate()-7*k);return wk(x)};
 const BACK='<button class=more data-a=nav data-v=@ aria-label="Retour" style="font-size:30px;padding:0 8px 4px 0;font-weight:300">‹</button>';
 function recCands(yr){const o=RD.map(()=>[]);
-(S.runs||[]).forEach(r=>{const be=(S.be||{})[r.id];RD.forEach(([n,D],i)=>{if(be){if(be[i]>0)o[i].push({s:be[i],date:r.d.slice(0,10)})}else if(r.km>=D*.995&&r.km<=D*1.01)o[i].push({s:r.s*D/r.km,date:r.d.slice(0,10)})})});
+(S.runs||[]).forEach(r=>{RD.forEach(([n,D],i)=>{if(r.km>=D*.995&&r.km<=D*1.01)o[i].push({s:r.s*D/r.km,date:r.d.slice(0,10)})})});
 Object.entries(S.rec||{}).forEach(([i,v])=>{if(o[+i]&&v&&v.s>0)o[+i].push({s:v.s,date:v.date||'',man:1})});
 if(yr)o.forEach((a,i)=>{o[i]=a.filter(x=>(x.date||'').slice(0,4)===yr)});o.forEach(a=>a.sort((x,y)=>x.s-y.s));return o}
 function predAt(D,C){C=C||recCands();let b=null;
@@ -1477,7 +1445,7 @@ h=`<div class=rtop><div class="tro lk"><svg viewBox="0 0 24 24" width=30 height=
 if(gl&&b){const pc=Math.max(0,Math.min(100,Math.round(gl.time/b.s*100)));h+=`<div class=gl><div style="display:flex;justify-content:space-between"><span>Objectif ${hms(gl.time)}</span><span>${b.s>gl.time?'−'+hms(Math.round(b.s-gl.time))+' à gagner':'atteint ✓'}</span></div><div class=gbar><i style="width:${pc}%"></i></div></div>`}
 else if(gl)h+=`<div class=gl>Objectif ${hms(gl.time)}</div>`;
 return b?`<div class="rc on" style="--d:${i*.12}s">${h}</div>`:`<button class=rc style="--d:${i*.12}s" data-a=menu data-k=rec data-i=${i}>${h}</button>`}).join('');
-return`<div class=hof><div class=eyb style="color:var(--au);margin:0">Tes records</div><h2>Hall of Fame</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}${recYr?' · '+recYr:''}</div></div><div class=rl1>${cards}</div>${pacesCard()}${yrs.length?acc('ryr','Filtrer par année',recYr||'Toutes',`<div class=bar style="flex-wrap:wrap">${['',...yrs].map(y=>`<button class="sm${(recYr||'')===y?' on':''}" data-a=ryr data-v="${y}" style="flex:none">${y||'Toutes'}</button>`).join('')}</div>`):''}${S.sv&&effSt?`<button class=sm data-a=effgo style="width:100%;margin:0 0 10px">${esc(effSt)}</button>`:''}<div class=sub style="margin:0 4px">Tes meilleurs temps (touche une carte pour en saisir un). Les chronos « prévus » sont estimés d'après ta meilleure performance.</div>`}
+return`<div class=hof><div class=eyb style="color:var(--au);margin:0">Tes records</div><h2>Hall of Fame</h2><div class=sub>${nb?nb+' record'+(nb>1?'s':'')+' gravé'+(nb>1?'s':'')+' sur 4':'Aucun record gravé… pour l\'instant'}${recYr?' · '+recYr:''}</div></div><div class=rl1>${cards}</div>${pacesCard()}${yrs.length?acc('ryr','Filtrer par année',recYr||'Toutes',`<div class=bar style="flex-wrap:wrap">${['',...yrs].map(y=>`<button class="sm${(recYr||'')===y?' on':''}" data-a=ryr data-v="${y}" style="flex:none">${y||'Toutes'}</button>`).join('')}</div>`):''}<div class=sub style="margin:0 4px">Tes meilleurs temps (touche une carte pour en saisir un). Les chronos « prévus » sont estimés d'après ta meilleure performance.</div>`}
 const SCW={c:.65,r:.35};
 function weekScore(w){const td=new Date(),cur=w===wk(td.getTime()),f0=Math.min(Infinity,...(S.runs||[]).map(r=>+rdate(r)),...S.h.map(h=>+new Date(h.date)));if(w+7*864e5<=f0)return{t:null,P:{},X:{},km:0,cur,left:null};
 const tk=iso(td),R=(S.runs||[]).filter(r=>wk(rdate(r))===w),km=R.reduce((a,r)=>a+r.km,0),W=S.plan&&S.plan.weeks.find(x=>x.w===w),P={},X={},T=S.rt||2,nh=S.h.filter(h=>wk(new Date(h.date))===w).length,ren=!!(S.h.length||S.t.length);let nr=0;
@@ -2002,7 +1970,7 @@ A.addEventListener('click',e=>{if(Date.now()-sw<400){e.stopPropagation();e.preve
 document.addEventListener('click',async ev=>{
 if(ev.target.classList&&ev.target.classList.contains('sh-bg')){ev.target.closest('.sheet').remove();return}
 const b=ev.target.closest('button');if(!b)return;const shx=b.closest('.sheet');if(shx)shx.remove();const a=b.dataset.a,i=+b.dataset.i;
-if(a==='nav'){if(peek)hOpen=-1;peek=false;if(LB&&LB.live)LB=null;if(b.dataset.v==='train'&&!['train','hist'].includes(view))histTab='t';view=b.dataset.v;ed=null}
+if(a==='nav'){if(peek)hOpen=-1;peek=false;if(b.dataset.v!=='cdata')cdFrom='';if(LB&&LB.live)LB=null;if(b.dataset.v==='train'&&!['train','hist'].includes(view))histTab='t';view=b.dataset.v;ed=null}
 else if(a==='new')ed={new:1,id:uid(),name:'',ex:[]};
 else if(a==='edit')ed=JSON.parse(JSON.stringify(S.t.find(t=>t.id===b.dataset.id)));
 else if(a==='delex'){ed.ex.splice(i,1);ed.open=-1}
@@ -2067,13 +2035,13 @@ else{ed.ex.push({name:n,sets:3,min:8,max:12,w:0,inc:2.5,m:'double'});ed.open=ed.
 else if(a==='lbadd'&&LB.live){if(!LB.sel.length)return;const have=new Set(S.a.ex.map(x=>nrm(x.name)));let n=0;LB.sel.forEach(k=>{const l=LIB[k];if(!have.has(nrm(l.n))){S.a.ex.push(sx0(libEx(l),S.a.name));n++}});LB=null;save();toast(n?n+' exercice'+(n>1?'s':'')+' ajouté'+(n>1?'s':''):'Déjà dans la séance')}
 else if(a==='lbadd'){if(!LB.sel.length)return;const have=new Set(ed.ex.map(x=>nrm(x.name)));let n=0;LB.sel.forEach(k=>{const l=LIB[k];if(!have.has(nrm(l.n))){ed.ex.push(libEx(l));n++}});LB=null;ed.open=-1;toast(n+' exercice'+(n>1?'s':'')+' ajouté'+(n>1?'s':''))}
 else if(a==='wipe'){if(!confirm("Supprimer TOUTES tes données sur cet appareil (séances, sorties, réglages) ?\n\nPense à exporter une sauvegarde avant."))return;if(!confirm('Vraiment tout supprimer ? Cette action est définitive.'))return;
-try{if(S.sv&&WU()){const H=await SH(1);if(H)await fetch(WU()+'/disconnect',{method:'POST',headers:H})}}catch(e){}
+
 const a0=AU();if(a0&&confirm('Supprimer aussi ta sauvegarde dans le cloud ?\n\nOK = oui, Annuler = la garder (elle reviendra à la prochaine synchro).')){try{await sb('/rest/v1/fitlog_data?user_id=eq.'+a0.uid,{method:'DELETE'},a0.access)}catch(e){}}
-S={t:[],h:[],a:null};localStorage.setItem('fitlog',JSON.stringify(S));try{localStorage.removeItem(TRK)}catch(e){}toast('Données supprimées')}
+S={t:[],h:[],a:null};localStorage.setItem('fitlog',JSON.stringify(S));try{localStorage.removeItem(TRK);localStorage.removeItem('fitlog-hk');localStorage.removeItem('runlab:settings');indexedDB.deleteDatabase('runlab')}catch(e){}toast('Données supprimées')}
 else if(a==='delacct'){if(!confirm("Supprimer définitivement ton compte et ta sauvegarde cloud ?\n\nTes données restent sur ce téléphone."))return;
 const a1=await authOK();if(!a1){toast('Reconnecte-toi puis réessaie');return}
 try{const r=await sb('/rest/v1/rpc/delete_my_account',{method:'POST',body:'{}'},a1.access);if(!r.ok)throw 0;
-try{if(S.sv&&WU()){const H=await SH(1);if(H)await fetch(WU()+'/disconnect',{method:'POST',headers:H})}}catch(e){}
+
 localStorage.removeItem('fitlog-auth');csT='';toast('Compte supprimé')}catch(e){toast("Suppression impossible. Écris au contact indiqué dans Confidentialité.")}}
 else if(a==='tour')showOnb();
 else if(a==='upd')await checkUpdate(true);
@@ -2086,7 +2054,6 @@ if(k==='shoe'){const x=(S.shoes||[]).find(y=>y.id===id);if(!x)return;M.shoe=x.en
 sheet(M[k]||[])}
 else if(a==='shimg'){shareImg(b.dataset.k,b.dataset.k==='r'?b.dataset.id:b.dataset.i);return}
 else if(a==='rdet'){RDI=b.dataset.id;RDS='';view='rdet';fxN=1;setTimeout(rdetLoad,60)}
-else if(a==='rstream'){RDS='';setTimeout(rdetLoad,0);return}
 else if(a==='smove'){const W=S.plan.weeks.find(x=>x.w===+b.dataset.w),q=W&&W.s[i];if(!q)return;const t0d=new Date();t0d.setHours(0,0,0,0);sheet(DN.map((_,d)=>d).filter(d=>d!==q.d&&sd(W.w,d)>=t0d).map(d=>{const o=W.s.find(x=>x!==q&&x.d===d);return[`${DF[d]} ${sd(W.w,d).getDate()}${o?' · échanger avec '+o.t:''}`,{a:'smv',w:W.w,i,d}]}));return}
 else if(a==='smv'){const W=S.plan.weeks.find(x=>x.w===+b.dataset.w),q=W&&W.s[i],nd=+b.dataset.d;if(!q)return;const od=q.d,o=W.s.find(x=>x!==q&&x.d===nd);q.d=nd;if(o)o.d=od;W.s.sort((x,y)=>x.d-y.d);
 const fut=S.plan.weeks.filter(x=>x.w>W.w);if(fut.length&&confirm(`Séance déplacée au ${DF[nd].toLowerCase()}.\n\nFaire la même chose les semaines suivantes (${DF[od].toLowerCase()} → ${DF[nd].toLowerCase()}) ?`)){
@@ -2142,7 +2109,6 @@ else if(a==='shnew'){const n=(prompt('Nom de la paire (ex. Pegasus 41, Speedgoat
 const ty=TRAILRX.test(n)?'t':'r',mx=Math.round(+(prompt('Kilométrage maximal conseillé (km)',ty==='t'?'800':'700')||700))||700;S.shoes=S.shoes||[];const same=S.shoes.filter(x=>!x.end&&x.ty===ty);
 if(same.length&&confirm(`Elle remplace « ${same[same.length-1].n} » ? OK = l'ancienne est retirée. Annuler = tu gardes les deux.`)){const o=same[same.length-1];o.end=d0<td?d0:td;o.def=0}
 const nw={id:uid(),n:n.slice(0,40),since:d0,max:mx,ty};if(!S.shoes.some(x=>!x.end&&x.ty===ty&&x.def))nw.def=1;S.shoes.push(nw);accOpen.shoe=true;save();toast(shTy(nw)+(nw.def?' · par défaut':'')+' : modifiable avec ···')}
-else if(a==='shsv'){accOpen.shoe=true;(async()=>{if(!S.gfull){S.gneed=1;toast('Lecture de ton historique Strava…');await syncRuns(1)}await shSync(0)})()}
 else if(a==='shty'){const x=(S.shoes||[]).find(y=>y.id===b.dataset.id);if(x){x.ty=x.ty==='t'?'r':'t';if(x.def&&S.shoes.some(y=>y!==x&&!y.end&&y.ty===x.ty&&y.def))x.def=0;save()}}
 else if(a==='shdef'){const x=(S.shoes||[]).find(y=>y.id===b.dataset.id);if(x){S.shoes.forEach(y=>{if(y.ty===x.ty)y.def=0});x.def=1;save()}}
 else if(a==='shren'){const x=(S.shoes||[]).find(y=>y.id===b.dataset.id),n=x&&(prompt('Nom de la paire',x.n)||'').trim();if(n){x.n=n.slice(0,40);save()}}
@@ -2151,7 +2117,7 @@ else if(a==='shend'){const x=(S.shoes||[]).find(y=>y.id===b.dataset.id);if(x){x.
 else if(a==='rshoe'){const r=(S.runs||[]).find(x=>String(x.id)===String(RDI));if(!r)return;const d=r.d.slice(0,10),cur=shoeOf(r),L=(S.shoes||[]).filter(x=>x.since<=d);
 sheet([...L.map(x=>[`${x.n}${x===cur?' ✓':''}`,{a:'rsh',sh:x.id}]),[`Automatique${r.sh?'':' ✓'}`,{a:'rsh',sh:''}],['Aucune paire',{a:'rsh',sh:'none'}]]);return}
 else if(a==='rsh'){const r=(S.runs||[]).find(x=>String(x.id)===String(RDI));if(!r)return;const v=b.dataset.sh;if(!v)delete r.sh;else r.sh=v;const x=(S.shoes||[]).find(y=>y.id===v);
-if(x&&r.g&&!x.sg&&!S.shoes.some(y=>y.sg===r.g)){x.sg=r.g;toast(`Tes sorties Strava avec cette paire iront à « ${x.n} »`)}save()}
+save()}
 else if(a==='shdel'){if(!confirm('Supprimer cette paire ?'))return;S.shoes=(S.shoes||[]).filter(y=>y.id!==b.dataset.id);save()}
 else if(a==='impx'){impx();return}
 else if(a==='rpf'){S.rp=S.rp||{};const k=b.dataset.k,v=b.dataset.v,old=dkey(150);S.rp[k]={...(S.rp[k]||{}),f:v,at:Date.now()};if(v==='non')delete S.rp[k].e;Object.keys(S.rp).forEach(x=>{if(x<old)delete S.rp[x]});
@@ -2162,10 +2128,9 @@ else if(a==='more'){S.a.ex[i].more=!S.a.ex[i].more;save()}
 else if(a==='htab'){histTab=b.dataset.v;hOpen=-1;fxN=1}
 else if(a==='hopen')hOpen=hOpen===i?-1:i;
 else if(a==='peek'){peek=!peek;hOpen=-1;fxN=1}
-else if(a==='rtab'){runTab=b.dataset.v;fxN=1;if(runTab==='rec'&&S.sv)setTimeout(async()=>{if(!S.hist)await syncRuns(true);else fetchEfforts()},50)}
+else if(a==='rtab'){runTab=b.dataset.v;fxN=1}
 else if(a==='ryr'){recYr=b.dataset.v}
 else if(a==='mode'){applyMode(b.dataset.v);return}
-else if(a==='effgo'){effSt='';fetchEfforts()}
 else if(a==='rall')runAll=!runAll;
 else if(a==='acc')accOpen[b.dataset.k]=!accOpen[b.dataset.k];
 else if(a==='exopen')ed.open=ed.open===i?-1:i;
@@ -2189,12 +2154,6 @@ else if(a==='rnx'){const e=S.a.ex[i],o=e.name,n=(prompt("Nouveau nom de l'exerci
 if(S.a.editIdx===undefined){const t=S.t.find(t=>t.name===S.a.name),x=t&&t.ex.find(x=>x.name===o);if(x&&confirm('Renommer aussi dans la séance type « '+t.name+' » ?'))x.name=n}save()}
 else if(a==='rn'){const o=b.dataset.n,n=(prompt('Nouveau nom pour « '+o+' » (partout : historique et séances types)',o)||'').trim();if(!n||n===o)return;
 S.h.forEach(h=>h.ex.forEach(e=>{if(e.name===o)e.name=n}));S.t.forEach(t=>t.ex.forEach(e=>{if(e.name===o)e.name=n}));if(S.a)S.a.ex.forEach(e=>{if(e.name===o)e.name=n});save()}
-else if(a==='connect'){if(!STRV()){toast('Strava est indisponible dans cette version');return}
-const h=DKHV||await DKH(),u=WU()+'/connect?h='+h;stWait=Date.now();try{localStorage.setItem('fitlog-stw',String(stWait))}catch(e){}
-const Br=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;if(Br)Br.open({url:u});else window.open(u,'_blank');setSv('Termine la connexion dans Strava, puis reviens ici.')}
-else if(a==='disconnect'){if(!confirm("Déconnecter Strava ?\n\nLes sorties importées depuis Strava seront retirées de l'app (celles que tu as ajoutées à la main restent). Tu pourras te reconnecter quand tu veux."))return;
-try{const H=await SH(1);if(H&&WU())await fetch(WU()+'/disconnect',{method:'POST',headers:H})}catch(e){}
-S.runs=(S.runs||[]).filter(isOwn);S.be={};try{const o=trAll();Object.keys(o).forEach(k=>{if(/^\d+$/.test(k))delete o[k]});localStorage.setItem(TRK,JSON.stringify(o))}catch(e){}delete S.sv;delete S.svn;delete S.syncAt;delete S.hist;effSt='';stS='';save();toast('Strava déconnecté')}
 else if(a==='radd'){RX={id:'',date:iso(new Date()),km:'',h:'',m:'',s:'',n:'',hr:'',up:''};view='rform'}
 else if(a==='redit'){const r=(S.runs||[]).find(x=>String(x.id)===b.dataset.id);if(!r)return;const t=r.s||0;RX={id:String(r.id),date:r.d.slice(0,10),km:r.km,h:Math.floor(t/3600)||'',m:Math.floor(t%3600/60)||'',s:t%60||'',n:r.n||'',hr:r.hr||'',up:r.up||''};view='rform'}
 else if(a==='rcancel'){RX=null;view='run';runTab='r'}
@@ -2204,12 +2163,10 @@ if(isNaN(d)||!(km>0)||!(sec>0)){alert('Renseigne la date, la distance et la dur�
 if(km>300||sec>172800){alert('Ces valeurs semblent trop grandes : vérifie la distance et la durée.');return}
 const o={id:q.id||'m'+uid(),n:(q.n||'').trim()||'Sortie du '+d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}),t:'Run',d:q.date+'T12:00:00Z',km:Math.round(km*100)/100,s:Math.round(sec),up:Math.round(+q.up)||0,hr:Math.round(+q.hr)||null,man:1};
 S.runs=S.runs||[];const k=S.runs.findIndex(r=>String(r.id)===o.id);k<0?S.runs.push(o):S.runs[k]=o;save();RX=null;view='run';runTab='r';toast('Sortie enregistrée')}
-else if(a==='syncnow')await syncRuns();
 else if(a==='hksync'){if(!HOK()){askHealth({a:'hksync'});return}await hkSync(false)}
-else if(a==='stoff'){const L=stLeft();if(!confirm(`Retirer Strava ?\n\nLa connexion Strava est coupée${L?` et les ${L} sorties qui ne viennent que de Strava sont retirées de Menhir`:''}. Les records 5 km / 10 km pris à l'intérieur d'une sortie plus longue (calculés par Strava) disparaissent aussi. Tes sorties d'Apple Santé, de ta montre et celles saisies à la main restent.`))return;
-if(S.sv&&WU()){let ok=false;try{const H=await SH(1);if(H)ok=(await fetch(WU()+'/disconnect',{method:'POST',headers:H})).ok}catch(e){}if(!ok){toast('Strava injoignable : réessaie avec du réseau');return}}
-S.runs=(S.runs||[]).filter(isOwn);S.be={};['sv','svn','syncAt','hist','gfull','gneed'].forEach(k=>delete S[k]);S.stravaOff=1;
-try{const o=trAll();Object.keys(o).forEach(k=>{if(/^\d+$/.test(k))delete o[k]});localStorage.setItem(TRK,JSON.stringify(o))}catch(e){}effSt='';stS='';save();toast('Strava retiré')}
+else if(a==='stgok'){delete S.stg;save()}
+else if(a==='stghow'){cdFrom='run';view='cdata'}
+else if(a==='rlgo'){const k=+b.dataset.km;location.assign('rl/index.html'+(k?'?km='+k:''));return}
 else if(a==='mv'){const L=ed?ed.ex:S.a.ex,j=i+(+b.dataset.d);if(j>=0&&j<L.length){[L[i],L[j]]=[L[j],L[i]];if(!ed&&tm){if(tm.i===i)tm.i=j;else if(tm.i===j)tm.i=i}if(!ed)save();else ed.open=j}}
 else if(a==='skip'){S.a.ex[i].skip=!S.a.ex[i].skip;save()}
 else if(a==='remset'){S.a.ex[i].sets.pop();save()}
@@ -2223,7 +2180,7 @@ const o={...S.a,ex};if(S.a.editIdx!==undefined){delete o.editIdx;S.h[S.a.editIdx
 else if(a==='export'){const j=JSON.stringify({...S,_tr:trAll()}),f=new File([j],'menhir-sauvegarde-'+iso(new Date())+'.json',{type:'application/json'}),CP=window.Capacitor&&Capacitor.Plugins;
 try{if(CP&&CP.Filesystem&&CP.Share){const w=await CP.Filesystem.writeFile({path:f.name,data:j,directory:'CACHE',encoding:'utf8'});await CP.Share.share({title:'Sauvegarde Menhir',files:[w.uri]});return}
 if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else{const u=URL.createObjectURL(f),l=document.createElement('a');l.href=u;l.download=f.name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('Sauvegarde téléchargée')}}catch(e){}return}
-else if(a==='import'){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json,text/plain';inp.onchange=async()=>{try{const o=JSON.parse(await inp.files[0].text());if(!Array.isArray(o.t)||!Array.isArray(o.h))throw 0;if(!confirm('Remplacer toutes les données de ce téléphone par cette sauvegarde ?'))return;if(o._tr){try{localStorage.setItem(TRK,JSON.stringify(o._tr))}catch(e2){}delete o._tr}S=o;save();render();toast('Sauvegarde importée')}catch(e){alert('Fichier de sauvegarde invalide.')}};inp.click();return}
+else if(a==='import'){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json,text/plain';inp.onchange=async()=>{try{const o=JSON.parse(await inp.files[0].text());if(!Array.isArray(o.t)||!Array.isArray(o.h))throw 0;if(!confirm('Remplacer toutes les données de ce téléphone par cette sauvegarde ?'))return;if(o._tr){try{localStorage.setItem(TRK,JSON.stringify(o._tr))}catch(e2){}delete o._tr}S=o;stravaPurge();save();render();toast('Sauvegarde importée')}catch(e){alert('Fichier de sauvegarde invalide.')}};inp.click();return}
 render();
 });
 document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset.hxt)HXT[t.dataset.hxt]=t.value;if(t.dataset&&t.dataset.hxf&&HXF)HXF[t.dataset.hxf]=t.value;if(t.dataset&&t.dataset.hxs&&HXF)HXF.seg[+t.dataset.hxs]=t.value;if(t.dataset&&t.dataset.tl)tlCalc();if(t.id==='lbq'&&LB){LB.q=t.value;lbRefresh()}if(t.id==='swq'&&S.a&&S.a.ex[SWI]){const r=$('#swr');if(r)r.innerHTML=swRows(SWI,t.value)}});
@@ -2241,7 +2198,7 @@ else if(t.dataset.zn){const[k,i]=t.dataset.zn.split('.'),z=[...zones()[k]];z[+i]
 if(t.dataset.e&&t.tagName==='SELECT')render();
 });
 let wl;async function keep(){try{if(!wl||wl.released)wl=await navigator.wakeLock.request('screen')}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){if(stWait&&Date.now()-stWait>9e5)stWait=0;if(stWait)syncRuns();else autoSync();if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true).then(hkAuto,hkAuto);else if(!AU())hkAuto()}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
+document.addEventListener('visibilitychange',()=>{if(S.a&&!document.hidden)keep();if(!document.hidden){if(Date.now()-lastChk>18e5)checkUpdate();if(AU()&&Date.now()-lastCS>6e4)cloudSync(true).then(hkAuto,hkAuto);else if(!AU())hkAuto()}if(document.hidden&&pt){clearTimeout(pt);pt=0;pushAll()}});
 setInterval(()=>{const el=$('#el');if(el&&S.a){const t=Math.floor((Date.now()-new Date(S.a.date))/1000);el.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}if(tm){const b=document.querySelector('[data-a=chrono][data-i="'+tm.i+'"]');if(b)b.textContent='Stop '+Math.round((Date.now()-tm.t)/1000)+' s'}},1000);
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){const sh=document.querySelector('.sheet');if(sh)sh.remove()}if(ev.key==='Enter'&&ev.target.id==='chq'){ev.preventDefault();chatSend(ev.target.dataset.c,ev.target.value)}});
 if('serviceWorker' in navigator&&!STORE)navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -2249,9 +2206,10 @@ document.addEventListener('focusout',()=>setTimeout(()=>{scrollTo(0,0);fitNav()}
 document.addEventListener('focusin',e=>{const t=e.target;if(t.tagName==='INPUT'&&t.type==='number')setTimeout(()=>{try{t.select()}catch(x){}},0)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if(S.t.length||S.h.length)localStorage.setItem('fitlog-onb','1');
+if(stravaPurge()){if(AU()){pgPend=1;localStorage.setItem('fitlog',JSON.stringify(S))}else save()}
+// retour depuis la page Parcours (rl/) : onglet Course
+if(location.hash==='#run'){view='run';try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
 render();
-autoSync();
-try{const w=+localStorage.getItem('fitlog-stw');if(w&&Date.now()-w<9e5){stWait=w;syncRuns()}else localStorage.removeItem('fitlog-stw')}catch(e){}
 if(!localStorage.getItem('fitlog-onb'))showOnb();else if(needLogin())showLogin();else if(AU())cloudSync(true).then(hkAuto,hkAuto);
 if(localStorage.getItem('fitlog-onb')&&!needLogin()&&!AU())hkAuto();
 const fitNav=()=>{try{const n=document.querySelector('nav');document.documentElement.style.setProperty('--nh',Math.round(innerHeight-n.getBoundingClientRect().top)+'px')}catch(e){}};

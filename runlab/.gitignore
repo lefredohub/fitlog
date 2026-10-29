@@ -1,0 +1,19 @@
+# dépendances
+/node_modules
+
+# build
+/dist/
+*.tsbuildinfo
+
+# tests
+/test-results/
+/playwright-report/
+/coverage/
+
+# secrets : ne jamais committer
+.env
+.env*.local
+
+# divers
+.DS_Store
+*.log

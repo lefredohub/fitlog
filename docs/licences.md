@@ -1,7 +1,6 @@
 # Licences et mentions
 
 - **BodyParts3D** © The Database Center for Life Science (DBCLS), licence CC BY-SA 2.1 JP. Le fichier `anat.bin` est une version simplifiée adaptée pour Menhir ; elle reste sous la même licence (https://creativecommons.org/licenses/by-sa/2.1/jp/).
-- **Strava** : « Strava » et « Propulsé par Strava » sont des marques de Strava, Inc. Respecte les consignes de marque (bouton officiel « Connect with Strava » dans `strava-connect.svg`/`.png`).
 - **Supabase**, **Cloudflare**, **Anthropic / Claude**, **Apple Santé**, **Health Connect** : marques de leurs propriétaires.
 - **Leaflet** 1.9.4 (carte des sorties, chargée depuis cdnjs) : licence BSD-2-Clause, © Volodymyr Agafonkin.
 - **OpenStreetMap** (fonds de carte) : © les contributeurs OpenStreetMap, données sous licence ODbL ; la mention s'affiche sur chaque carte. Usage raisonnable des tuiles (politique d'usage OSM) : si l'app grossit, passer à un fournisseur de tuiles dédié.
@@ -10,3 +9,5 @@
 - Le code de Menhir est un projet personnel ; ajoute un fichier de licence si tu le publies publiquement.
 
 Limites : ces textes ne constituent pas un avis juridique. Avant une ouverture large (Play Store, plus de 10 amis), fais relire par un professionnel.
+- **Page Parcours (`rl/`)** : MapLibre GL JS (BSD-3-Clause), React (MIT), Lucide (ISC), Zod (MIT), pbf et vector-tile (BSD-3 / ISC), police Archivo (OFL), modules Capacitor (MIT). Le texte complet de chaque licence est publié avec la page : `rl/LICENCES.txt` (généré à chaque `npm run build`).
+- **Données des parcours** : chemins © contributeurs OpenStreetMap (ODbL), © OpenMapTiles, servis par OpenFreeMap ; relief Terrain Tiles (Mapzen ; SRTM, EU-DEM… ; hébergé par AWS Open Data). Les mentions s'affichent sur la carte.
