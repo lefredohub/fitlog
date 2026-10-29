@@ -26,7 +26,7 @@ Chaque compte ne voit que **sa propre ligne**.
 
 ## 3. Régler l'authentification
 - **Authentication → Sign In / Providers → Email** : désactive **Confirm email** (sinon il faut valider un e-mail à chaque inscription).
-- **Authentication → URL Configuration** : *Site URL* = l'adresse de ton app (ex. `https://ton-pseudo.github.io/fitlog/`). Sert au lien « mot de passe oublié ».
+- **Authentication → URL Configuration** : *Site URL* = l'adresse de ton app (`https://menhir.rk8h5294kt.workers.dev/`). Sert au lien « mot de passe oublié ».
 
 ## 4. Récupérer les deux valeurs
 **Project Settings → API** (ou *API Keys*) : note

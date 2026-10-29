@@ -22,7 +22,7 @@ Résultat : tes amis touchent **« Se connecter avec Strava »** dans l'onglet C
 5. *Settings → Variables and Secrets* : ajoute
    - `STRAVA_CLIENT_ID` : ton Client ID (texte)
    - `STRAVA_CLIENT_SECRET` : ton Client Secret (**secret**)
-   - `ALLOWED_ORIGIN` : l'adresse de ton app **sans chemin**, ex. `https://ton-pseudo.github.io` (plusieurs possibles, séparées par des virgules)
+   - `ALLOWED_ORIGIN` : l'adresse de ton app **sans chemin**, ex. `https://menhir.rk8h5294kt.workers.dev` (plusieurs possibles, séparées par des virgules)
 6. Si tu avais l'ancienne version : supprime `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `OWNER_EMAIL`, `APP_KEY` (plus utilisées).
 7. Reviens sur strava.com/settings/api et colle le domaine du Worker dans *Authorization Callback Domain*.
 

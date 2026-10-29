@@ -1,6 +1,6 @@
 // FitLog × Strava : relais (Cloudflare Worker) v4
 // « Se connecter avec Strava » : l'identité de l'utilisateur, c'est son compte Strava. Aucune clé à saisir côté app, aucun compte FitLog requis.
-// Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://toi.github.io ; plusieurs possibles, séparées par des virgules).
+// Variables : STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, ALLOWED_ORIGIN (adresse de l'app, ex. https://menhir.rk8h5294kt.workers.dev ; plusieurs possibles, séparées par des virgules).
 //
 // KV : TOKENS
 // Coach IA (facultatif, gratuit) : ajoute le binding « Workers AI » nommé AI. Variables facultatives : AI_DAILY (messages/jour/appareil, 40), AI_GLOBAL (messages/jour au total sur Cloudflare gratuit, 80), AI_PAID_CAP (messages/jour sur Claude, 300), AI_MODEL, et ANTHROPIC_API_KEY (+ ANTHROPIC_MODEL, défaut claude-haiku-5-5 ; AI_EFFORT low|medium|high, défaut medium) pour utiliser Claude (payant, environ 0,1 centime par message), prioritaire sur Cloudflare.

@@ -1,0 +1,8 @@
+# Fichiers du dépôt non publiés sur le site (Cloudflare)
+.git
+.github
+.assetsignore
+docs
+tests
+worker.js
+*.md

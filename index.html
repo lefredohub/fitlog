@@ -502,7 +502,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.12.0';
+const VER='4.12.1';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -711,7 +711,7 @@ return`<div class=top><div class=row style="margin:0;gap:4px">${BACK.replace('@'
 +acc('h5','Glossaire','',H(`<dl><dt>Série</dt><dd>Un bloc de répétitions d'affilée, suivi d'un repos.</dd><dt>Répétition (rep)</dt><dd>Un mouvement complet de l'exercice.</dd><dt>Pas</dt><dd>L'écart dont la charge augmente quand tu progresses (par exemple 2,5 kg).</dd><dt>Double progression</dt><dd>Tu vises un nombre de répétitions entre un minimum et un maximum. Quand tu atteins le maximum sur toutes les séries, la charge augmente et tu repars du minimum.</dd><dt>1RM estimé</dt><dd>La charge maximale théorique pour une seule répétition, calculée d'après tes séries.</dd><dt>Allure</dt><dd>Minutes par kilomètre (par exemple 5:30 /km).</dd><dt>D+</dt><dd>Dénivelé positif : les mètres gagnés en montée.</dd><dt>FC et zones</dt><dd>Fréquence cardiaque, en battements par minute. Les zones donnent la FC cible de chaque type de sortie (Réglages > Zones cardiaques).</dd><dt>Sortie longue</dt><dd>La sortie la plus longue de la semaine, à allure tranquille.</dd></dl>`))
 +acc('h7','Un souci ?','',H(`<p><b>Mes données ont disparu.</b> Sans compte, elles vivent dans l'app : la désinstaller les efface. Crée un compte ou exporte une sauvegarde de temps en temps.</p><p><b>Je change de téléphone.</b> Connecte-toi au même compte, ou Exporter puis Importer.</p><p><b>Sans réseau.</b> Tout fonctionne, sauf le compte, le coach et les cartes.</p><p><b>Une question ?</b> Écris à ${LCT()}.</p>`))}
 // adresse publique de la page légale (l'app des stores l'ouvre dans le navigateur)
-const LEGU=STORE?'https://lefredohub.github.io/fitlog/privacy.html':'privacy.html';
+const LEGU=STORE?'https://menhir.rk8h5294kt.workers.dev/privacy.html':'privacy.html';
 const LCT=()=>FL.contact?esc(FL.contact):"l'éditeur de l'app";
 /* page légale : un seul texte, privacy.html, affiché tel quel dans l'app (sections en cartes) */
 let LGH=null;

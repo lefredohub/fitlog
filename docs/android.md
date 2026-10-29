@@ -37,13 +37,13 @@ Deux versions, fabriquées par **Actions → App Android → Run workflow** :
 1. Actions → App Android → Run workflow → mode **play**. À la fin : bas de la page du workflow → artefact **Menhir-PlayStore** → `Menhir.aab`.
 2. Play Console → Créer une application : nom **Menhir**, français, Application, Gratuite.
 3. **Contenu de l'application** (menu de gauche, tout doit être vert) :
-   - Règles de confidentialité : `https://lefredohub.github.io/fitlog/privacy.html` ;
+   - Règles de confidentialité : `https://menhir.rk8h5294kt.workers.dev/privacy.html` ;
    - Accès à l'application : tout est accessible sans compte ;
    - Annonces : non ;
    - Classification du contenu : questionnaire (pas de violence, pas d'achat, pas d'échange entre utilisateurs) ;
    - Public cible : 16 ans et plus (Google ne propose pas de tranche « 15 ans » ; l'app reste ouverte dès 15 ans, comme le disent les infos légales) ;
    - Sécurité des données : réponses dans `docs/fiches-store.md` ;
-   - Suppression des données : `https://lefredohub.github.io/fitlog/privacy.html#suppression` ;
+   - Suppression des données : `https://menhir.rk8h5294kt.workers.dev/privacy.html#suppression` ;
    - **Health Connect** : déclarer les autorisations et leur usage (texte prêt dans `docs/fiches-store.md`) ; Google les examine (quelques jours) ;
    - Applications de santé : catégorie « Activité physique et remise en forme ».
 4. **Fiche principale** : textes et captures (voir `docs/fiches-store.md`), icône 512 × 512 (`icon-512.png`), image de présentation 1024 × 500.

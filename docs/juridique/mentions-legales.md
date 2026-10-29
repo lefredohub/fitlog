@@ -7,7 +7,7 @@ Contact : [E-MAIL]. Directeur de la publication : [PRÉNOM NOM].
 TVA : non applicable, article 293 B du CGI (tant que l'éditeur est en franchise en base).
 
 **Hébergement**
-- Application web : GitHub Pages, GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.
+- Application web : Cloudflare, Inc. (Workers), 101 Townsend St, San Francisco, CA 94107, États-Unis.
 - Compte et sauvegarde : Supabase, Inc. (région d'hébergement : [À VÉRIFIER, idéalement Union européenne]).
 - Serveur relais et coach IA : Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, États-Unis.
 
