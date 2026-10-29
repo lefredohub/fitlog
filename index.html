@@ -2219,7 +2219,6 @@ if(!por){h.style.minHeight='';return}
 if(gap>20&&gap<130)h.style.minHeight=sh+'px';fitNav()}catch(e){}}
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));addEventListener('pageshow',fit);document.addEventListener('visibilitychange',()=>{if(!document.hidden)fit()});
 fit();setTimeout(fit,400)})();
-/* barre d'état blanche : iOS fige le style de la barre d'état à l'installation. Si l'icône date d'une version en « default », la barre reste opaque (blanche en mode sombre) : seule une réinstallation la corrige. */
 
 setTimeout(checkUpdate,4000);
 </script></body></html>
