@@ -9,3 +9,5 @@
 - Le code de Menhir est un projet personnel ; ajoute un fichier de licence si tu le publies publiquement.
 
 Limites : ces textes ne constituent pas un avis juridique. Avant une ouverture large (Play Store, plus de 10 amis), fais relire par un professionnel.
+- **Page Parcours (`rl/`)** : MapLibre GL JS (BSD-3-Clause), React (MIT), Lucide (ISC), Zod (MIT), pbf et vector-tile (BSD-3 / ISC), police Archivo (OFL), modules Capacitor (MIT). Le texte complet de chaque licence est publié avec la page : `rl/LICENCES.txt` (généré à chaque `npm run build`).
+- **Données des parcours** : chemins © contributeurs OpenStreetMap (ODbL), © OpenMapTiles, servis par OpenFreeMap ; relief Terrain Tiles (Mapzen ; SRTM, EU-DEM… ; hébergé par AWS Open Data). Les mentions s'affichent sur la carte.

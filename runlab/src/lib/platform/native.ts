@@ -34,6 +34,17 @@ export async function startNativeWatch(
   const { registerPlugin } = await import("@capacitor/core");
   // Ce paquet ne fournit que des types : l'implémentation est native.
   const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
+  // Android 13+ : la notification qui accompagne le guidage écran éteint demande une autorisation (module
+  // @capacitor/local-notifications de l'app Android). Sans elle, le guidage marche mais la notification reste cachée.
+  try {
+    const cap = (window as unknown as { Capacitor?: { getPlatform?: () => string } }).Capacitor;
+    if (cap?.getPlatform?.() === "android") {
+      const LocalNotifications = registerPlugin<{ requestPermissions: () => Promise<unknown> }>("LocalNotifications");
+      await LocalNotifications.requestPermissions();
+    }
+  } catch {
+    /* module absent : on continue sans notification visible */
+  }
   // Autorisation « pendant l'utilisation » uniquement : elle suffit pour un guidage démarré
   // dans l'app, même écran verrouillé. Laissé à lui-même, le plugin demanderait « Toujours »,
   // ce qui est inutile pour RunLab et motif de refus sur l'App Store.

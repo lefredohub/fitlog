@@ -162,6 +162,24 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'sombre-Apple_Santé.png') });
     check('[Apple Santé] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
+  // Strava retiré : les sorties à soi rangées à part (S.xr) reviennent, les km des chaussures sont gardés, rien de Strava ne reste
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    await p.addInitScript(f => {
+      f.forEach(k => localStorage.setItem(k, '1')); const d = j => { const x = new Date(Date.now() - j * 864e5); return x.toISOString().slice(0, 10) + 'T08:00:00Z' };
+      localStorage.setItem('fitlog', JSON.stringify({ t: [], h: [], a: null, sv: 1, be: { 501: [1200, 0, 0, 0] },
+        shoes: [{ id: 's1', n: 'Paire', since: '2020-01-01', max: 700, ty: 'r', def: 1, sg: 'g9' }],
+        runs: [{ id: 501, n: 'S1', d: d(3), km: 10, s: 3000, g: 'g9' }, { id: 502, n: 'S2', d: d(5), km: 8, s: 2400, g: 'g9' }, { id: 503, n: 'S3', d: d(7), km: 12, s: 3600, g: 'g9' }, { id: 'm1', man: 1, n: 'Moi', d: d(9), km: 5, s: 1500 }],
+        xr: [{ id: 'a111', n: 'Archive', d: d(3), km: 10.02, s: 3010, src: 'archive' }, { id: 'g222', n: 'Montre', d: d(5), km: 8.01, s: 2405, hr: 150, src: 'montre' }] }));
+      localStorage.setItem('fitlog-tr', JSON.stringify({ 501: { pl: 'x' }, g222: { pl: 'y' } }));
+    }, FLAGS);
+    await p.goto(URL); await p.waitForTimeout(600);
+    const r = await p.evaluate(() => { const ids = S.runs.map(x => x.id).sort().join(), a = S.runs.find(x => x.id === 'a111'), g = S.runs.find(x => x.id === 'g222'), tr = JSON.parse(localStorage.getItem('fitlog-tr'));
+      return { ids, back: !!(a && a.arc && a.man && g && g.trk && g.hr === 150), xr: 'xr' in S, k0: S.shoes[0].k0, km: Math.round(shKm(S.shoes[0])), sg: 'sg' in S.shoes[0], gfield: S.runs.some(x => 'g' in x), be: 'be' in S, sv: 'sv' in S, tr: Object.keys(tr).sort().join(), stg: S.stg, again: stravaPurge() } });
+    check('[Strava] retrait : sorties d\'archive et de montre rangées à part redevenues visibles', r.ids === 'a111,g222,m1' && r.back && !r.xr, JSON.stringify(r));
+    check('[Strava] retrait : kilométrage des chaussures conservé, plus aucune donnée Strava (efforts, liens, tracés)', r.k0 === 12 && r.km === 35 && !r.sg && !r.gfield && !r.be && !r.sv && r.tr === 'g222' && r.stg === 1 && r.again === false, JSON.stringify(r));
+    check('[Strava] retrait sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
   // App Android (Health Connect) et app des stores (fichiers embarqués) : pas de Strava, accord avant le coach IA, page légale
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'light', isMobile: true, hasTouch: true }); const errs = [];

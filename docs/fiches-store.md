@@ -54,6 +54,7 @@ Non collecté : position (les tracés GPS et la position utilisée pour les parc
 > premier envoi de données au service d'IA (Anthropic) ; l'accord est retirable dans Réglages > Mes données. Suppression du compte : Réglages > Compte.
 > Localisation en arrière-plan : seulement pendant le guidage d'un parcours lancé par l'utilisateur (Course > Créer un parcours > Courir), pour annoncer les
 > virages écran verrouillé ; l'autorisation demandée est « Lorsque l'app est active ». La position n'est jamais envoyée hors du téléphone.
+> Audio en arrière-plan : les annonces vocales de ce même guidage (virages, kilomètres) doivent rester audibles écran verrouillé.
 
 ## Play Store : « Sécurité des données »
 - Données chiffrées en transit : **oui**. Suppression possible : **oui** (dans l'app et à l'adresse `privacy.html#suppression`).

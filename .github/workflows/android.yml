@@ -50,7 +50,7 @@ jobs:
             SERVER="\"server\": { \"url\": \"$APP_URL\", \"cleartext\": false },"
           fi
           npm init -y >/dev/null
-          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8 @capacitor-community/background-geolocation@1.3.1 @capacitor-community/text-to-speech@8
+          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8 @capacitor-community/background-geolocation@1.3.1 @capacitor-community/text-to-speech@8 @capacitor/local-notifications@8
           # identifiant gardé tel quel (app.fitlog.perso) : le changer crée une autre app. À décider avant la première publication sur le Play Store.
           cat > capacitor.config.json <<JSON
           { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www", $SERVER

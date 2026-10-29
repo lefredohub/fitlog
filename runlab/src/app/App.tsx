@@ -265,7 +265,7 @@ function Screen() {
                 <p className="font-display text-5xl font-bold leading-none tabular" aria-live="polite">
                   {formatKm(settings.distanceKm * 1000)}
                 </p>
-                <button type="button" className="mt-1 text-sm font-semibold text-y" onClick={() => setMenu(true)}>
+                <button type="button" className="mt-1 min-h-11 px-3 text-sm font-semibold text-y" onClick={() => setMenu(true)}>
                   {options}
                 </button>
               </div>
