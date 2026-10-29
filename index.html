@@ -471,7 +471,6 @@ try{const r=await fetch('index.html',{cache:'no-store'}),m=(await r.text()).matc
 if(m&&m[1]!==VER){if(S.a||ed)toast('Mise à jour disponible : elle s\'installera à la prochaine ouverture');else location.reload()}
 else if(manual)toast('Tu as la dernière version')
 }catch(e){if(manual)toast('Impossible de vérifier')}}
-const installCard=()=>(!NATP&&/iphone|ipad/i.test(navigator.userAgent||'')&&!navigator.standalone&&!localStorage.getItem('fitlog-inst'))?`<div class=card><h2>Installe Menhir</h2><div class=sub>Touche Partager (le carré avec une flèche) puis « Sur l'écran d'accueil » pour l'utiliser comme une vraie app.</div><button data-a=hideinst style="width:100%">J'ai compris</button></div>`:'';
 const backupHint=()=>(S.h.length>=3&&SBU&&!AU()&&!localStorage.getItem('fitlog-bk'))?`<div class=card><h2>Protège ton historique</h2><div class=sub>Connecte-toi : tes séances seront sauvegardées et retrouvées sur tous tes appareils.</div><div class=bar><button data-a=hidebk>Plus tard</button><button class=p data-a=login>Se connecter</button></div></div>`:'';
 function showOnb(){const P=[['Bienvenue sur Menhir',"Ton carnet de muscu et de course à pied : note tes séances, suis tes progrès, prépare ta prochaine course."],['Muscu',"Crée tes séances ou pars d'un programme tout prêt (poids du corps, salle, coureur…). Menhir te dit quelle charge viser, et un corps en 3D s'allume selon les muscles travaillés."],['Course',(HKP()?`Tes courses arrivent de ta montre par ${HKN()}, ou ajoute-les à la main.`:'Importe le fichier de ta montre ou ajoute tes sorties à la main.')+" Fixe un objectif (10 km, semi…) : Menhir construit ton plan semaine par semaine."],['Prêt ?',"Un score hebdomadaire te montre si tu tiens ton programme. Le mode d'emploi est dans Réglages > Aide. Menhir est un carnet, pas un avis médical : en cas de doute sur ta santé, consulte un médecin."]];
 let i=0;const o=document.createElement('div');o.className='ov';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Présentation de Menhir');document.body.appendChild(o);
@@ -748,7 +747,7 @@ const lh=S.h.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0],lr=R.slic
 if(lr)last+=item('run','r',esc(lr.n),`${ago(lr.d.slice(0,10)+'T12:00:00')} · ${lr.km.toFixed(1)} km · ${pace(lr)} /km`);
 if(lh){const vol=lh.ex.reduce((a,x)=>a+x.sets.reduce((b,s)=>b+(+s.r||0)*(+s.w||0),0),0),n=lh.ex.filter(x=>!x.skip).length;
 last+=item('hist','m',esc(lh.name),`${ago(lh.date)} · ${n} exo${n>1?'s':''}${lh.dur?' · '+lh.dur+' min':''}${vol?' · '+Math.round(vol).toLocaleString('fr-FR')+' kg':''}`)}
-return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>Aujourd'hui</h1></div><div style="display:flex;align-items:center;gap:2px"><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div></div>${installCard()}${backupHint()}${welcome()}${S.a?ren:''}${hero}${S.a?'':ren}${regCard()}`
+return`<div class=top><div><div class=sub style="margin:0 0 2px">${d}</div><h1>Aujourd'hui</h1></div><div style="display:flex;align-items:center;gap:2px"><button class=more data-a=nav data-v=set aria-label="Réglages">${GEAR}</button></div></div>${backupHint()}${welcome()}${S.a?ren:''}${hero}${S.a?'':ren}${regCard()}`
 +(last?`<div style="margin-top:4px">${last}</div>`:'')+scoreRow(wl)}
 
 /* ===== Régularité, activité et succès ===== */
@@ -2018,7 +2017,6 @@ else if(a==='mmauto'){S.mm=S.mm||{};delete S.mm[nrm(mmE.n)];mmE=null;view='hist'
 else if(a==='mmign'){S.mm=S.mm||{};S.mm[nrm(mmE.n)]='-';mmE=null;view='hist';histTab='m';save()}
 else if(a==='mmcancel'){mmE=null;view='hist';histTab='m'}
 else if(a==='rtset'){const v=+prompt('Séances de muscu visées par semaine',S.rt||2);if(v>=1&&v<=7){S.rt=v;save()}}
-else if(a==='hideinst')localStorage.setItem('fitlog-inst','1');
 else if(a==='hidewel')localStorage.setItem('fitlog-wel','1');
 else if(a==='hidebk')localStorage.setItem('fitlog-bk','1');
 else if(a==='prog')view='prog';
@@ -2222,13 +2220,6 @@ if(gap>20&&gap<130)h.style.minHeight=sh+'px';fitNav()}catch(e){}}
 addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));addEventListener('pageshow',fit);document.addEventListener('visibilitychange',()=>{if(!document.hidden)fit()});
 fit();setTimeout(fit,400)})();
 /* barre d'état blanche : iOS fige le style de la barre d'état à l'installation. Si l'icône date d'une version en « default », la barre reste opaque (blanche en mode sombre) : seule une réinstallation la corrige. */
-(function(){if(!/iphone/i.test(navigator.userAgent||'')||!(navigator.standalone||matchMedia('(display-mode: standalone)').matches))return;
-try{if(localStorage.getItem('fitlog-sb'))return}catch(e){return}
-setTimeout(()=>{if(document.querySelector('.ov,.sheet'))return;const p=document.createElement('div');p.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top);visibility:hidden;pointer-events:none';document.body.appendChild(p);const h=p.offsetHeight;p.remove();if(h)return;
-const o=document.createElement('div');o.className='sheet';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Bandeau en haut de l\'écran');
-o.innerHTML=`<div class=sh-bg></div><div class=sh-box><div class=grab></div><h2 style="margin:10px 0 6px">Bandeau clair en haut ?</h2><div class=sub style="line-height:1.45">L'iPhone a gardé le réglage de la barre d'état du jour où tu as installé Menhir. Pour le corriger, réinstalle l'app :<ol style="margin:8px 0;padding-left:20px"><li><b>Sauvegarde d'abord</b> : connecte-toi à ton compte, ou Exporter ci-dessous. Supprimer l'icône efface les données de l'app.</li><li>Supprime Menhir de l'écran d'accueil.</li><li>Rouvre le site dans Safari, puis Partager › Sur l'écran d'accueil.</li></ol></div><button data-a=export>Exporter mes données</button><button data-a=sbok style="color:var(--mut)">Compris</button></div>`;
-try{localStorage.setItem('fitlog-sb','1')}catch(x){}
-document.body.appendChild(o)},1500)})();
 
 setTimeout(checkUpdate,4000);
 </script></body></html>
