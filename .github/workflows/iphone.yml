@@ -22,7 +22,7 @@ permissions:
   contents: write
 jobs:
   ios:
-    runs-on: macos-15
+    runs-on: macos-latest
     env:
       APP_URL: ${{ vars.APP_URL || 'https://menhir.rk8h5294kt.workers.dev/' }}
       MODE: ${{ inputs.mode || 'test' }}
