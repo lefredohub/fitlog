@@ -49,7 +49,7 @@ Mise en place (une fois, environ 45 minutes) :
 
 ### Passer à l'App Store
 Dans App Store Connect → ta fiche Menhir :
-- **Informations de l'app** : catégorie Santé et forme ; URL de confidentialité `https://lefredohub.github.io/fitlog/privacy.html` ;
+- **Informations de l'app** : catégorie Santé et forme ; URL de confidentialité `https://menhir.rk8h5294kt.workers.dev/privacy.html` ;
 - **Confidentialité de l'app** : réponses prêtes dans `docs/fiches-store.md` ;
 - **Classification par âge** : questionnaire (rien de sensible) ; **Prix** : gratuit (l'abonnement viendra plus tard, via les achats intégrés) ;
 - **Version** : textes, mots-clés et captures dans `docs/fiches-store.md`, choisir la version TestFlight, coller les **notes pour l'examen** du même fichier, puis « Soumettre pour examen ».

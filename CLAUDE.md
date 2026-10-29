@@ -1,7 +1,7 @@
 # Menhir (ex-FitLog) : consignes pour Claude Code
 
 ## Le projet
-PWA de suivi course à pied + muscu, nommée **Menhir** (ex-FitLog), hébergée sur GitHub Pages. Objectif : la commercialiser un jour ; chaque fonctionnalité se pense aussi dans ce but (voir `docs/commercialisation.md`).
+PWA de suivi course à pied + muscu, nommée **Menhir** (ex-FitLog), hébergée sur Cloudflare (Worker « menhir » relié au dépôt, https://menhir.rk8h5294kt.workers.dev, publié à chaque fusion sur `main` ; `.assetsignore` liste ce qui n'est pas publié). Objectif : la commercialiser un jour ; chaque fonctionnalité se pense aussi dans ce but (voir `docs/commercialisation.md`).
 - `index.html` : toute l'app (HTML, CSS, JS purs, aucun framework, aucun build).
 - `sw.js` : service worker (hors ligne). `manifest.json`, `privacy.html`, `anat.bin` (modèle 3D), `archivo.woff2` (police), icônes et `splash/`.
 - `config.js` : clés Supabase et adresse du Worker. NE JAMAIS le modifier ni l'écraser.

@@ -17,7 +17,7 @@
 <p>Finalité : faire fonctionner l'app (suivi, plans, statistiques, sauvegarde, coach). Base légale : l'exécution du service que tu demandes et, pour les données de santé (fréquence cardiaque, ressenti, données Apple Santé ou Health Connect) et le coach IA, ton <b>accord exprès</b>, demandé avant la première collecte et retirable à tout moment.</p>
 <p>Durées : le ressenti du jour est gardé 60 jours, les comptes rendus 150 jours. Le reste est gardé tant que tu le gardes : tu l'effaces quand tu veux. La suppression du compte efface la sauvegarde en ligne.</p></section>
 <section><h2>Qui reçoit quoi</h2>
-<p><b>Supabase</b> : hébergement du compte et de la sauvegarde. <b>Cloudflare</b> : serveur relais du coach IA (et de Strava pour la version web). <b>Anthropic</b> : réponses du coach IA. <b>GitHub Pages</b> : hébergement de la version web (l'adresse IP est vue lors du chargement).</p>
+<p><b>Supabase</b> : hébergement du compte et de la sauvegarde. <b>Cloudflare</b> : serveur relais du coach IA (et de Strava pour la version web). <b>Anthropic</b> : réponses du coach IA. <b>Cloudflare</b> (Workers) : hébergement de la version web (l'adresse IP est vue lors du chargement).</p>
 <p><b>Cartes</b> : quand tu ouvres la carte d'une sortie, ton téléphone télécharge le fond de carte (OpenStreetMap) et l'outil d'affichage Leaflet (cdnjs). Ces serveurs voient ton adresse IP, jamais tes données d'entraînement.</p>
 <p>Certains de ces prestataires sont situés hors de l'Union européenne (États-Unis) ; les transferts sont encadrés par des garanties reconnues (cadre de protection des données UE–États-Unis ou clauses contractuelles types).</p></section>
 <section id="suppression"><h2>Tes droits et la suppression de tes données</h2>
@@ -35,7 +35,7 @@
 <p><b>Évolution.</b> Ces conditions peuvent évoluer ; la date en haut de page indique la dernière version. Droit français.</p></section>
 <section id="mentions"><h2>Mentions légales</h2>
 <p><b>Éditeur</b> : Menhir est édité par un particulier, dont l'identité est communiquée à l'hébergeur. Contact : <b class=ct>l'adresse indiquée par l'éditeur</b>.</p>
-<p><b>Hébergement de la version web</b> : GitHub Pages, GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p>
+<p><b>Hébergement de la version web</b> : Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107, États-Unis.</p>
 <p><b>Licences et marques</b> : modèle 3D du corps BodyParts3D © The Database Center for Life Science, licence CC BY-SA 2.1 JP, adapté pour Menhir. Cartes : données © les contributeurs d'OpenStreetMap (ODbL), affichées avec Leaflet (BSD-2). Police Archivo : SIL Open Font License 1.1. Modèles de secours du coach : Mistral Small (licence Apache 2.0) et Llama 3.1 (Llama 3.1 Community License, « Built with Llama »). Apple Santé est une marque d'Apple Inc. ; Health Connect est une marque de Google LLC ; « Strava » est une marque de Strava, Inc. ; Claude et Anthropic sont des marques d'Anthropic PBC ; Cloudflare est une marque de Cloudflare, Inc. HYROX est une marque de son propriétaire : Menhir n'est ni affilié à HYROX, ni approuvé par HYROX, et utilise ce nom uniquement pour décrire le format de course. Les autres noms cités appartiennent à leurs propriétaires.</p></section>
 </main>
 <p><a href="./">Retour à l'app</a></p><script src="config.js"></script><script>var c=(window.FITLOG||{}).contact;document.querySelectorAll('.ct').forEach(function(e){if(c)e.textContent=c})</script></body></html>

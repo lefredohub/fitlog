@@ -27,7 +27,7 @@ jobs:
         # compilation de contrôle (push) : les deux variantes ; lancement manuel : celle choisie
         mode: ${{ fromJSON(github.event_name == 'push' && '["test","play"]' || format('["{0}"]', inputs.mode)) }}
     env:
-      APP_URL: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+      APP_URL: ${{ vars.APP_URL || 'https://menhir.rk8h5294kt.workers.dev/' }}
       MODE: ${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
           npx cap sync android
       - name: Health Connect (droits, page d'explication), retour depuis Strava, version minimale d'Android
         env:
-          PRIVACY: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}privacy.html
+          PRIVACY: ${{ vars.APP_URL || 'https://menhir.rk8h5294kt.workers.dev/' }}privacy.html
         run: |
           python3 - <<'PY'
           import os,re

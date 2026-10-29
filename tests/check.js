@@ -268,7 +268,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     await p.evaluate(SEED); await p.waitForTimeout(200);
     const cx = await p.evaluate(() => { S.runs.push({ id: 777777, n: 'Strava', d: new Date(Date.now() - 864e5).toISOString().slice(0, 16) + ':00Z', km: 13.37, s: 4000, hr: 150 }); S.runs.filter(r => r.man).slice(0, 3).forEach(r => { r.man = 0; r.hk = 1; r.src = 'santé' }); const j = coachCtx(), o = JSON.parse(j);
       // séance validée par une sortie Strava dont la jumelle (montre) est rangée à part : le coach voit la version montre
-      const W = { w: wk(Date.now()) - 7 * 864e5, ph: 'Base', s: [{ d: 1, t: 'Endurance', km: 7, z: 'ef' }] }; S.plan.weeks.unshift(W); const s0 = W.s[0], day = iso(sd(W.w, s0.d)); S.runs.push({ id: 888888, n: 'Strava', d: day + 'T07:00:00Z', km: s0.km, s: s0.km * 330 });
+      const W = { w: wk(Date.now()) - 7 * 864e5, ph: 'Base', s: [{ d: 1, t: 'Endurance', km: 7, z: 'ef' }] }; S.plan.weeks.unshift(W); const s0 = W.s[0], day = iso(sd(W.w, s0.d)); S.runs = S.runs.filter(r => !String(r.d).startsWith(day)); S.runs.push({ id: 888888, n: 'Strava', d: day + 'T07:00:00Z', km: s0.km, s: s0.km * 330 });
       S.xr = [{ id: 'gX', n: 'Montre', d: day + 'T07:00:00Z', km: s0.km, s: s0.km * 330, hr: 151, trk: 1, src: 'montre' }]; const o2 = JSON.parse(coachCtx()), q = o2.plan[0] && o2.plan[0].s.find(x => x.date === day);
       return { len: j.length, strava: j.includes('13.37'), note: !!o.strava, last: o.sorties.dernieres[0], plan: o.plan.length, twin: q ? q.st : 'absente', day, past: day < iso(new Date()) } });
     check('[Coach IA] séance validée par une sortie Strava : statut tiré de la sortie montre', cx.past && /faite.*FC 151/.test(cx.twin), cx.twin);

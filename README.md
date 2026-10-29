@@ -1,7 +1,7 @@
 # Menhir
 
 Carnet d'entraînement course à pied + musculation (anciennement FitLog) : séances et charges, plan de course, records, forme du jour,
-coach IA, import Apple Santé (iPhone), Health Connect (Android) ou fichiers de montre. Application web (PWA) sans framework ni étape de build, hébergée sur GitHub Pages.
+coach IA, import Apple Santé (iPhone), Health Connect (Android) ou fichiers de montre. Application web (PWA) sans framework ni étape de build, hébergée sur Cloudflare (https://menhir.rk8h5294kt.workers.dev), publiée à chaque fusion sur `main`.
 
 ## Le dépôt
 | Fichier / dossier | Rôle |
