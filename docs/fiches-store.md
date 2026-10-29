@@ -19,6 +19,7 @@
 >
 > COURSE
 > • Un plan semaine par semaine vers ta course (du 5 km au marathon) ou ton HYROX
+> • Créer un parcours : une boucle sur de vrais chemins, à la distance exacte de ta séance, avec guidage vocal
 > • Tes sorties arrivent toutes seules depuis ta montre, via Apple Santé ou Health Connect
 > • Records, allures d'entraînement, séance guidée à la voix
 >
@@ -45,12 +46,14 @@ Suivi (tracking) : **non**. Données collectées (envoyées hors du téléphone)
 | Contenu utilisateur → Autre (messages au coach) | Fonctionnalités de l'app | Oui (si compte) |
 | Identifiants → ID de l'appareil (clé aléatoire du coach, pour limiter les messages) | Fonctionnalités de l'app | Non |
 
-Non collecté : position (les tracés GPS restent sur le téléphone), contacts, achats, données d'utilisation, diagnostics.
+Non collecté : position (les tracés GPS et la position utilisée pour les parcours restent sur le téléphone), contacts, achats, données d'utilisation, diagnostics.
 
 **Notes pour l'examen d'Apple** :
 > Aucun compte n'est nécessaire (« Continuer sans compte »). Apple Santé est facultatif : Course > Sorties > Connecter Apple Santé ; Menhir lit seulement les
 > entraînements de course (distance, durée, fréquence cardiaque, tracé) et n'écrit rien. Le coach IA (Muscu > Coach muscu, ou Course > Plan après avoir défini un objectif) demande un accord explicite avant le
 > premier envoi de données au service d'IA (Anthropic) ; l'accord est retirable dans Réglages > Mes données. Suppression du compte : Réglages > Compte.
+> Localisation en arrière-plan : seulement pendant le guidage d'un parcours lancé par l'utilisateur (Course > Créer un parcours > Courir), pour annoncer les
+> virages écran verrouillé ; l'autorisation demandée est « Lorsque l'app est active ». La position n'est jamais envoyée hors du téléphone.
 
 ## Play Store : « Sécurité des données »
 - Données chiffrées en transit : **oui**. Suppression possible : **oui** (dans l'app et à l'adresse `privacy.html#suppression`).
@@ -65,7 +68,12 @@ Non collecté : position (les tracés GPS restent sur le téléphone), contacts,
 | Activité dans l'app | Autre contenu généré (messages au coach) | Oui | Fonctionnalités |
 | Identifiants de l'appareil | Clé aléatoire du coach | Oui | Fonctionnalités (limite de messages) |
 
-Position : non collectée (le tracé GPS lu dans Health Connect reste sur le téléphone).
+Position : non collectée (le tracé GPS lu dans Health Connect et la position des parcours restent sur le téléphone).
+
+## Play Store : service de premier plan « localisation »
+Déclaration (Contenu de l'application > Autorisations des services de premier plan) : **Localisation**. Usage : guidage vocal d'un parcours de course
+lancé par l'utilisateur, qui doit continuer écran éteint ; une notification reste affichée pendant tout le guidage et il s'arrête à la fin de la course.
+Google demande une courte vidéo : lancer un parcours (Course > Créer un parcours > Créer mon parcours > Courir), verrouiller l'écran, montrer la notification.
 
 ## Play Store : déclaration Health Connect
 | Autorisation | Pourquoi |

@@ -2,17 +2,17 @@
 
 Trois façons d'avoir Menhir sur iPhone. Fabrication : onglet **Actions → App iPhone → Run workflow**.
 Les deux premières affichent le site en ligne : les mises à jour arrivent toutes seules. La troisième (TestFlight, App Store) **embarque** l'app, comme Apple l'exige :
-chaque mise à jour passe par un nouvel envoi (mode `testflight`), et Strava n'y figure pas.
+chaque mise à jour passe par un nouvel envoi (mode `testflight`).
 
 | | Prix | Apple Santé | Durée | Pour qui |
 |---|---|---|---|---|
-| 1. Icône depuis Safari | gratuit | non | illimitée | tes amis, la version web avec Strava |
+| 1. Icône depuis Safari | gratuit | non | illimitée | tes amis, la version web |
 | 2. Xcode + compte Apple gratuit | gratuit (un Mac) | oui | 7 jours, à relancer | toi, pour tester |
 | 3. TestFlight | 99 $/an | oui | 90 jours par version | bêta testeurs, puis App Store |
 
 ## 1. Icône depuis Safari
 Dans **Safari** : ouvre l'adresse du site → **Partager** → **Sur l'écran d'accueil**. L'app s'ouvre en plein écran, hors ligne aussi. Pas d'Apple Santé : ajoute les sorties
-à la main, avec Strava ou avec les fichiers de montre (Réglages > Données > Importer).
+à la main ou avec les fichiers de montre (Réglages > Mes données > Importer).
 
 ## 2. App de test : Mac + Xcode + compte Apple gratuit
 1. Sur le Mac, installe **Xcode** depuis l'App Store (gratuit, gros téléchargement), ouvre-le une fois et accepte ce qu'il propose d'installer.
@@ -63,7 +63,6 @@ L'envoi à TestFlight n'a pas encore pu être essayé (il faut le compte payant)
    Garmin : app Garmin Connect → Paramètres → Apps connectées → Apple Santé → activer les entraînements. Coros, Polar, Suunto : même principe dans leur app.
 2. Ouvre l'app installée, connecte-toi à ton compte (ses données sont séparées de l'icône Safari, et de l'app TestFlight qui est embarquée), puis **Course → Sorties → Connecter Apple Santé** → accepte l'accord « données de santé » → autorise tout.
 3. Tes courses arrivent (tout l'historique la première fois). Touche une sortie : la carte et la fréquence cardiaque se chargent depuis Apple Santé.
-4. Quand tout est là : **« Retirer Strava »** dans la même carte. C'est définitif : les sorties qui ne viennent que de Strava sont retirées.
 
 ## Si ça ne marche pas
 - **« Apple Santé indisponible »** ou aucune demande d'autorisation : l'Apple ID gratuit n'a peut-être pas reçu le droit Apple Santé. Dis-le-moi avec une capture (et une capture de l'onglet Signing & Capabilities de Xcode).

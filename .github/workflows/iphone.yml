@@ -38,14 +38,14 @@ jobs:
         run: |
           mkdir -p build/www && cd build
           if [ "$MODE" = testflight ]; then
-            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude 'strava-*' --exclude sw.js "$GITHUB_WORKSPACE/" www/
+            rsync -a --exclude build --exclude .git --exclude .github --exclude docs --exclude tests --exclude worker.js --exclude '*.md' --exclude runlab --exclude node_modules --exclude sw.js "$GITHUB_WORKSPACE/" www/
             SERVER=''
           else
             echo '<!doctype html><meta charset="utf-8"><body style="background:#000">' > www/index.html
             SERVER="\"server\": { \"url\": \"$APP_URL\", \"cleartext\": false },"
           fi
           npm init -y >/dev/null
-          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/ios@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8
+          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/ios@8 @capacitor/browser@8 @capacitor/filesystem@8 @capacitor/share@8 capacitor-health@8 @capacitor-community/background-geolocation@1.3.1 @capacitor-community/text-to-speech@8
           # identifiant gardé tel quel (app.fitlog.perso) : le changer crée une autre app, sans les données de l'actuelle. À décider au lancement App Store.
           cat > capacitor.config.json <<JSON
           { "appId": "app.fitlog.perso", "appName": "Menhir", "webDir": "www", $SERVER
@@ -54,14 +54,16 @@ jobs:
           JSON
           npx cap add ios
           npx cap sync ios
-      - name: Nom, Apple Santé (droits et textes d'autorisation), retour depuis Strava, icône
+      - name: Nom, Apple Santé (droits et textes d'autorisation), localisation du guidage (Parcours), icône
         run: |
           python3 - <<'PY'
           import plistlib
           p='build/ios/App/App/Info.plist'
           d=plistlib.load(open(p,'rb'))
-          import os
-          if os.environ.get('MODE')!='testflight': d.setdefault('CFBundleURLTypes',[]).append({'CFBundleURLName':'app.fitlog.perso','CFBundleURLSchemes':['fitlog']})
+          # Parcours : position pour choisir le départ et guider la course, écran verrouillé compris (jamais envoyée)
+          d['NSLocationWhenInUseUsageDescription']="Menhir utilise ta position pour proposer un parcours autour de toi et te guider pendant la course. Elle reste sur ton téléphone."
+          d['NSLocationAlwaysAndWhenInUseUsageDescription']="Menhir continue de te guider écran verrouillé pendant une course que tu as lancée. Ta position reste sur ton téléphone."
+          d['UIBackgroundModes']=sorted(set(d.get('UIBackgroundModes',[])+['location','audio']))
           d['CFBundleDisplayName']='Menhir'
           d['NSHealthShareUsageDescription']="Menhir lit tes séances de course enregistrées dans Apple Santé (distance, durée, fréquence cardiaque, tracé GPS) pour ton suivi, ton plan et tes records."
           d['NSHealthUpdateUsageDescription']="Menhir n'écrit rien dans Apple Santé ; cette autorisation est demandée par le module de lecture."

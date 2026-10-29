@@ -20,7 +20,7 @@ const ver = (html.match(/const VER='([^']+)'/) || [])[1], cache = (sw.match(/fit
 check(`Version ${ver} identique dans index.html et sw.js`, ver && ver === cache, `VER=${ver}, cache=${cache}`);
 
 // 2. petit serveur local
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.bin': 'application/octet-stream' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.mjs': 'text/javascript', '.css': 'text/css', '.bin': 'application/octet-stream' };
 const server = http.createServer((q, r) => { const f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0]).replace(/^\/$/, '/index.html')); if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end() } r.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r) });
 
 // données de test : séances Push/Pull/Legs, historique, sorties, objectif semi avec plan
@@ -104,7 +104,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     check(`[${M}] Séance : barre du haut sous l'encoche, premier exercice visible`, nb.t >= 59 && nb.h >= nb.s, JSON.stringify(nb));
     check(`[${M}] Parcours sans erreur JS`, !p.errs.length, p.errs.join(' | ')); await p.close();
   }
-  // Apple Santé simulé (app iPhone) : import, remplacement d'une sortie Strava, tracé, retrait de Strava
+  // Apple Santé simulé (app iPhone) : import, tracé, accord santé ; anciennes sorties Strava effacées au démarrage (v4.13)
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true }); const errs = [];
     p.on('pageerror', e => errs.push(e.message));
@@ -133,14 +133,14 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)); view = 'run'; runTab = 'r'; render(); await w(100);
       const btn = document.querySelector('[data-a=hksync]'); const o = { card: !!btn }; btn.click(); await w(200);
       o.ask = !!document.querySelector('.sheet [data-a=csok]') && !S.runs.some(x => x.hk); document.querySelector('.sheet [data-a=csok]').click(); await w(600); o.cs = !!(S.cs && S.cs.sante);
-      const R = S.runs; o.added = R.some(x => x.id === 'hkA1' && x.hr > 0); o.replaced = R.some(x => x.id === 'hkB2') && !R.some(x => x.id === 9001); o.walk = !R.some(x => x.id === 'hkC3');
-      o.manual = R.some(x => x.id === 'm1'); o.left = stLeft() === 1; o.own = ownRuns().some(x => x.id === 'hkA1');
+      const R = S.runs; o.added = R.some(x => x.id === 'hkA1' && x.hr > 0); o.purged = R.some(x => x.id === 'hkB2') && !R.some(x => typeof x.id === 'number') && !('sv' in S) && !('be' in S); o.walk = !R.some(x => x.id === 'hkC3');
+      o.manual = R.some(x => x.id === 'm1'); o.own = ownRuns().some(x => x.id === 'hkA1');
       o.twice = R.some(x => x.id === 'hkD4') && R.some(x => x.id === 'hkE5') && !R.some(x => x.id === 9003 || x.id === 9004);
       o.nostrava = !R.some(x => x.id === 'hkF6'); o.local = !('hk' in S) && !!JSON.parse(localStorage.getItem('fitlog-hk')).last;
       const m0 = S._mod; await hkSync(true); o.nosave = S._mod === m0; const p0 = window.__perm; document.querySelector('[data-a=hksync]').click(); await w(300); o.perm = window.__perm === p0 + 1;
       RDI = 'hkA1'; view = 'rdet'; render(); await rdetLoad(); await w(200); o.track = !!trGet('hkA1');
-      view = 'run'; runTab = 'r'; render(); await w(100); const st = document.querySelector('[data-a=stoff]'); o.stbtn = !!st; if (st) st.click(); await w(300);
-      o.off = S.stravaOff === 1 && stLeft() === 0 && S.runs.length === 5 && !document.querySelector('[data-a=stoff]') && !document.querySelector('.sbtn');
+      view = 'run'; runTab = 'r'; render(); await w(100); o.stg = S.stg === 1 && /Strava n'est plus relié/.test(document.querySelector('main').innerText) && !/Se connecter avec Strava|Retirer Strava/.test(document.querySelector('main').innerText);
+      const ok = document.querySelector('[data-a=stgok]'); if (ok) ok.click(); await w(100); o.stgok = !S.stg && !/Strava n'est plus relié/.test(document.querySelector('main').innerText);
       document.querySelector('[data-a=nav][data-v=home]'); view = 'set'; accOpen.dt = true; render(); await w(100); const cn = document.querySelector('[data-a=csno]'); o.csbtn = !!cn; if (cn) cn.click(); await w(200);
       o.wd = !S.cs && !S.ck && !S.runs.some(x => x.hr) && !localStorage.getItem('fitlog-hk'); const t = trGet('hkA1'); o.wdtr = !t || t.hr.every(x => !x);
       return o });
@@ -148,7 +148,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     check('[Apple Santé] carte « Connecter Apple Santé » dans Course > Sorties', r.card);
     check("[Apple Santé] accord santé demandé avant toute lecture, puis enregistré", r.ask && r.cs);
     check('[Apple Santé] course importée avec la fréquence cardiaque (marche ignorée)', r.added && r.walk);
-    check('[Apple Santé] sortie Strava remplacée par sa version Apple Santé', r.replaced);
+    check('[Strava] retiré : sorties Strava, meilleurs efforts et connexion effacés au démarrage', r.purged, JSON.stringify(r));
     check('[Apple Santé] sortie saisie à la main conservée', r.manual);
     check('[Apple Santé] deux courses le même jour : aucune perdue', r.twice, JSON.stringify(r));
     check("[Apple Santé] séances écrites par l'app Strava ignorées (pas de données Strava au coach)", r.nostrava);
@@ -157,7 +157,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     check("[Apple Santé] autorisation redemandée à chaque lecture manuelle", r.perm);
     check('[Apple Santé] données visibles par le coach (données à toi)', r.own);
     check('[Apple Santé] tracé GPS chargé dans le détail de la sortie', r.track);
-    check('[Apple Santé] « Retirer Strava » enlève Strava et ses sorties restantes', r.left && r.stbtn && r.off, JSON.stringify(r));
+    check("[Strava] message unique : comment réimporter son archive Strava, puis disparaît", r.stg && r.stgok, JSON.stringify(r));
     const o = await p.evaluate(() => document.documentElement.scrollWidth); check('[Apple Santé] pas de débordement horizontal', o <= 390, o + ' px');
     if (SHOTS) await p.screenshot({ path: path.join(SHOTS, 'sombre-Apple_Santé.png') });
     check('[Apple Santé] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
@@ -178,7 +178,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     }, FLAGS);
     await p.goto(URL); await p.waitForTimeout(600);
     const r = await p.evaluate(async () => { const w = t => new Promise(r => setTimeout(r, t)), q = s => document.querySelector(s), o = {};
-      o.store = STORE && !STRV(); view = 'run'; runTab = 'r'; render(); await w(100); o.card = /Connecter Health Connect/.test(q('main').innerText) && !q('.sbtn');
+      o.store = STORE; view = 'run'; runTab = 'r'; render(); await w(100); o.card = /Connecter Health Connect/.test(q('main').innerText) && !q('.sbtn');
       q('[data-a=hksync]').click(); await w(150); q('.sheet [data-a=csok]').click(); await w(500);
       o.hc = window.__hc.avail >= 1 && window.__hc.perms.includes('READ_DISTANCE'); o.runs = S.runs.filter(x => x.hk).map(x => x.id).sort().join();
       // tracé demandé dans une nouvelle session : le client Health Connect est préparé d'abord
@@ -211,6 +211,21 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     const h = await p.evaluate(() => { const m = document.querySelector('main'); return { y: m.scrollHeight - m.clientHeight, inst: /Installe Menhir/.test(m.innerText) } });
     check('[Stores] accueil nouvel utilisateur : pas de carte « Installe Menhir », sans défilement', !h.inst && h.y <= 0, JSON.stringify(h));
     check('[Stores] nouvel utilisateur sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
+  }
+  // Parcours (RunLab, page rl/) : bouton dans Course, distance de la prochaine sortie, retour vers Menhir
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true }); const errs = [];
+    p.on('pageerror', e => errs.push(e.message)); await p.route(/^https:\/\//, rt => rt.abort());
+    await p.addInitScript(f => f.forEach(k => localStorage.setItem(k, '1')), FLAGS); await p.goto(URL); await p.waitForTimeout(600); await p.evaluate(SEED);
+    const km = await p.evaluate(() => { view = 'run'; runTab = 'p'; render(); const b = document.querySelector('[data-a=rlgo]'); return b ? b.dataset.km : null });
+    check('[Parcours] « Créer un parcours » dans Course > Plan, à la distance de la prochaine sortie', km && +km > 0, String(km));
+    await p.click('[data-a=rlgo]'); await p.waitForURL(/\/rl\/index\.html\?km=/, { timeout: 10000 }); await p.waitForTimeout(1500);
+    const rl = await p.evaluate(() => ({ btn: !![...document.querySelectorAll('button')].find(b => /Créer mon parcours/.test(b.textContent)), km: document.body.innerText.match(/(\d+(?:,\d)?) km/)?.[1], back: !!document.querySelector('[aria-label="Revenir à Menhir"]'), w: document.documentElement.scrollWidth }));
+    check('[Parcours] la page Parcours s\'ouvre avec la distance demandée et un retour vers Menhir', rl.btn && rl.back && String(rl.km).replace(',', '.') == String(+km) && rl.w <= 390, JSON.stringify({ rl, km }));
+    await p.click('[aria-label="Revenir à Menhir"]'); await p.waitForURL(/\/index\.html/, { timeout: 10000 }); await p.waitForTimeout(700);
+    const back = await p.evaluate(() => ({ view, hash: location.hash }));
+    check('[Parcours] retour dans Menhir sur l\'onglet Course', back.view === 'run' && !back.hash, JSON.stringify(back));
+    check('[Parcours] sans erreur JS', !errs.length, errs.join(' | ')); await p.close();
   }
   // Séance : historique consultable, remplacement par recherche (avec la dernière perf), machines Fitness Park
   {

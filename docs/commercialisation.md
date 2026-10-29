@@ -10,7 +10,7 @@
 | **Textes légaux dans l'app** | Fait (v4.12) : une seule page `privacy.html` (confidentialité, suppression des données, conditions d'utilisation, mentions légales), affichée dans Réglages > Infos légales. À compléter à la création de la micro-entreprise (nom, SIRET, adresse) et à faire relire. | Moi / toi |
 | **Accords** : données de santé (RGPD art. 9) et coach IA (règle Apple 5.1.2) | Faits, retirables dans Réglages > Mes données. | — |
 | **Suppression du compte** dans l'app et par e-mail | Faite (Apple 5.1.1, Google). | — |
-| **Strava** | Absent des apps des stores. La version web le garde pour tes amis (10 comptes maximum). À couper du web avant le lancement payant. | Moi, au lancement |
+| **Strava** | Retiré partout (v4.13). Seul l'import de l'archive Strava (données de l'utilisateur) reste. | — |
 | **Montre** : Apple Santé (iPhone), Health Connect (Android) | Faits. Health Connect à tester sur un vrai Android (un de tes 2 amis). | Ton ami |
 | **Apps des stores** : app embarquée, signée | Prête : `iphone.yml` mode `testflight`, `android.yml` mode `play`. Fiches et formulaires dans `docs/fiches-store.md`. | — |
 | **Statut** : micro-entreprise | À créer (gratuit, formalites.entreprises.gouv.fr). Nécessaire pour le compte Google « organisation » et pour encaisser. | Toi |
@@ -29,7 +29,7 @@ Le dépôt d'une marque **n'est pas obligatoire**. Il protège : sans dépôt, q
 4. **Android** (`docs/android.md`) : compte Play Console organisation, clé de signature, mode `play`, test interne avec tes amis, puis production.
 5. **iPhone** (`docs/iphone.md`) : compte Apple Developer, mode `testflight`, bêta, puis App Store.
 6. Lancement payant (plus tard) : abonnement via les achats intégrés (Apple et Google prennent 15 % pour les petits éditeurs), écran d'abonnement,
-   CGV (`docs/juridique/cgu-cgv.md`), médiateur de la consommation, cartes payantes, Strava coupé sur le web.
+   CGV (`docs/juridique/cgu-cgv.md`), médiateur de la consommation, cartes payantes.
 
 ## 4. Modèle proposé
 Gratuit : carnet muscu et course, import Apple Santé / Health Connect et fichiers de montre. Payant (4 à 6 €/mois ou 30 à 40 €/an) : plans de course et HYROX, coach IA, statistiques avancées.

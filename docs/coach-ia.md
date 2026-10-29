@@ -36,7 +36,7 @@ ne répond pas ; l'app l'indique sous la réponse.
 ## Bon à savoir
 - Avant le 26 octobre 2026, le Worker envoyait un réglage (`temperature`) que Claude Haiku 5.5 refuse : toutes les réponses venaient en fait de Cloudflare.
   C'est corrigé dans `worker.js` : il faut le recoller dans Cloudflare (étape 4).
-- Le coach ne reçoit jamais de sortie Strava (règles de Strava) ; sans Strava, il voit toutes tes sorties.
+- Le coach voit toutes tes sorties (Apple Santé / Health Connect, fichiers de montre, archive Strava importée, saisies).
 - L'utilisateur donne son accord avant le premier message (exigé par Apple) et peut le retirer dans Réglages > Mes données.
 - Les apps des stores (adresses `capacitor://localhost` et `https://localhost`) sont acceptées par le Worker sans réglage ; il suffit de recoller `worker.js`.
 - Commercialisation : garder un plafond de messages par abonné (variables ci-dessus) et réserver le coach à l'offre payante.
