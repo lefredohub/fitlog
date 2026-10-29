@@ -104,7 +104,7 @@ const FLAGS = ['fitlog-onb', 'fitlog-nolog', 'fitlog-inst', 'fitlog-sb', 'fitlog
     check(`[${M}] Séance : barre du haut sous l'encoche, premier exercice visible`, nb.t >= 59 && nb.h >= nb.s, JSON.stringify(nb));
     check(`[${M}] Parcours sans erreur JS`, !p.errs.length, p.errs.join(' | ')); await p.close();
   }
-  // Apple Santé simulé (app iPhone) : import, tracé, accord santé ; anciennes sorties Strava effacées au démarrage (v4.13)
+  // Apple Santé simulé (app iPhone) : import, tracé, accord santé ; anciennes sorties Strava effacées au démarrage (v5.0)
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 }, colorScheme: 'dark', isMobile: true, hasTouch: true }); const errs = [];
     p.on('pageerror', e => errs.push(e.message));

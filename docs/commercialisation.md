@@ -10,7 +10,7 @@
 | **Textes légaux dans l'app** | Fait (v4.12) : une seule page `privacy.html` (confidentialité, suppression des données, conditions d'utilisation, mentions légales), affichée dans Réglages > Infos légales. À compléter à la création de la micro-entreprise (nom, SIRET, adresse) et à faire relire. | Moi / toi |
 | **Accords** : données de santé (RGPD art. 9) et coach IA (règle Apple 5.1.2) | Faits, retirables dans Réglages > Mes données. | — |
 | **Suppression du compte** dans l'app et par e-mail | Faite (Apple 5.1.1, Google). | — |
-| **Strava** | Retiré partout (v4.13). Seul l'import de l'archive Strava (données de l'utilisateur) reste. | — |
+| **Strava** | Retiré partout (v5.0). Seul l'import de l'archive Strava (données de l'utilisateur) reste. | — |
 | **Montre** : Apple Santé (iPhone), Health Connect (Android) | Faits. Health Connect à tester sur un vrai Android (un de tes 2 amis). | Ton ami |
 | **Apps des stores** : app embarquée, signée | Prête : `iphone.yml` mode `testflight`, `android.yml` mode `play`. Fiches et formulaires dans `docs/fiches-store.md`. | — |
 | **Statut** : micro-entreprise | À créer (gratuit, formalites.entreprises.gouv.fr). Nécessaire pour le compte Google « organisation » et pour encaisser. | Toi |

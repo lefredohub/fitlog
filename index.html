@@ -463,7 +463,7 @@ return`<div class=top><h1>Objectif</h1></div><div class=seg role=group aria-labe
 <div class=sub style="margin:0 4px 12px">Plan indicatif, pas un avis médical. Progresse graduellement et demande conseil à un médecin si tu as un doute.</div>
 ${hx?'':`<div class=card><h2>Courses jalons</h2><div class=sub>Tests ou courses intermédiaires, intégrés au plan.</div>${(g.races||[]).map((m,i)=>`<div class=row style="justify-content:space-between"><span>${esc(m.n)} · ${m.d} · ${m.km} km</span><button class=d data-a=gdel data-i=${i} aria-label="Retirer cette course" style="padding:6px 12px">×</button></div>`).join('')}<button style="width:100%" data-a=gadd>Ajouter une course jalon</button></div>`}
 <div class=bar><button data-a=gcancel>Annuler</button><button class=p data-a=gsave>Générer le plan</button></div>`}
-const VER='4.13.0';
+const VER='5.0.0';
 const toast=t=>{const e=document.createElement('div');e.className='toast';e.setAttribute('role','status');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
 let lastChk=0;
 async function checkUpdate(manual){lastChk=Date.now();
@@ -630,7 +630,7 @@ return`<button class="item hrow${o?' open':''}" data-a=hopen data-i=${hi} aria-e
 +(o?`<div class="card hdet">${h.ex.map((e,ei)=>`<div style="margin:6px 0"><b>${esc(e.name)}</b>${pr&&pr[hi+'.'+ei]?' <span class=pr>record</span>':''}<div class=sub style="margin:0">${fmt(e)}${e.rest?' · repos '+e.rest+' s':''}</div>${e.note?`<div class=sub style="margin:0">${esc(e.note)}</div>`:''}</div>`).join('')}${peek?'':`<div class=row style="margin:4px 0 0"><button class=gh data-a=editlog data-i=${hi} style="padding-left:0">Modifier cette séance</button><button class=gh data-a=shimg data-k=m data-i=${hi}>Partager en image</button></div>`}</div>`:'')}).join('')}
 // Course sans aucune sortie : comment en ajouter (montre via Apple Santé / Health Connect, fichier de montre, ou à la main)
 const runStart=()=>HKP()?hkCard()+`<button class=gh style="width:100%;margin:-4px 0 10px" data-a=radd>Ou ajoute une sortie à la main</button>`:`<div class=card><h2>Ajoute tes sorties de course</h2><div class=sub>Importe le fichier de ta montre (Réglages > Mes données) ou saisis-les toi-même (date, distance, durée).</div><button class=p style="width:100%" data-a=radd>Ajouter une sortie à la main</button></div>`;
-// une seule fois après le retrait de Strava (v4.13) : comment retrouver son historique
+// une seule fois après le retrait de Strava (v5.0) : comment retrouver son historique
 let cdFrom='';
 const stgCard=()=>S.stg?`<div class=card><h2>Strava n'est plus relié</h2><div class=sub>Tes sorties synchronisées depuis Strava ont été retirées, avec les records calculés par Strava. Pour retrouver ton historique, importe ton archive Strava : c'est une copie de tes données, demandée une fois sur strava.com.</div><div class=bar><button class=p data-a=stghow>Comment faire</button><button data-a=stgok>OK</button></div></div>`:'';
 // séances précédentes, consultables pendant une séance (bouton « Historique » de la barre du haut)
@@ -834,7 +834,7 @@ function dayLoads(own){const o={},Z=zones(),g=k=>o[k]=o[k]||{r:0,m:0};
 S.h.forEach(h=>{const n=h.ex.reduce((a,e)=>a+(e.skip||e.t==='cardio'?0:e.sets.length),0);g(iso(new Date(h.date))).m+=(h.dur||Math.max(20,n*3))*1.1});return o}
 /* ===== données à toi (utilisables par le coach IA) ===== */
 const isOwn=r=>!!(r&&(r.man||r.trk||r.arc||r.hk));
-// v4.13 : Strava retiré. Les sorties synchronisées depuis Strava, ses meilleurs efforts et ses tracés sont effacés (aussi après une
+// v5.0 : Strava retiré. Les sorties synchronisées depuis Strava, ses meilleurs efforts et ses tracés sont effacés (aussi après une
 // récupération du compte ou l'import d'une sauvegarde). Les sorties à soi rangées à part parce qu'une sortie Strava les doublait (S.xr :
 // archive, fichier de montre) redeviennent des sorties normales. Les km retirés restent comptés sur les chaussures (k0) ; une carte
 // unique (S.stg) explique comment réimporter l'archive Strava. Renvoie true si quelque chose a changé.
