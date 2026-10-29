@@ -5,14 +5,14 @@ PWA de suivi course à pied + muscu, nommée **Menhir** (ex-FitLog), hébergée 
 - `index.html` : toute l'app (HTML, CSS, JS purs, aucun framework, aucun build).
 - `sw.js` : service worker (hors ligne). `manifest.json`, `privacy.html`, `anat.bin` (modèle 3D), `archivo.woff2` (police), icônes et `splash/`.
 - `config.js` : clés Supabase et adresse du Worker. NE JAMAIS le modifier ni l'écraser.
-- `worker.js` : copie de référence du Worker Cloudflare (coach IA ; Strava retiré en v4.13). Il n'est pas déployé depuis GitHub : il est collé à la main dans Cloudflare, et ses secrets sont des variables Cloudflare (jamais dans le fichier).
+- `worker.js` : copie de référence du Worker Cloudflare (coach IA ; Strava retiré en v5.0). Il n'est pas déployé depuis GitHub : il est collé à la main dans Cloudflare, et ses secrets sont des variables Cloudflare (jamais dans le fichier).
 - `.github/workflows/iphone.yml` : app iPhone (Apple Santé), mode test (affiche le site) ou TestFlight (app embarquée) ; `android.yml` : app Android (Health Connect), APK de test (affiche le site) ou fichier Play Store (embarqué). `docs/` : guides, fiches des stores, brouillons juridiques. `tests/check.js` : vérifications.
 - `runlab/` : code de la page **Parcours** (ex-RunLab : boucles de course calculées sur le téléphone, guidage), en React/TypeScript avec Vite. Sa version publiée est `rl/` :
   après toute modification de `runlab/`, lancer `npm ci` (une fois) puis `npm run lint && npm run typecheck && npm test && npm run build` dans `runlab/`, et committer `rl/` (le workflow `runlab.yml` le vérifie).
   Menhir l'ouvre par « Créer un parcours » (Course), `rl/index.html?km=…` ; le retour passe par `index.html#run`. Les tests de bout en bout : `PW_CHROMIUM_PATH=… npx playwright test`.
 - `privacy.html` : seule source des textes légaux (confidentialité, suppression, conditions, mentions), affichée telle quelle dans l'app (Réglages > Infos légales). La tenir à jour à chaque nouvelle donnée collectée.
 - Les clés internes gardent l'ancien nom (`localStorage` « fitlog… », table `fitlog_data`, identifiant `app.fitlog.perso`) : ne pas les renommer sans migration.
-- Strava : retiré partout en v4.13 (les sorties synchronisées sont effacées au démarrage, `stravaPurge`). Seule reste la lecture de l'archive Strava (copie RGPD des données de l'utilisateur). Ne pas réintroduire d'appel à l'API Strava.
+- Strava : retiré partout en v5.0 (les sorties synchronisées sont effacées au démarrage, `stravaPurge`). Seule reste la lecture de l'archive Strava (copie RGPD des données de l'utilisateur). Ne pas réintroduire d'appel à l'API Strava.
 
 ## Qui je suis
 Je ne code pas : je teste sur iPhone. Réponses claires, concises, en français. Contredis-moi si tu vois mieux.

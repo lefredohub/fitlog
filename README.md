@@ -18,4 +18,4 @@ coach IA, import Apple Santé (iPhone), Health Connect (Android) ou fichiers de 
 | `docs/` | Guides : iPhone, Android, fiches des stores, compte cloud, coach IA, licences, commercialisation, brouillons juridiques |
 
 Les clés internes (`localStorage` « fitlog… », table `fitlog_data`, identifiant d'app `app.fitlog.perso`) gardent l'ancien nom pour ne pas perdre les données.
-Le guide cité dans `config.js` (`cloud-setup.md`) est désormais `docs/compte-cloud.md` ; le champ `api` de `config.js` est l'adresse du Worker du coach IA (Strava a été retiré en v4.13).
+Le guide cité dans `config.js` (`cloud-setup.md`) est désormais `docs/compte-cloud.md` ; le champ `api` de `config.js` est l'adresse du Worker du coach IA (Strava a été retiré en v5.0).

@@ -1,4 +1,4 @@
-// Menhir : relais du coach IA (Cloudflare Worker) v5. Strava est retiré depuis la v4.13 de l'app.
+// Menhir : relais du coach IA (Cloudflare Worker) v5. Strava est retiré depuis la v5.0 de l'app.
 // Variables : ALLOWED_ORIGIN (adresse de l'app, ex. https://menhir.rk8h5294kt.workers.dev ; plusieurs possibles, séparées par des virgules).
 //
 // KV : TOKENS (compteurs de messages du coach)
